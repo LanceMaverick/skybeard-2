@@ -17,7 +17,7 @@ pip install -r requirements.txt
 
 ## Running Skybeard
 
-To run skybeard define your key in the environment variable `$tg_bot_token` and run `main.py`. this can be done easily e.g.:
+To run skybeard define your key in the environment variable `$TG_BOT_TOKEN` and run `main.py`. this can be done easily e.g.:
 
     TG_BOT_TOKEN=99121185:RUE-UAa7dsEaagAKkysPDjqa2X7KxX48e ./main.py
 
@@ -37,12 +37,13 @@ beards
         |    README
         |    ...
 ```
+
 The `myBeard` folder containts a `requirements.txt` for any additonal dependencies so they can be pipped, a `config.py` file for user specific variables (e.g private API keys) and settings and the `__init__.py` which contains the class that must inheret from `beards.Beard`.
 The folder can also contain any other python modules and files that are needed for the plugin, but Skybeard interfaces only with the `Beard` class in `__init.py__`, allowing you to separate out the beard's logic from the interface.
 
 ## Growing a new beard
 Creating a new beard requires knowledge of the python-telegram-bot API, see: https://github.com/python-telegram-bot/python-telegram-bot#documentation.
-The minimum requirement for a working beard is the `Beard` class in the `__init.py` of your beard's folder. In this class, the telegram `Updater` and `Dispatcher` can be interfaced with (via `self.updater` and `self.disp` respectively). The beard must define an `initialise()` method that registers any handlers with the bot. 
+The minimum requirement for a working beard is the `Beard` class in the `__init__.py` of your beard's folder. In this class, the telegram `Updater` and `Dispatcher` can be interfaced with (via `self.updater` and `self.disp` respectively). The beard must define an `initialise()` method that registers any handlers with the bot. 
 For example a simple echo plug-in, that echo's a user's message would look like this:
 ```
 from skybeard.beards import Beard
