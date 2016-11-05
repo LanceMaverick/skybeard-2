@@ -6,9 +6,10 @@ import importlib
 import configparser
 import argparse
 
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+        level=logging.INFO)
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.INFO)
 
 from skybeard.beards import Beard
 

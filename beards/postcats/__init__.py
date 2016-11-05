@@ -12,6 +12,7 @@ class PostCats(Beard):
     def listener(self, bot, update):
         message = update.message
         text = message.text
+        
         if 'give me spacecats' in text or 'show me spacecats' in text:
             cat_photos= [
                     'http://i.imgur.com/bJ043fy.jpg',
@@ -25,9 +26,8 @@ class PostCats(Beard):
                     'http://i.imgur.com/rnA769W.jpg',
                     'http://i.imgur.com/08mxOAK.jpg'
                     ]
-
+            
             i = random.randint(0, len(cat_photos)-1)
-
             try:
                 update.message.reply_photo(photo=cat_photos[i])
             except Exception  as e:

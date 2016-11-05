@@ -8,7 +8,6 @@ and http://stackoverflow.com/a/17401329
 """
 
 class BeardLoader(type):
-
     def __init__(cls, name, bases, attrs):
         if hasattr(cls, 'beards'):
             cls.register(cls)
@@ -29,4 +28,5 @@ class Beard(metaclass=BeardLoader):
     # This is normally started in the main.py
     # updater.start_polling()
 
-
+    def error(self, bot, update, error):
+        logger.warn('Update "{}" caused error "{}"'.format(update, error))

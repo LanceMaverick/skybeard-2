@@ -43,8 +43,10 @@ The folder can also contain any other python modules and files that are needed f
 
 ## Growing a new beard
 Creating a new beard requires knowledge of the python-telegram-bot API, see: https://github.com/python-telegram-bot/python-telegram-bot#documentation.
-The minimum requirement for a working beard is a plug-in class in the `__init__.py` of your beard's folder, which inherits from `beards.beard`. In this class, the telegram `Updater` and `Dispatcher` can be interfaced with (via `self.updater` and `self.disp` respectively). The beard must define an `initialise()` method that registers any handlers with the bot. 
-For example a simple echo plug-in, that echo's a user's message would look like this:
+The minimum requirement for a working beard is a plug-in class in the `__init__.py` of your beard's folder, which inherits from `beards.Beard`. 
+
+In this class, the telegram `Updater` and `Dispatcher` can be interfaced with (via `self.updater` and `self.disp` respectively). The beard must define an `initialise()` method that registers any handlers with the bot. 
+For example a simple echo plug-in, that echos a user's message would look like this:
 ```
 from skybeard.beards import Beard
 from telegram.ext import MessageHandler, Filters
@@ -65,5 +67,26 @@ The interfacing with the python-telegram-bot API is no different to the echobot 
 https://github.com/python-telegram-bot/python-telegram-bot/blob/master/examples/echobot2.py
 The key differences being that any handlers and listeners are added to the dispatcher in the parent `Beard` class.
 
-    `
+### Structure and style
+For large and complex plug-ins, most logic should be kept out of the `Beard` class. When adding command handlers that will directly call some function, they can callback to, for instance, a function in a private module within the plug-in.
+
+For message handlers, or anything that requires some form of processing of the input, it is best to do this within the '`Beard` class before calling the approriate functions. For instance, in the weather plug-in, it is called with the `/weather` command, which gives the weather for a default location specified in the `config.py`, unless a location is given as an argument to this command. E.g. `/weather Dublin, Ireland`. The input is interpreted in the `Weather` class in `__init__.py` before calling the  `forecast()` function in `weather.py` with the relevant arguments:
+
+In `__init.py__`:
+```
+class Weather(Beard):
+    
+    #register the command /weather, which will callback to self.forecast
+    def initialise(self):
+        self.disp.add_handler(CommandHandler('weather', self.forecast))
+    
+    #forecast interprets th input before weather.forecast() does all the work
+    def forecast(self, bot, update): 
+        location = update.message.text.split('/weather',1)[1]
+        if not location:
+            location = config.default_location
+        weather.forecast(bot, update) 
+```
+Separating the two like this ensures command and message handling can be modified easily, such as with adding new features or avoiding conflicts with other plug-ins.
+
 
