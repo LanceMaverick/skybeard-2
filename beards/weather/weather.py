@@ -1,15 +1,11 @@
 import pyowm
 import logging
-from . import config
 
 def forecast(bot, update):
         owm = pyowm.OWM(config.api_key)
         message = update.message
         text = message.text
         
-        location = text.split('/weather',1)[1]
-        if not location:
-            location = config.default_location
     
         forecast = owm.daily_forecast(location,limit=7)
         tomorrow = pyowm.timeutils.tomorrow()
