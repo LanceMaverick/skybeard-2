@@ -43,7 +43,7 @@ The folder can also contain any other python modules and files that are needed f
 
 ## Growing a new beard
 Creating a new beard requires knowledge of the python-telegram-bot API, see: https://github.com/python-telegram-bot/python-telegram-bot#documentation.
-The minimum requirement for a working beard is the `Beard` class in the `__init__.py` of your beard's folder. In this class, the telegram `Updater` and `Dispatcher` can be interfaced with (via `self.updater` and `self.disp` respectively). The beard must define an `initialise()` method that registers any handlers with the bot. 
+The minimum requirement for a working beard is a plug-in class in the `__init__.py` of your beard's folder, which inherits from `beards.beard`. In this class, the telegram `Updater` and `Dispatcher` can be interfaced with (via `self.updater` and `self.disp` respectively). The beard must define an `initialise()` method that registers any handlers with the bot. 
 For example a simple echo plug-in, that echo's a user's message would look like this:
 ```
 from skybeard.beards import Beard
