@@ -1,7 +1,8 @@
 # skybeard v2.0
 
-A plug-in based telegram bot 
 ![Skybeard](http://i.imgur.com/DmGktKh.jpg)
+
+A plug-in based telegram bot
 
 ## Installation
 It is recommended to use a `virtualenv` for Skybeard. Create and activate the virtual environment with
