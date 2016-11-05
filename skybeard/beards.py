@@ -8,7 +8,6 @@ and http://stackoverflow.com/a/17401329
 """
 
 class BeardLoader(type):
-
     def __init__(cls, name, bases, attrs):
         if hasattr(cls, 'beards'):
             cls.register(cls)
@@ -21,7 +20,6 @@ class BeardLoader(type):
         instance.initialise()
 
 class Beard(metaclass=BeardLoader):
-
     updater = Updater(os.environ.get('TG_BOT_TOKEN'))
     disp = updater.dispatcher
     updater.start_polling()
