@@ -23,5 +23,8 @@ class Beard(metaclass=BeardLoader):
     updater = Updater(os.environ.get('TG_BOT_TOKEN'))
     disp = updater.dispatcher
     updater.start_polling()
+    
+    def error(self, bot, update, error):
+        logger.warn('Update "{}" caused error "{}"'.format(update, error))
 
 
