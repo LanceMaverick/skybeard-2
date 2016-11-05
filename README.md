@@ -45,7 +45,8 @@ Creating a new beard requires knowledge of the python-telegram-bot API, see: htt
 The minimum requirement for a working beard is the `Beard` class in the `__init.py` of your beard's folder. In this class, the telegram `Updater` and `Dispatcher` can be interfaced with (via `self.updater` and `self.disp` respectively). The beard must define an `initialise()` method that registers any handlers with the bot. 
 For example a simple echo plug-in, that echo's a user's message would look like this:
 ```
-from skybeard.beards import Beard, CommandHandler, MessageHandler
+from skybeard.beards import Beard
+from telegram.ext import MessageHandler, Filters
 
 class EchoPlugin(Beard):
     
