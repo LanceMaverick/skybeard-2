@@ -26,7 +26,7 @@ Skybeard wears many beards. The bot will automatically load any "beard" (a plug-
 ```
 beards
 |
-|___myPlugin
+|___myBeard
     |    __init__.py
     |    config.py
     |    requirements.txt
@@ -36,12 +36,13 @@ beards
         |    README
         |    ...
 ```
-The `myPlugin` folder containts a `requirements.txt` for any additonal dependencies so they can be pipped, a `config.py` file for user specific variables (e.g private API keys) and settings and the `__init__.py` which contains the plugin class that must inheret from `plugins.Plugin`.
-The folder can also contain any other python modules and files that are needed for the plugin, but Skybeard interfaces only with the Plugin class in `__init.py__`, allowing you to separate out the beard's logic from the interface.
+The `myBeard` folder containts a `requirements.txt` for any additonal dependencies so they can be pipped, a `config.py` file for user specific variables (e.g private API keys) and settings and the `__init__.py` which contains the class that must inheret from `beards.Beard`.
+The folder can also contain any other python modules and files that are needed for the plugin, but Skybeard interfaces only with the `Beard` class in `__init.py__`, allowing you to separate out the beard's logic from the interface.
 
 ## Growing a new beard
 Creating a new beard requires knowledge of the python-telegram-bot API, see: https://github.com/python-telegram-bot/python-telegram-bot#documentation.
-The minimum requirement for a working beard is the `Beard` class in the `__init.py` of your beard's folder. In this class, the telegram `Updater` and `Dispatcher` can be interfaced with (via `self.updater` and `self.disp` respectively). The beard must define an `initialise()` method that registers any handlers with the bot. For example A simple echo plug-in, that echo's a user's message would look like this:
+The minimum requirement for a working beard is the `Beard` class in the `__init.py` of your beard's folder. In this class, the telegram `Updater` and `Dispatcher` can be interfaced with (via `self.updater` and `self.disp` respectively). The beard must define an `initialise()` method that registers any handlers with the bot. 
+For example a simple echo plug-in, that echo's a user's message would look like this:
 ```
 from telegram.ext import CommandHandler, MessageHandler
 
@@ -59,7 +60,7 @@ class EchoPlugin(Beard):
 ```
 The interfacing with the python-telegram-bot API is no different to the echobot example supplied by python-telegram-bot:
 https://github.com/python-telegram-bot/python-telegram-bot/blob/master/examples/echobot2.py
-The key differences being that any handlers and listeners are added to the dispatcher in the parent `Beard` class, and that all functions that interface with the bot must of course be members of `EchoPlugin`. 
+The key differences being that any handlers and listeners are added to the dispatcher in the parent `Beard` class.
 
     `
 
