@@ -65,5 +65,25 @@ The interfacing with the python-telegram-bot API is no different to the echobot 
 https://github.com/python-telegram-bot/python-telegram-bot/blob/master/examples/echobot2.py
 The key differences being that any handlers and listeners are added to the dispatcher in the parent `Beard` class.
 
-    `
+### Structure and style
+For large and complex plug-ins, most logic should be kept out of the `Beard` class. When adding command handlers, they can callback to, for instance, a function in a private module within the plug-in. 
+For message handlers, or anything that requires some form of processing of the input, it is bes to do this within the '`Beard` class before calling the approriate functions. For instance, in the weather plug-in, the plug-in is called with the `/weather` command, but this gives the weather for a default location specified in the `config.py`, unless a location is given as an argument to this command. E.g. `/weather Dublin, Ireland`. The input is interpreted in the `Weather` class in `__init__.py` before calling the function in `forecast()` function in `weather.py` with the relevant arguments:
+
+In `__init.py__`:
+```
+class Weather(Beard):
+    
+    #register the command /weather, which will callback to self.forecast
+    def initialise(self):
+        self.disp.add_handler(CommandHandler('weather', self.forecast))
+    
+    #forecast interprets th input before weather.forecast() does all the work
+    def forecast(self, bot, update): 
+        location = update.message.text.split('/weather',1)[1]
+        if not location:
+            location = config.default_location
+        weather.forecast(bot, update) 
+```
+Separating the two like this ensures command and message handling can be modified easily, such as with adding new features or avoiding conflicts with other plug-ins.
+
 
