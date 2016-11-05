@@ -1,6 +1,6 @@
 # skybeard v2.0
 
-![Skybeard](http://i.imgur.com/DmGktKh.jpg)
+![Skybeard](http://i.imgur.com/fb2r696.jpg)
 
 A plug-in based telegram bot
 
