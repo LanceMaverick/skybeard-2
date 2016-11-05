@@ -4,6 +4,7 @@ import sys
 import logging
 import importlib
 import yaml
+import argparse
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -35,9 +36,21 @@ def main(config):
     updater.idle()
 
 if __name__ == '__main__':
+
+    parser = argparse.ArgumentParser(description='Skybeard hails you!')
+
+    parser.add_argument('-c', '--config-file', default="config.yaml")
+    parser.add_argument('-k', '--key', default=os.environ.get('TG_BOT_TOKEN'))
+
+    parsed = parser.parse_args()
+
+    # Set up the master beard
+    Beard.setup_beard(parsed.key)
+
     logger.debug("Getting config")
     config = yaml.load(open("config.yaml"))
     logger.debug("Config found to be: {}".format(config))
+
 
     # TODO make an argparse here to override the config file (and also specify
     # the config file)
