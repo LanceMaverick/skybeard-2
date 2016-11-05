@@ -1,9 +1,10 @@
 #show spacecats test plugin
 import random
 
-from skybeard.beards import Beard, MessageHandler, Filters
+from skybeard.beards import Beard
+from telegram.ext import MessageHandler, Filters
 
-class PostCats(Plugin):
+class PostCats(Beard):
 
     def initialise(self):
         self.disp.add_handler(MessageHandler(Filters.text, self.listener))
