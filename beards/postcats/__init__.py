@@ -1,7 +1,7 @@
 #show spacecats test plugin
 import random
 
-from skybeard.plugins import Plugin, MessageHandler, Filters
+from skybeard.beards import Beard, MessageHandler, Filters
 
 class PostCats(Plugin):
 
