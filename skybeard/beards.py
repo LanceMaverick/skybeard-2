@@ -23,6 +23,8 @@ class BeardLoader(type):
 class Beard(metaclass=BeardLoader):
     updater = Updater(os.environ.get('TG_BOT_TOKEN'))
     disp = updater.dispatcher
-    updater.start_polling()
+
+    # This is normally started in the main.py
+    # updater.start_polling()
 
 
