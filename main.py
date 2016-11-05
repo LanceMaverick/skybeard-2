@@ -7,9 +7,9 @@ import importlib
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
-from skybeard.plugins import Plugin
+from skybeard.beards import Beard
 
-PATH = "plugins/"
+PATH = "beards/"
 sys.path.insert(0, PATH)
 
 logger.debug("os.listdir({}) = {}".format(PATH, os.listdir(PATH)))
@@ -20,7 +20,7 @@ sys.path.pop(0)
 
 
 def main():
-    updater = Plugin.updater
+    updater = Beard.updater
     updater.start_polling()
     updater.idle()
 

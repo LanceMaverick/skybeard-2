@@ -7,20 +7,20 @@ architecture inspired by: http://martyalchin.com/2008/jan/10/simple-plugin-frame
 and http://stackoverflow.com/a/17401329
 """
 
-class PluginLoader(type):
+class BeardLoader(type):
 
     def __init__(cls, name, bases, attrs):
-        if hasattr(cls, 'plugins'):
+        if hasattr(cls, 'beards'):
             cls.register(cls)
         else:
-            cls.plugins = []
+            cls.beards = []
 
-    def register(cls, plugin):
-        instance = plugin()
-        cls.plugins.append(instance)
+    def register(cls, beard):
+        instance = beard()
+        cls.beards.append(instance)
         instance.initialise()
 
-class Plugin(metaclass=PluginLoader):
+class Beard(metaclass=BeardLoader):
     updater = Updater(os.environ.get('TG_BOT_TOKEN'))
     disp = updater.dispatcher
     updater.start_polling()
