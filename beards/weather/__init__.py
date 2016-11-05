@@ -1,7 +1,5 @@
-import pyowm
-import logging
 from skybeard.beards import Beard
-from telegram.ext import MessageHandler, CommandHandler, Filters
+from telegram.ext import CommandHandler
 from . import forecast
 
 class Weather(Beard):
