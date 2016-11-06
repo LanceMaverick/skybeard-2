@@ -1,5 +1,6 @@
 import pyowm
 import logging
+from . import config
 
 def forecast(bot, update):
         owm = pyowm.OWM(config.api_key)
