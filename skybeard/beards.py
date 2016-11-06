@@ -27,4 +27,8 @@ class Beard(metaclass=BeardLoader):
     def error(self, bot, update, error):
         logger.warn('Update "{}" caused error "{}"'.format(update, error))
 
+    # This is normally started in the main.py
+    # updater.start_polling()
 
+    def error(self, bot, update, error):
+        logger.warn('Update "{}" caused error "{}"'.format(update, error))
