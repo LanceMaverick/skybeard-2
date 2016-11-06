@@ -6,24 +6,27 @@ import importlib
 import configparser
 import argparse
 
-logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-        level=logging.INFO)
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
-
 from skybeard.beards import Beard
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-        level=logging.INFO)
+                    level=logging.INFO)
 logger = logging.getLogger(__name__)
-PATH = "beards/"
-sys.path.insert(0, PATH)
 
-logger.debug("os.listdir({}) = {}".format(PATH, os.listdir(PATH)))
 
-for f in os.listdir(PATH):
-    fname, ext = os.path.splitext(f)
-    importlib.import_module(fname)
-sys.path.pop(0)
+def is_module(filename):
+    fname, ext = os.path.splitext(filename)
+    if ext == ".py":
+        return True
+    elif os.path.exists(os.path.join(filename, "__init__.py")):
+        return True
+    else:
+        return False
+
+def all_possible_beards(paths):
+    for path in paths:
+        for f in os.listdir(path):
+            if is_module(os.path.join(path, f)):
+                yield os.path.basename(f)
+
 
 def main(config):
     beard_path = "beards/"
