@@ -10,7 +10,6 @@ def search(message,title):
                 '&s=all'
                 ]
         url = ''.join(url_elements)
-        logging.info('imdb url built',url)
         return url
     
     #poll api
