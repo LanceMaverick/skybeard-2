@@ -32,9 +32,9 @@ def main(config):
     beard_path = "beards/"
     sys.path.insert(0, beard_path)
 
-    logger.debug("Available plugins: {}".format(
-        list(all_possible_beards([beard_path]))))
-    logger.debug("Config.main.beards: {}".format(config["main"]["beards"]))
+    logger.info("Loaded the following plugins:\n {}".format(
+        ', '.join(list(all_possible_beards([beard_path])))))
+    logger.info("Config.main.beards: {}".format(config["main"]["beards"]))
     requested_beards = config["main"]["beards"].split("\n")
 
     # Remove empty firstline if needed
