@@ -88,6 +88,6 @@ class Weather(Beard):
         weather.forecast(bot, update) 
 ```
 Separating the two like this ensures command and message handling can be modified easily, such as with adding new features or avoiding conflicts with other plug-ins.
-`__init__.py` can contain as many of these classes as is needed, allowing you to register multiple beards ... or'multi-beards'within your plug-in.
+`__init__.py` can contain as many of these classes as is needed, allowing you to register multiple beards ... or 'multi-beards' within your plug-in.
 
 
