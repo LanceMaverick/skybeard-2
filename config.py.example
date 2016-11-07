@@ -11,6 +11,6 @@ beard_paths = [
 # load
 beards = "all"
 # beards = [
-#     "teledropper",
+#     "postcats",
 # ]
 
