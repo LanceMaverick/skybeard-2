@@ -38,7 +38,7 @@ def main(config):
     logger.info("config.beards: {}".format(config.beards))
 
     if config.beards == "all":
-        for beard_name in all_possible_beards(config.beards):
+        for beard_name in all_possible_beards(config.beard_paths):
             importlib.import_module(beard_name)
     else:
         for beard_name in config.beards:
