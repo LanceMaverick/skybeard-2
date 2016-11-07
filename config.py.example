@@ -1,0 +1,16 @@
+import os
+
+beard_paths = [
+    "beards/",
+    # Beards can come from anywhere!
+    # os.path.expanduser("~/beards/"),
+]
+
+# Beards can be specified as "all" which will attempt to load everything found
+# in beard_paths or can be specified as a list of strings of which beards to
+# load
+beards = "all"
+# beards = [
+#     "postcats",
+# ]
+
