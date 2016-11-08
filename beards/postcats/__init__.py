@@ -1,5 +1,6 @@
 #show spacecats test plugin
 import random
+import logging
 
 from skybeard.beards import Beard
 from telegram.ext import MessageHandler, Filters
@@ -7,12 +8,13 @@ from telegram.ext import MessageHandler, Filters
 class PostCats(Beard):
 
     def initialise(self):
+        
         self.disp.add_handler(MessageHandler(Filters.text, self.listener))
 
     def listener(self, bot, update):
         message = update.message
         text = message.text
-        
+        print('here') 
         if 'give me spacecats' in text or 'show me spacecats' in text:
             cat_photos= [
                     'http://i.imgur.com/bJ043fy.jpg',
@@ -31,5 +33,5 @@ class PostCats(Beard):
             try:
                 update.message.reply_photo(photo=cat_photos[i])
             except Exception  as e:
-                print(e)
+                logging.error(e)
                 update.message.reply_photo(photo='http://cdn.meme.am/instances/500x/55452028.jpg')
