@@ -1,12 +1,19 @@
 import re
+import logging
 import requests
 import telegram
 from . import config
+from json.decoder import JSONDecodeError
+
 """get latest steam news post using given payload parameters"""
 def overw_news():
     url = 'https://api.lootbox.eu/patch_notes'
     response = requests.get(url)
-    news = response.json()['patchNotes']
+    try:
+        news = response.json()['patchNotes']
+    except JSONDecodeError as e:
+        logging.error(e, response.text)
+        return []
     return news
 
 def post_news(bot, update):
