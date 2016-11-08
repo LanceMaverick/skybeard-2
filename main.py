@@ -8,8 +8,6 @@ import argparse
 import config
 
 from skybeard.beards import Beard
-logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-                    level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
@@ -56,8 +54,13 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Skybeard hails you!')
 
     parser.add_argument('-k', '--key', default=os.environ.get('TG_BOT_TOKEN'))
+    parser.add_argument('-d', '--debug', action='store_const', dest="loglevel",
+                        const=logging.DEBUG, default=logging.INFO)
 
     parsed = parser.parse_args()
+
+    logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+                        level=parsed.loglevel)
 
     # Set up the master beard
     Beard.setup_beard(parsed.key)
