@@ -14,3 +14,7 @@ beards = "all"
 #     "postcats",
 # ]
 
+
+__doc__ = """This is sample documentation. Please update!
+
+Current plugins enabled: {}""".format(beards)

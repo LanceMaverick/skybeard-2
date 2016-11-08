@@ -5,11 +5,12 @@ import logging
 import importlib
 import argparse
 
+from help import create_help
+
 import config
 
 from skybeard.beards import Beard
 logger = logging.getLogger(__name__)
-
 
 def is_module(filename):
     fname, ext = os.path.splitext(filename)
@@ -54,6 +55,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Skybeard hails you!')
 
     parser.add_argument('-k', '--key', default=os.environ.get('TG_BOT_TOKEN'))
+    parser.add_argument('--no-help', action='store_true')
     parser.add_argument('-d', '--debug', action='store_const', dest="loglevel",
                         const=logging.DEBUG, default=logging.INFO)
 
@@ -62,8 +64,13 @@ if __name__ == '__main__':
     logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
                         level=parsed.loglevel)
 
+
     # Set up the master beard
     Beard.setup_beard(parsed.key)
+
+    # If the user does not specially request --no-help, set up help command.
+    if not parsed.no_help:
+        create_help(config)
 
     logger.debug("Config found to be: {}".format(dir(config)))
 
