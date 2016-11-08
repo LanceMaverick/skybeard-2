@@ -11,4 +11,4 @@ class Weather(Beard):
         location = update.message.text.split('/weather',1)[1]
         if not location:
             location = config.default_location
-        weather.forecast(bot, update)    
+        weather.forecast(update, location)    
