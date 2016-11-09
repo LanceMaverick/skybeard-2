@@ -13,12 +13,16 @@ class Steam(Beard):
         try:
             game = text.split('/gamenews',1)[1].strip()
         except IndexError:
-            update.message.reply_text('Please specify a steam game:\n'+game_list_str)
+            update.message.reply_text(
+                    'Please specify a steam game:\n'+game_list_str, 
+                    quote= False)
             return
         if game == 'overwatch':
             overwatch.post_news(bot, update)
         elif game not in game_list:
-            update.message.reply_text('Game not recognised. Please specify a steam game:\n'+game_list_str)
+            update.message.reply_text(
+                    'Game not recognised. Please specify a steam game:\n'+game_list_str, 
+                    quote= False)
         else:
             game_id = config.game_ids[game]
             steam.post_news(bot, update, game_id)

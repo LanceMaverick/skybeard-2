@@ -70,16 +70,16 @@ def post_news(bot, update, game_id):
     try:
         news = steam_news(payload)[0]
     except IndexError:
-        message.reply_text('Request failed. Servers may be down')
+        message.reply_text('Request failed. Servers may be down', quote= False)
         return 
     
     if not news:
-        message.reply_text('No news items found in steam api request')
+        message.reply_text('No news items found in steam api request', quote= False)
         return
     
     header = '*Latest news post* ({})'.format(news['feedlabel'])
     try:
-        message.reply_text(news_reply(header,news), parse_mode= 'Markdown')
+        message.reply_text(news_reply(header,news), parse_mode= 'Markdown', quote= False)
     except telegram.error.BadRequest:
-        message.reply_text(news_reply(header,news))
+        message.reply_text(news_reply(header,news), quote= False)
 
