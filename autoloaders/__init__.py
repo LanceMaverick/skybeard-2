@@ -6,11 +6,6 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-def git_clone(url, clone_into, import_as=None):
-    if import_as is None:
-        sp.check_call()
-
-
 class AutoLoader(object):
     """Base class for automatic loaders (e.g. Git)"""
     pass
