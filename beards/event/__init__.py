@@ -1,14 +1,24 @@
 from skybeard.beards import Beard
 import os
 import logging
-from telegram.ext import CommandHandler, MessageHandler, RegexHandler, Filters
-from telegram import ReplyKeyboardMarkup
+from telegram.ext import CommandHandler, MessageHandler, RegexHandler, Filters, CallbackQueryHandler
+from telegram import ReplyKeyboardMarkup, ReplyKeyboardHide, InlineKeyboardButton
 from .config import Config
 from .event import Event
 config = Config()
 curr_path = os.path.dirname(__file__)
 
 class EventManager(Beard):
+    """
+    A class which instantiates Event objects for any configuration in ./config.py
+    and yaml saved configs in ./yamls.
+    This class interfaces with the bot's dispatcher and registers commands
+    that are universal for every event. The specific events are called with the 
+    <init_kwd> argument as set in the individual event configurations. When the 
+    call is ambiguous (such as multiple active events, but the user does not 
+    specify an argument to the event based command) the Eventmanager will prompt 
+    the user to specify using callback buttons.
+    """
 
     def initialise(self):
         self.disp.add_handler(CommandHandler(config.list_evt_kwd, self.event_infos))
@@ -60,16 +70,28 @@ class EventManager(Beard):
         else:
             return cmd, arg
     
-    def send_keyboard(self, update, cmd, events, msg = ''):
+    def send_keyboard(self, bot, update, cmd, events, msg = ''):
         choices = ['{} {}'.format(cmd, event.init_kwd) for event in events]
         markup = ReplyKeyboardMarkup([choices], one_time_keyboard=True)
-        update.message.reply_text(msg, reply_markup = markup)
-        
+        update.message.reply_text(msg, reply_markup = markup, quote = False)
+#        back = [[InlineKeyboardButton(text=("test"),
+#                                      switch_inline_query='')]]
+#        bot.answerCallbackQuery(update.callback_query.id,
+#                                text=_("test"),
+#                                show_alert=False,
+#                                timeout=TIMEOUT)
+#        
+    def hide_keyboard(self, bot, update):
+        #markup = ReplyKeyboardHide()
+        #update.message.reply_text(reply_markup = markup, text='')
+        pass
     
     def new_event(self, bot, update):
+        self.hide_keyboard(bot, update)
         cmd, arg = self.get_cmd_arg(update)
         if not arg:
             self.send_keyboard(
+                    bot,
                     update, 
                     cmd,
                     self.events, 
@@ -86,6 +108,7 @@ class EventManager(Beard):
                 return
         else:
             self.send_keyboard(
+                    bot,
                     update, 
                     cmd,
                     self.events, 
@@ -93,6 +116,7 @@ class EventManager(Beard):
                     )
 
     def run_cmd(self, bot, update):
+        self.hide_keyboard(bot, update)
         command_map = {
                 config.res_kwd: 'participate',
                 config.unres_kwd: 'unparticipate',
@@ -107,6 +131,7 @@ class EventManager(Beard):
             getattr(active_events[0], command_map[cmd.replace('/', '')])(bot, update)
         elif not arg and active_events:
             self.send_keyboard(
+                    bot,
                     update,
                     cmd,
                     active_events,
@@ -119,6 +144,7 @@ class EventManager(Beard):
                     break
             else:
                 self.send_keyboard(
+                        bot,
                         update, 
                         cmd,
                         active_events, 
@@ -128,7 +154,7 @@ class EventManager(Beard):
     def event_infos(self, bot, update):
         active_events = self.check_status()
         if not active_events:
-            update.message.reply_text('No events planned for today.')
+            update.message.reply_text('No events planned for today.', quote = False)
         else:
             for event in active_events:
                 event.post_details(bot, update)
