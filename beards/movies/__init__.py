@@ -10,7 +10,7 @@ class Movies(Beard):
     def movie_search(self, bot, update):
         movie_title = update.message.text.split('/movie',1)[1]
         if not movie_title:
-            update.message.reply_text('please specify a movie title')
+            update.message.reply_text('please specify a movie title', quote = False)
         else:
             movies.search(update.message, movie_title)
 

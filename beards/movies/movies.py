@@ -15,8 +15,8 @@ def search(message,title):
     #poll api
     result = omdb.get(title=title)
     if not result:
-        message.reply_text('I could not find what you were looking for. Try here: ')
-        message.reply_text(build_imdb_url(title))
+        message.reply_text('I could not find what you were looking for. Try here: ', quote = False)
+        message.reply_text(build_imdb_url(title), quote = False)
         #sendText(bot,message.chat_id,str(buildImdbUrl(title)),True)
     else:
         film = result.title
@@ -39,5 +39,5 @@ def search(message,title):
                 'Plot:\n'+plot
                 )     
 
-        message.reply_text(reply)
-        message.reply_text(imdb, parse_mode = 'Markdown')
+        message.reply_text(reply, quote = False)
+        message.reply_text(imdb, parse_mode = 'Markdown', quote = False)
