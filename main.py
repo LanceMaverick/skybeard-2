@@ -29,15 +29,18 @@ def all_possible_beards(paths):
             if is_module(os.path.join(path, f)):
                 yield os.path.basename(f)
 
-
-def main(config):
-    # TODO function this out so it's less messy
-    literal_beard_paths = []
-    for beard_path in config.beard_paths:
+def get_literal_beard_paths(beard_paths):
+    for beard_path in beard_paths:
         if issubclass(type(beard_path), autoloaders.AutoLoader):
             literal_beard_paths.insert(0, beard_path.path)
         else:
             literal_beard_paths.insert(0, beard_path)
+
+    return literal_beard_paths
+
+
+def main(config):
+    literal_beard_paths = get_literal_beard_paths(config.beard_paths)
 
     for beard_path in literal_beard_paths:
         sys.path.insert(0, beard_path)
