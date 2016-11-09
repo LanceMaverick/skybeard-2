@@ -72,7 +72,7 @@ def pics(bot, update):
     else:
         bot.sendPhoto(chat_id=chat_id, photo='http://i.imgur.com/Rra4uun.png') #send blobby gains
         message.reply_text('I have not seen you go to the gym this week {}. \
-                You do not deserve to see proper gainz.'.format(user_name))
+                You do not deserve to see proper gainz.'.format(user_name), quote= False)
 
 def visit(bot, update):
     pass
