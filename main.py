@@ -5,11 +5,13 @@ import logging
 import importlib
 import argparse
 
-from help import create_help
 
 import config
 
 from skybeard.beards import Beard
+import autoloaders
+from help import create_help
+
 logger = logging.getLogger(__name__)
 
 def is_module(filename):
@@ -29,11 +31,19 @@ def all_possible_beards(paths):
 
 
 def main(config):
+    # TODO function this out so it's less messy
+    literal_beard_paths = []
     for beard_path in config.beard_paths:
+        if issubclass(type(beard_path), autoloaders.AutoLoader):
+            literal_beard_paths.insert(0, beard_path.path)
+        else:
+            literal_beard_paths.insert(0, beard_path)
+
+    for beard_path in literal_beard_paths:
         sys.path.insert(0, beard_path)
 
     logger.info("Loaded the following plugins:\n {}".format(
-        ', '.join(list(all_possible_beards(config.beard_paths)))))
+        ', '.join(list(all_possible_beards(literal_beard_paths)))))
     logger.info("config.beards: {}".format(config.beards))
 
     if config.beards == "all":
@@ -43,7 +53,7 @@ def main(config):
         for beard_name in config.beards:
             importlib.import_module(beard_name)
 
-    for beard_path in config.beard_paths:
+    for beard_path in literal_beard_paths:
         sys.path.pop(0)
 
     updater = Beard.updater
