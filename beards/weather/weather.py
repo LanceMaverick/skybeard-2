@@ -3,7 +3,17 @@ import logging
 from . import config
 
 def forecast(update, location):
-    owm = pyowm.OWM(config.api_key)
+    try:
+        owm = pyowm.OWM(config.api_key)
+        owm[2]
+    except  (ValueError, IndexError):
+        text = 'There does not seem to be a valid API key \
+                in the config file. Please request one from:\n \
+                openweathermap.org'
+        update.reply_text(text, quote = False)
+        logging.error('No OWM API key found')
+        return
+
     message = update.message
     text = message.text
     
@@ -69,5 +79,5 @@ def forecast(update, location):
             )
     
     message.reply_location(longitude= coor_lon, latitude = coor_lat)
-    message.reply_text(obs_reply, parse_mode='Markdown')
-    message.reply_text(fore_reply, parse_mode = 'markdown')
+    message.reply_text(obs_reply, parse_mode='Markdown', quote = False)
+    message.reply_text(fore_reply, parse_mode = 'markdown', quote = False)
