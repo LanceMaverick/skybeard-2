@@ -23,30 +23,30 @@ def is_module(filename):
     else:
         return False
 
+def get_literal_path(path_or_autoloader):
+    try:
+        return path_or_autoloader.path
+    except AttributeError:
+        assert type(path_or_autoloader) is str, "beard_path is not a str or an AutoLoader!"
+        return path_or_autoloader
+
+def get_literal_beard_paths(beard_paths):
+    return [get_literal_path(x) for x in beard_paths]
+
 def all_possible_beards(paths):
-    for path in paths:
+    literal_paths = get_literal_beard_paths(paths)
+
+    for path in literal_paths:
         for f in os.listdir(path):
             if is_module(os.path.join(path, f)):
                 yield os.path.basename(f)
 
-def get_literal_beard_paths(beard_paths):
-    for beard_path in beard_paths:
-        if issubclass(type(beard_path), autoloaders.AutoLoader):
-            literal_beard_paths.insert(0, beard_path.path)
-        else:
-            literal_beard_paths.insert(0, beard_path)
-
-    return literal_beard_paths
-
-
 def main(config):
-    literal_beard_paths = get_literal_beard_paths(config.beard_paths)
-
-    for beard_path in literal_beard_paths:
-        sys.path.insert(0, beard_path)
+    for beard_path in config.beard_paths:
+        sys.path.insert(0, get_literal_path(beard_path))
 
     logger.info("Loaded the following plugins:\n {}".format(
-        ', '.join(list(all_possible_beards(literal_beard_paths)))))
+        ', '.join(list(all_possible_beards(config.beard_paths)))))
     logger.info("config.beards: {}".format(config.beards))
 
     if config.beards == "all":
@@ -56,7 +56,7 @@ def main(config):
         for beard_name in config.beards:
             importlib.import_module(beard_name)
 
-    for beard_path in literal_beard_paths:
+    for beard_path in config.beard_paths:
         sys.path.pop(0)
 
     updater = Beard.updater
