@@ -1,15 +1,13 @@
-
-'''
-set the commands for managing events, and the configurations for each event.
-Each event configuration is a dictionary in the events Config.events list.
-
-event_name: What skybeard will call the event in the chat
-init_kwd: How users specify the event to skybeard, (e.g /event <init_kwd>)
-max_people: How many people can participate
-warn_time: How long before the event skybeard should send a reminder (in minutes)
-'''
-
 class Config:
+    '''
+    set the commands for managing events, and the configurations for each event.
+    Each event configuration is a dictionary in the events Config.events list.
+
+    event_name: What skybeard will call the event in the chat
+    init_kwd: How users specify the event to skybeard, (e.g /event <init_kwd>)
+    max_people: How many people can participate
+    warn_time: How long before the event skybeard should send a reminder (in minutes)
+    '''
 
     #global event config
     new_evt_kwd = 'event'
@@ -30,7 +28,7 @@ class Config:
     #add configurations for new events here:
     events = [
             dict(
-                event_name = 'overwatch',
+                event_name = 'Overwatch',
                 init_kwd = 'overwatch',
                 max_people = 6,
                 warn_time = 5
@@ -48,7 +46,7 @@ class Config:
                 warn_time = 5
                 ),
             dict(
-                event_name = 'Word of Warships',
+                event_name = 'World of Warships',
                 init_kwd = 'botes',
                 max_people = 3,
                 warn_time = 5

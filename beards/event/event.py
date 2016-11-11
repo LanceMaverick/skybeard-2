@@ -2,7 +2,10 @@ import  os
 import datetime
 from dateutil import parser
 import yaml
+from telegram.ext import Job
+from telegram import  InlineKeyboardButton, InlineKeyboardMarkup
 import config
+from .user import UserInfo
 
 curr_path = os.path.dirname(__file__)
 info_path = os.path.join(curr_path, 'yamls/activity.yaml')
@@ -26,7 +29,25 @@ class Event(object):
                 minutes.
     """
     def __init__(self, *args, **kwargs):
+        """kwargs:
+                job_queue:      required for job timing and pushing
+                                messaged to the chat/user.
 
+                event_name:     Name used by the bot in messages     
+
+                init_kwd:       Argument used in the chat to call 
+                                the event
+
+                max_people:     Maximum number of participants
+
+                warn_time:      How far in advance to reminder 
+                                users (minutes).
+       """
+
+        
+        self.job_queue = kwargs['job_queue']
+        self.warn_job = None
+        self.delete_job = None
         #event attributes 
         #event name, used in the chat
         self.evt_name = kwargs['event_name']
@@ -34,7 +55,6 @@ class Event(object):
         self.init_kwd = kwargs['init_kwd']
 
         #time event defaults to if no time is set
-
         self.def_time = kwargs.get('default_time', dict(hour = 19, minute = 30))
         self.default_time = datetime.datetime.now().replace(**self.def_time)
         #maximum allowed people for the event
@@ -46,46 +66,65 @@ class Event(object):
         self.part_name = ['shotgun', 'shotgunned']
 
         self.people = []
-        self.ready = []
         self.create_date = None
         self.begin_time = None
         self.is_evt = False
-    
-    def clear(self, bot, update, silent = False):
+        
+    def get_par(self, update, user_info):
+        if user_info:
+            return user_info
+        else:
+            chat_id = update.message.chat_id
+            user = update.message.from_user
+            return UserInfo(
+                    name = user.name,
+                    uid = user.id,
+                    text = update.message.text,
+                    chat_id = chat_id
+                    )
+    def clear(self, bot, par, silent = False):
         """ 
         Clears the event attributes and sets it to in-active
         (self.is_evt = False) essentially 'deleting' the event. 
         """
         self.people = []
-        self.ready = []
         self.begin_time = None
         self.create_date = None
         self.is_evt = False
 #        self.save_status(0)
         if not silent:
-            update.message.reply_text(
-                    '{} event deleted'.format(self.evt_name), 
-                    quote = False)
+            bot.sendMessage(
+                    text = '{} event deleted'.format(self.evt_name), 
+                    chat_id = par['chat_id'])
 
 
-    def set_time(self, bot, update):
-        #TODO: Have time parsed by EventManager
+    def set_time(self, bot, par):
         """
         Sets the start time of the event. Time is interpreted
         from the contents of update.message.text, but in future
         this will be parsed by EventManager
         """
-        message = update.message
-        text = message.text
-        
+        #jobs must be scheduled for removal
+        #removed at the end of the interval
+        #-> interval set to 1 second to reset
+        if self.warn_job:
+            self.warn_job.interval = 1
+            self.warn_job.schedule_removal()
+        if self.delete_job:
+            self.delete_job.interval = 1
+            self.delete_job.schedule_removal()
+
+        #TODO: Have time parsed by EventManager
         try:
-            time_from_msg = text.split(' at ', 1)[1]
-        except IndexError:
-            message.reply_text('Using default time.', quote = False)
+            time = par['time']
+        except KeyError:
+            bot.sendMessage(
+                    chat_id = par['chat_id'], 
+                    text = 'Using default time.')
             self.begin_time = self.default_time 
         else:
             try:
-                parsed_time = parser.parse(time_from_msg)
+                parsed_time = parser.parse(time)
             except ValueError:
 #                message.reply_text('Time could not be pared. Using default')
                 self.begin_time = self.default_time
@@ -93,22 +132,81 @@ class Event(object):
                 if parsed_time.date() == datetime.datetime.today().date():
                     self.begin_time = parsed_time
                 else:
-                    message.reply_text('Time format not recognised.', quote = False)
+                    bot.sendMessage(
+                            text='Time format not recognised.', 
+                            chat_id = par['chat_id'])
                     raise ValueError('event time format not recogised')
         
-    def new_event(self, bot, update):
+        #setting up jobs for reminders and clearing of old events
+        warn_time_seconds = self.warn_time*60
+        dtime = self.calc_dtime()
+        dtime_total_seconds = dtime['dtime'].total_seconds()
+        time_to_reminder = dtime_total_seconds - warn_time_seconds
+        self.warn_job = Job(
+                self.callback_reminder, 
+                time_to_reminder, 
+                repeat = False,
+                context = par['chat_id'])
+        self.job_queue.put(self.warn_job, time_to_reminder)
+    
+        begin_time = self.begin_time
+        delete_time = begin_time + datetime.timedelta(hours=6)
+        time_to_delete = (delete_time-datetime.datetime.now()).total_seconds()
+        self.delete_job = Job(
+                self.callback_clear,
+                time_to_delete,
+                repeat=False,
+                context = par['chat_id'])
+        self.job_queue.put(self.delete_job, time_to_delete)
+       
+    def callback_reminder(self, bot, job):
+        """
+        When the specified warn_time has been reached, the reminder job
+        calls back to this
+        """
+        people = self.people
+        unready_users = [u[0] for u in people if u[1] == 0]
+        ready_users = [u[0] for i in people if u[1] == 0]
+
+        if not unready_users:
+            unready_str = 'No-one'
+        else:
+            unready_str = ', '.join(unready_users)
+        if not ready_users:
+            ready_str = 'No-one'
+        else:
+            ready_str = ', '.join(ready_users)
+        
+        msg_str = '*Ready:* {}\n*Not ready:* {}\n'.format(
+                ready_str, unready_str)
+        bot.sendMessage(
+                text = '*{} will begin in {} minutes!*\n{}'.format(
+            self.evt_name, 
+            self.warn_time,
+            msg_str),
+                chat_id=job.context,
+                parse_mode = 'Markdown')
+    
+    def callback_clear(self, bot, job):
+        """Clear event attributes"""
+        self.people = []
+        self.ready = []
+        self.begin_time = None
+        self.create_date = None
+        self.is_evt = False
+
+        
+    def new_event(self, bot, par):
         """
         updates event with a new start time and sets to active.
         does not clear participant information.
         """
-        message = update.message
-        self.chat_id = message.chat_id
-        self.set_time(bot, update)
+        self.chat_id = par['chat_id']
+        self.set_time(bot, par)
         self.create_date = datetime.datetime.now()
         self.is_evt = True
-        self.participate(bot, update)
-        self.post_details(bot, update, header = 'New event:\n')
-#        self.save_status(1)
+        self.participate(bot, par)
+        self.post_details(bot, par, header = 'New event:\n')
     
     def calc_dtime(self):
         """
@@ -130,13 +228,12 @@ class Event(object):
                 minutes=minutes,
                 seconds=seconds)
 
-    def post_details(self, bot, update, header = ''):
+    def post_details(self, bot, par, header = ''):
         """
         Sends the details of the event to the chat at update.message.chat_id.
         """
-        message = update.message
         if not self.is_evt:
-            return self.no_event(bot, update)
+            return self.no_event(bot, par)
         info_str = '{}*{} at {}*'.format(
                 header,
                 self.evt_name,
@@ -151,115 +248,183 @@ class Event(object):
         else:
             when_str = 'Event already began.'
         
-        people_str = ', '.join([u[0].first_name for u in self.people])
+        people_str = ', '.join([u[0]['first_name'] for u in self.people])
         if not people_str:
             people_str = 'No-one'
-        rdy_str = ', '.join([u[0].first_name for u in self.ready])
+        rdy_str = ', '.join([u[0]['first_name'] for u in self.people if u[1]==1])
         if not rdy_str:
             rdy_str = 'No-one'
 
         if len(self.people) < self.max_people:
             stack_str = 'No. ({} spaces remaining)'.format(
                     self.max_people - len(self.people))
-        elif len(self.people == self.max_people):
+        elif len(self.people) == self.max_people:
             stack_str = 'Yes.'
         else:
             stack_str = 'OVERSTACKED!'
 
+        print(str(dict(cmd = '/rdry', arg = self.init_kwd, chat_id = par['chat_id'])))
+        keyboard = InlineKeyboardMarkup([[
+            InlineKeyboardButton('Shotgun',
+                callback_data = str(dict(
+                    cmd = '/shotgun', 
+                    arg = self.init_kwd,
+                    chat_id = par['chat_id']))),
+            InlineKeyboardButton('Ready-Up',
+                callback_data = str(dict(
+                    cmd = '/rdry', 
+                    arg = self.init_kwd,
+                    chat_id = par['chat_id']))),
+                ],
+                [
+            InlineKeyboardButton('Un-shotgun',
+                callback_data = str(dict(
+                    cmd = '/unshotgun', 
+                    arg = self.init_kwd,
+                    chat_id = par['chat_id']))),
+            InlineKeyboardButton('Not ready',
+                callback_data = str(dict(
+                    cmd = '/unrdry', 
+                    arg = self.init_kwd,
+                    chat_id = par['chat_id']))),
+                
+                ]])
         
+
         msg = '{}\n{}\n*Participants:* {}\n*Ready:* {}\n*Stacked:* {} '.format(
                 info_str, 
                 when_str, 
                 people_str, 
                 rdy_str, 
                 stack_str)
+
         
 
-        message.reply_text(msg, parse_mode='Markdown', quote = False)
+        bot.sendMessage(text=msg,
+                parse_mode='Markdown',
+                reply_markup = keyboard,
+                chat_id = par['chat_id'])
 
-    def participate(self, bot, update):
+    def participate(self, bot, par):
         """ Adds a participant to the event """
         if not self.is_evt:
-            return self.no_event(bot, update)
-        user = update.message.from_user
-        ids = [u[0].id for u in self.people]
-        if user.id in ids:
-            update.message.reply_text(
-                    'You are already participating, {}.'.format(
-                user.first_name), quote = False)
+            return self.no_event(bot, par)
+        user = par
+        ids = [u[0]['id'] for u in self.people]
+        if not ids:
+            self.people.append([user, 0])
+            bot.sendMessage(
+                    text = '{}, you are now participating in {}.'.format(
+                user['first_name'],
+                self.evt_name), 
+                    chat_id = par['chat_id'])
+
+        elif user['id'] in ids:
+            bot.sendMessage(
+                    text = ' {}, you are already participating in {}.'.format(
+                user['first_name'],
+                self.evt_name), 
+                    chat_id = par['chat_id'])
         else:
             self.people.append([user, 0])
-            update.message.reply_text(
-                    '{}, you are now participating.'.format(
-                user.first_name), quote = False)
+            bot.sendMessage(
+                    text = '{}, you are now participating in {}.'.format(
+                user['first_name'],
+                self.evt_name), 
+                    chat_id = par['chat_id'])
 
     
-    def unparticipate(self, bot, update):
+    def unparticipate(self, bot, par):
         """ Removes a participant from the event """
         if not self.is_evt:
-            return self.no_event(bot, update)
-        user = update.message.from_user
-        ids = [u[0].id for u in self.people]
-        if user.id not in ids:
-            update.message.reply_text(
-                    'You  are already not participating, {}.'.format(
-                user.first_name), quote = False)
+            return self.no_event(bot, par)
+        user = par
+        ids = [u[0]['id'] for u in self.people]
+        if user['id'] not in ids or not ids:
+            bot.sendMessage(
+                    text = '{} you are already not participating in {}.'.format(
+                user['first_name'],
+                self.evt_name), 
+                    chat_id = par['chat_id'])
         else:
-            self.people.append([user, 0])
-            update.message.reply_text(
-                    '{}, you have been removed.'.format(user.first_name), quote = False)
+            index = ids.index(user['id'])
+            self.people.pop(index)
+            bot.sendMessage(
+                    text= '{}, you have been removed from {} .'.format(
+                        user['first_name'],
+                        self.evt_name), 
+                    chat_id = par['chat_id'])
 
-    def ready_up(self, bot, update):
+    def ready_up(self, bot, par):
         """
         Sets a user to 'ready'. Adds them to the participators
         if they are not already.
         """
         if not self.is_evt:
-            return self.no_event(bot, update)
-        user = update.message.from_user
-        ids = [u[0].id for u in self.people]
-        if user.id not in ids:
+            return self.no_event(bot, par)
+        user = par
+        ids = [u[0]['id'] for u in self.people]
+        if user['id'] not in ids or not ids:
             self.people.append([user, 1])
-            update.message.reply_text('You have readied up, {}.'.format(
-                user.first_name), quote = False)
+            bot.sendMessage(
+                    text = '{}, you have readied up for {}.'.format(
+                user['first_name'],
+                self.evt_name), 
+                    chat_id = par['chat_id'])
         else:
-            index = ids.index(user.id)
+            index = ids.index(user['id'])
             status = self.people[index][1]
             if status == 1:
-               update.message.reply_text(
-                       'You  have already readied up, {}.'.format(
-                   user.first_name), quote = False)
+               bot.sendMessage(
+                       text = '{}, you  have already readied up for {}.'.format(
+                   user['first_name'],
+                   self.evt_name), 
+                       chat_id = par['chat_id'])
             else:
                 self.people[index][1]=1
-                update.message.reply_text(
-                        '{}, you have readied up.'.format(user.first_name), quote = False)
+                print(self.people)
+                bot.sendMessage(
+                        text = '{}, you have readied up for {}.'.format(
+                            user['first_name'],
+                            self.evt_name), 
+                        chat_id = par['chat_id'])
         
-    def unready_up(self, bot, update):
+    def unready_up(self, bot, par):
         """
         Sets user as not ready to participate
         """
         if not self.is_evt:
-            return self.no_event(bot, update)
-        user = update.message.from_user
-        ids = [u[0].id for u in self.people]
-        if user.id not in ids:
-            update.message.reply_text(
-                    '{}, You are not even participating.'.format(
-                user.first_name), quote = False)
-        else:
-            index = ids.index(user.id)
+            return self.no_event(bot, par)
+        user = par
+        ids = [u[0]['id'] for u in self.people]
+        if user['id'] not in ids or not ids:
+            bot.sendMessage(
+                    text = '{}, you are not even participating in {}.'.format(
+                user['first_name'],
+                self.evt_name), 
+                    chat_id = par['chat_id'])
+            return
+        if ids:
+            index = ids.index(user['id'])
             status = self.people[index][1]
             if status == 0:
-               update.message.reply_text(
-                       'You  are already not readied up, {}.'.format(
-                   user.first_name), quote = False)
+               bot.sendMessage(
+                       text = '{} you  are already not readied up for {}.'.format(
+                   user['first_name'],
+                   self.evt_name), 
+                       chat_id = par['chat_id'])
             else:
                 self.people[index][1]=0
-                update.message.reply_text(
-                        '{}, you have cancelled readied up.'.format(user.first_name), quote = False)
+                bot.sendMessage(
+                        text='{}, you have cancelled your ready up for {}.'.format(
+                            user['first_name'],
+                            self.evt_name), 
+                        chat_id = par['chat_id'])
         
-    def no_event(self, bot, update):
+    def no_event(self, bot, par):
         """ returns message to chat that no event is planned. """
-        update.message.reply_text(
-                'No {} event scheduled.'.format(self.evt_name), quote = False)
+        bot.sendMessage(
+                text = 'No {} event scheduled.'.format(
+                    self.evt_name), 
+                chat_id = par['chat_id'])
 
