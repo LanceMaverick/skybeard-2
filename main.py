@@ -5,11 +5,13 @@ import logging
 import importlib
 import argparse
 
-from help import create_help
 
 import config
 
 from skybeard.beards import Beard
+import autoloaders
+from help import create_help
+
 logger = logging.getLogger(__name__)
 
 def is_module(filename):
@@ -21,16 +23,27 @@ def is_module(filename):
     else:
         return False
 
+def get_literal_path(path_or_autoloader):
+    try:
+        return path_or_autoloader.path
+    except AttributeError:
+        assert type(path_or_autoloader) is str, "beard_path is not a str or an AutoLoader!"
+        return path_or_autoloader
+
+def get_literal_beard_paths(beard_paths):
+    return [get_literal_path(x) for x in beard_paths]
+
 def all_possible_beards(paths):
-    for path in paths:
+    literal_paths = get_literal_beard_paths(paths)
+
+    for path in literal_paths:
         for f in os.listdir(path):
             if is_module(os.path.join(path, f)):
                 yield os.path.basename(f)
 
-
 def main(config):
     for beard_path in config.beard_paths:
-        sys.path.insert(0, beard_path)
+        sys.path.insert(0, get_literal_path(beard_path))
 
     logger.info("Loaded the following plugins:\n {}".format(
         ', '.join(list(all_possible_beards(config.beard_paths)))))

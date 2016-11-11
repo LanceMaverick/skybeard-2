@@ -1,9 +1,13 @@
 import os
 
+from autoloaders import Git
+
 beard_paths = [
     "beards/",
     # Beards can come from anywhere!
     # os.path.expanduser("~/beards/"),
+    # Even from git!
+    # Git("https://github.com/nasfarley88/pdfpreviewbeard.git"),
 ]
 
 # Beards can be specified as "all" which will attempt to load everything found
@@ -12,6 +16,7 @@ beard_paths = [
 beards = "all"
 # beards = [
 #     "postcats",
+#     "pdfpreviewbeard", # From git (above)
 # ]
 
 
