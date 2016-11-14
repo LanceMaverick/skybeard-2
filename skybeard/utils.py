@@ -36,7 +36,7 @@ def fetch_user_help():
     retdict = dict()
     for beard in Beard.beards:
         try:
-            retdict[beard.__class__.__name__] = beard.__userhelp__()
+            retdict[beard.__class__.__name__] = beard.__userhelp__
         except AttributeError:
             retdict[beard.__class__.__name__] = None
 
@@ -45,17 +45,20 @@ def fetch_user_help():
 def embolden(string):
     return "<b>"+string+"</b>"
 
+def italisize(string):
+    return "<i>"+string+"</i>"
+
 def format_user_help(userhelps):
     """Takes a dict of user help messages and formats them."""
 
-    retstr = "Start of beard documentation\n\n"
-    for name, userhelp in userhelps.items():
+    retstr = italisize("Start of beard documentation\n\n")
+    for name, userhelp in sorted(userhelps.items(), key=lambda x: x[0]):
         if userhelp:
             retstr += "{name}:\n{userhelp}\n\n".format(name=embolden(name), userhelp=userhelp)
         else:
             retstr += "{name}:\nNo documentation found.\n\n".format(name=embolden(name))
 
-    retstr += "\nEnd of beard documentation."
+    retstr += italisize("End of beard documentation.")
 
     return retstr
 
@@ -65,6 +68,7 @@ def create_help(config):
         def initialise(self):
             self.disp.add_handler(CommandHandler('help', self.send_help))
 
+        @property
         def __userhelp__(self):
             return "\n".join([
                 "I'm the default help beard.",
