@@ -4,9 +4,9 @@ from dateutil import parser
 import yaml
 from telegram.ext import Job
 from telegram import  InlineKeyboardButton, InlineKeyboardMarkup
-import config
+from .config import Config
 from .user import UserInfo
-
+config = Config()
 curr_path = os.path.dirname(__file__)
 info_path = os.path.join(curr_path, 'yamls/activity.yaml')
 
@@ -82,6 +82,13 @@ class Event(object):
                     text = update.message.text,
                     chat_id = chat_id
                     )
+
+    #placeholder functions
+    def save(self):
+        pass
+    def load(self):
+        pass
+
     def clear(self, bot, par, silent = False):
         """ 
         Clears the event attributes and sets it to in-active
@@ -96,7 +103,6 @@ class Event(object):
             bot.sendMessage(
                     text = '{} event deleted'.format(self.evt_name), 
                     chat_id = par['chat_id'])
-
 
     def set_time(self, bot, par):
         """
@@ -141,6 +147,10 @@ class Event(object):
         warn_time_seconds = self.warn_time*60
         dtime = self.calc_dtime()
         dtime_total_seconds = dtime['dtime'].total_seconds()
+
+        #time to reminder is:
+        #time between event creation and even start minus reminder time
+        #all in seconds
         time_to_reminder = dtime_total_seconds - warn_time_seconds
         self.warn_job = Job(
                 self.callback_reminder, 
@@ -148,8 +158,9 @@ class Event(object):
                 repeat = False,
                 context = par['chat_id'])
         self.job_queue.put(self.warn_job, time_to_reminder)
-    
+        
         begin_time = self.begin_time
+        #clear time is expiry time (6 hours) + start time - current time
         delete_time = begin_time + datetime.timedelta(hours=6)
         time_to_delete = (delete_time-datetime.datetime.now()).total_seconds()
         self.delete_job = Job(
@@ -166,7 +177,7 @@ class Event(object):
         """
         people = self.people
         unready_users = [u[0] for u in people if u[1] == 0]
-        ready_users = [u[0] for i in people if u[1] == 0]
+        ready_users = [u[0] for u in people if u[1] == 0]
 
         if not unready_users:
             unready_str = 'No-one'
@@ -194,7 +205,6 @@ class Event(object):
         self.begin_time = None
         self.create_date = None
         self.is_evt = False
-
         
     def new_event(self, bot, par):
         """
@@ -228,12 +238,8 @@ class Event(object):
                 minutes=minutes,
                 seconds=seconds)
 
-    def post_details(self, bot, par, header = ''):
-        """
-        Sends the details of the event to the chat at update.message.chat_id.
-        """
-        if not self.is_evt:
-            return self.no_event(bot, par)
+    def info_message(self, header = ''):
+        """returns formatted string detailing the event status"""
         info_str = '{}*{} at {}*'.format(
                 header,
                 self.evt_name,
@@ -262,48 +268,63 @@ class Event(object):
             stack_str = 'Yes.'
         else:
             stack_str = 'OVERSTACKED!'
-
-        print(str(dict(cmd = '/rdry', arg = self.init_kwd, chat_id = par['chat_id'])))
-        keyboard = InlineKeyboardMarkup([[
-            InlineKeyboardButton('Shotgun',
-                callback_data = str(dict(
-                    cmd = '/shotgun', 
-                    arg = self.init_kwd,
-                    chat_id = par['chat_id']))),
-            InlineKeyboardButton('Ready-Up',
-                callback_data = str(dict(
-                    cmd = '/rdry', 
-                    arg = self.init_kwd,
-                    chat_id = par['chat_id']))),
-                ],
-                [
-            InlineKeyboardButton('Un-shotgun',
-                callback_data = str(dict(
-                    cmd = '/unshotgun', 
-                    arg = self.init_kwd,
-                    chat_id = par['chat_id']))),
-            InlineKeyboardButton('Not ready',
-                callback_data = str(dict(
-                    cmd = '/unrdry', 
-                    arg = self.init_kwd,
-                    chat_id = par['chat_id']))),
-                
-                ]])
         
-
         msg = '{}\n{}\n*Participants:* {}\n*Ready:* {}\n*Stacked:* {} '.format(
                 info_str, 
                 when_str, 
                 people_str, 
                 rdy_str, 
                 stack_str)
-
         
+        return msg
 
-        bot.sendMessage(text=msg,
-                parse_mode='Markdown',
-                reply_markup = keyboard,
-                chat_id = par['chat_id'])
+    def post_details(self, bot, par, header = '', post = None):
+        """
+        Sends the details of the event to the chat at update.message.chat_id
+        If post == True, message will be posted by the event. If False, the
+        event will return only the message.
+        """
+        if not self.is_evt:
+            return self.no_event(bot, par)
+       
+        callback = dict(
+                    #info_msg = 1,
+                    arg = self.init_kwd,
+                    chat_id = par['chat_id'])
+
+        shotgun = config.res_kwd
+        unshotgun = config.unres_kwd
+        ready = config.rdy_kwd
+        unready = config.unrdy_kwd
+        print(str(dict(callback, **dict(cmd = '/'+shotgun))))
+
+        keyboard = InlineKeyboardMarkup([[
+            InlineKeyboardButton('Shotgun',
+                callback_data = str(dict(callback, **dict(cmd = '/'+shotgun)))),
+            InlineKeyboardButton('Ready-Up',
+                callback_data = str(dict(callback, **dict(cmd = '/'+ready)))),
+                ],
+                [
+            InlineKeyboardButton('Un-shotgun',
+                callback_data = str(dict(callback, **dict(cmd = '/'+unshotgun)))),
+            InlineKeyboardButton('Not ready',
+                callback_data = str(dict(callback, **dict(cmd = '/'+unready)))),
+                ]])
+        
+        msg = self.info_message(header)
+        if not post: 
+            bot.sendMessage(text = msg,
+                    parse_mode='Markdown',
+                    reply_markup = keyboard,
+                    chat_id = par['chat_id'])
+        else:     
+            print('=========================', post)
+            bot.editMessageText(
+                    text=msg,
+                    parse_mode='Markdown',
+                    reply_markup = keyboard,
+                    chat_id = post['chat_id'],
+                    message_id = post['message_id'])
 
     def participate(self, bot, par):
         """ Adds a participant to the event """
@@ -332,7 +353,6 @@ class Event(object):
                 user['first_name'],
                 self.evt_name), 
                     chat_id = par['chat_id'])
-
     
     def unparticipate(self, bot, par):
         """ Removes a participant from the event """

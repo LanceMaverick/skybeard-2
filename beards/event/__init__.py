@@ -65,11 +65,14 @@ class EventManager(Beard):
        #instantiate events
         self.events = []         
         if event_configs:
-            for event_conf in event_configs:
+            for i, event_conf in enumerate(event_configs):
                 try:
                     self.events.append(Event(**event_conf, job_queue=self.job_queue))
+
                 except KeyError as e:
                     logging.error('Wrongly configured event in event config.py: ', e)
+                else:
+                    self.events[i].save()
         if user_event_configs:     
             for event_conf in user_event_configs:
                 try:
@@ -131,6 +134,14 @@ class EventManager(Beard):
             self.new_event(bot, update, callback_data = data)
         else:
             self.run_cmd(bot, update, callback_data = data)
+        if data['cmd']!='/event':
+            for event in self.events:
+                if arg == event.init_kwd:
+                    event.post_details(bot, data, post = dict(
+                        chat_id = query.message.chat_id,
+                        message_id = query.message.message_id
+                        ))
+
 
     def new_event(self, bot, update, callback_data = None):
         """create new events (sets attributes in already instantiated
@@ -168,10 +179,12 @@ class EventManager(Beard):
         #check if text specifies a time (/event <name> at <time>
         elif ' at ' in arg:
             arg, time = arg.split(' at ', 1)
+            par['time'] = time
         
         for event in self.events:
             if event.init_kwd == arg:
                 event.new_event(bot, par) 
+                event.save()
                 return
         else:
             self.send_keyboard(
@@ -219,6 +232,7 @@ class EventManager(Beard):
         #if only one event, argument not needed...
         if len(active_events) == 1 and not arg:
             getattr(active_events[0], command_map[cmd.replace('/', '')])(bot, par)
+            active_events[0].save()
         elif not arg and active_events:
             self.send_keyboard(
                     bot,
@@ -233,6 +247,7 @@ class EventManager(Beard):
                 if event.init_kwd == arg:
                     #call relevant method of event
                     getattr(event, command_map[cmd.replace('/', '')])(bot, par) 
+                    event.save()
                     break
             else:
                 self.send_keyboard(
