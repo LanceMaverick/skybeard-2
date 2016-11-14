@@ -51,7 +51,7 @@ def italisize(string):
 def format_user_help(userhelps):
     """Takes a dict of user help messages and formats them."""
 
-    retstr = italisize("Start of beard documentation\n\n")
+    retstr = italisize("List of beard documentation:\n\n")
     for name, userhelp in sorted(userhelps.items(), key=lambda x: x[0]):
         if userhelp:
             retstr += "{name}:\n{userhelp}\n\n".format(name=embolden(name), userhelp=userhelp)
@@ -76,15 +76,16 @@ def create_help(config):
                 "/help - display the help for this bot."])
 
         def send_help(self, bot, update):
-            if config.__doc__:
-                update.message.reply_text(config.__doc__)
+            retstr = ""
+            if config.__userhelp__:
+                retstr += config.__userhelp__
             else:
-                update.message.reply_text(
-                    ("My help message is unconfigured. To display "
-                    "something here, add a docstring to my config.py."))
+                retstr += ("My help message is unconfigured. To display "
+                           "something here, add a docstring to my config.py.")
 
+            retstr += "\n\n{}".format(format_user_help(fetch_user_help()))
             # TODO update to something more proper
-            update.message.reply_text("By the way:\n\n{}".format(format_user_help(fetch_user_help())),
+            update.message.reply_text(retstr,
                                       parse_mode='html',
                                       quote=False)
 
