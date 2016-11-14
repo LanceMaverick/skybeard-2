@@ -176,8 +176,8 @@ class Event(object):
         calls back to this
         """
         people = self.people
-        unready_users = [u[0] for u in people if u[1] == 0]
-        ready_users = [u[0] for u in people if u[1] == 0]
+        unready_users = [u[0]['first_name'] for u in people if u[1] == 0]
+        ready_users = [u[0]['first_name'] for u in people if u[1] == 0]
 
         if not unready_users:
             unready_str = 'No-one'
