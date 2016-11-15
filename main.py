@@ -1,14 +1,18 @@
 #!/usr/bin/env python
 import os
+import asyncio
 import sys
 import logging
 import importlib
 import argparse
 
+import telepot
+from telepot.aio.delegate import per_chat_id, create_open, pave_event_space
 
 import config
 
 from skybeard.beards import Beard
+from skybeard.beards import BeardLoader
 import autoloaders
 from help import create_help
 
@@ -54,14 +58,27 @@ def main(config):
             importlib.import_module(beard_name)
     else:
         for beard_name in config.beards:
-            importlib.import_module(beard_name)
+            # HACK ALERT
+            beard_module = importlib.import_module(beard_name)
+
+    # HACK parsed should not be in this scope! Careful!
+    bot = telepot.aio.DelegatorBot(parsed.key, [
+        pave_event_space()(per_chat_id(), create_open, beard_module.PdfPreviewBeard, timeout=10),
+    ])
 
     for beard_path in config.beard_paths:
         sys.path.pop(0)
 
-    updater = Beard.updater
-    updater.start_polling()
-    updater.idle()
+    # updater = Beard.updater
+    # updater.start_polling()
+    # updater.idle()
+
+
+    loop = asyncio.get_event_loop()
+    loop.create_task(bot.message_loop())
+    print('Listening ...')
+
+    loop.run_forever()
 
 if __name__ == '__main__':
 

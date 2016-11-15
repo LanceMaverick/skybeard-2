@@ -15,9 +15,11 @@ class BeardLoader(type):
             cls.beards = []
 
     def register(cls, beard):
-        instance = beard()
-        cls.beards.append(instance)
-        instance.initialise()
+        # instance = beard()
+        # cls.beards.append(instance)
+        # instance.initialise()
+        cls.beards.append(beard)
+
 
 class Beard(metaclass=BeardLoader):
     @classmethod
