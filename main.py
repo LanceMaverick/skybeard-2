@@ -12,6 +12,7 @@ from telepot.aio.delegate import per_chat_id, create_open, pave_event_space
 import config
 
 from skybeard.beards import Beard
+from skybeard.beards import BeardMixin
 from skybeard.beards import BeardLoader
 import autoloaders
 from help import create_help
@@ -58,20 +59,15 @@ def main(config):
             importlib.import_module(beard_name)
     else:
         for beard_name in config.beards:
-            # HACK ALERT
-            beard_module = importlib.import_module(beard_name)
+            importlib.import_module(beard_name)
 
-    # HACK parsed should not be in this scope! Careful!
-    bot = telepot.aio.DelegatorBot(parsed.key, [
-        pave_event_space()(per_chat_id(), create_open, beard_module.PdfPreviewBeard, timeout=10),
-    ])
 
     for beard_path in config.beard_paths:
         sys.path.pop(0)
 
-    # updater = Beard.updater
-    # updater.start_polling()
-    # updater.idle()
+    bot = telepot.aio.DelegatorBot(BeardMixin.key, [
+        *[pave_event_space()(per_chat_id(), create_open, beard, timeout=beard._timeout) for beard in BeardMixin.beards],
+    ])
 
 
     loop = asyncio.get_event_loop()
@@ -96,7 +92,8 @@ if __name__ == '__main__':
 
 
     # Set up the master beard
-    Beard.setup_beard(parsed.key)
+    # Beard.setup_beard(parsed.key)
+    BeardMixin.setup_beards(parsed.key)
 
     # If the user does not specially request --no-help, set up help command.
     if not parsed.no_help:

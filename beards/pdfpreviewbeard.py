@@ -5,7 +5,7 @@ import re
 
 import telepot
 import telepot.aio
-from skybeard.beards import BeardLoader
+from skybeard.beards import BeardMixin, BeardLoader
 
 logger = logging.getLogger(__name__)
 
@@ -16,7 +16,7 @@ def is_pdf(message):
     except KeyError:
         return False
 
-class PdfPreviewBeard(telepot.aio.helper.ChatHandler, metaclass=BeardLoader):
+class PdfPreviewBeard(telepot.aio.helper.ChatHandler, BeardMixin):
 
     # def initialise(self):
     #     # self.disp.add_handler(CommandHandler("pdfpreviewhelp", self.help))
@@ -50,6 +50,7 @@ class PdfPreviewBeard(telepot.aio.helper.ChatHandler, metaclass=BeardLoader):
         if logger.getEffectiveLevel() == logging.DEBUG:
             await self.sender.sendMessage("DEBUG: I've recieved your message")
             await self.sender.sendMessage("DEBUG: {}".format(msg))
+            await self.sender.sendMessage("DEBUG: {}".format(BeardMixin.beards))
         if is_pdf(msg):
             print("hello world")
             await self.send_pdf_preview(msg)

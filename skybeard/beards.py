@@ -7,6 +7,10 @@ architecture inspired by: http://martyalchin.com/2008/jan/10/simple-plugin-frame
 and http://stackoverflow.com/a/17401329
 """
 
+import logging
+logger = logging.getLogger(__name__)
+
+
 class BeardLoader(type):
     def __init__(cls, name, bases, attrs):
         if hasattr(cls, 'beards'):
@@ -32,3 +36,11 @@ class Beard(metaclass=BeardLoader):
 
     # This is normally started in the main.py
     # updater.start_polling()
+
+class BeardMixin(metaclass=BeardLoader):
+    # Default timeout for Beards
+    _timeout = 10
+
+    @classmethod
+    def setup_beards(cls, key):
+        cls.key = key
