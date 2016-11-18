@@ -47,16 +47,6 @@ class PdfPreviewBeard(telepot.aio.helper.ChatHandler, BeardMixin):
             await self.sender.sendPhoto(open(png_file.name, "rb"))
 
     async def on_chat_message(self, msg):
-        if logger.getEffectiveLevel() == logging.DEBUG:
-            await self.sender.sendMessage("DEBUG: I've recieved your message")
-            await self.sender.sendMessage("DEBUG: {}".format(msg))
-            await self.sender.sendMessage("DEBUG: {}".format(BeardMixin.beards))
         if is_pdf(msg):
             print("hello world")
             await self.send_pdf_preview(msg)
-
-
-    def help(self, bot, update):
-        update.message.reply_text(
-            """TL;DR This beard shows you the first page of any pdfs it sees."""
-)
