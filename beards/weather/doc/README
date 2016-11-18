@@ -1,4 +1,0 @@
-Uses the open weather map API with pyowm 
-to forecase the weather. 
-
-Set the API key and default location in config.py
