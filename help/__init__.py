@@ -39,18 +39,12 @@ async def format_user_help(userhelps):
 
 class Help(telepot.aio.helper.ChatHandler):
 
-    # __init__ is implicit
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # This will make sense when this class inherits from BeardMixin
+        self.register_command("help", self.send_help)
 
     _timeout = 2
-
-    async def on_chat_message(self, msg):
-        try:
-            text = msg['text']
-        except KeyError:
-            return
-
-        if re.match("^/help(?!@.+)?$", text):
-            await self.send_help(msg)
 
     @property
     def __userhelp__(self):

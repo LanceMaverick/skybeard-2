@@ -11,7 +11,6 @@ from telepot.aio.delegate import per_chat_id, create_open, pave_event_space
 
 import config
 
-from skybeard.beards import Beard
 from skybeard.beards import BeardMixin
 from skybeard.beards import BeardLoader
 import autoloaders
