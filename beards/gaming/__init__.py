@@ -18,7 +18,7 @@ def sanitize_html(string):
     string = re.sub(r'(<\w+ />)', '', string)
 
     # Remove tags that are not allowed
-    allowed_tags = [r'b\b', 'strong', 'i', 'em', 'a', 'code', 'pre']
+    allowed_tags = ['b', 'strong', 'i', 'em', 'a', 'code', 'pre']
     string = re.sub(r'(</?(?!{})[^/>]+>)'.format("|".join(allowed_tags)), '', string)
     return string
 
@@ -51,5 +51,9 @@ class Steam(telepot.aio.helper.ChatHandler, BeardAsyncChatHandlerMixin):
                     'Game not recognised. Please specify a steam game:\n'+game_list_str)
         else:
             game_id = config.game_ids[game]
-            await self.sender.sendMessage("Sorry, working on it!")
-            # steam.post_news(bot, update, game_id)
+            news = steam.post_news(game_id)
+            try:
+                await self.sender.sendMessage(sanitize_html(news), parse_mode='html')
+            except telepot.exception.TelegramError:
+                news = remove_html(news)
+                await self.sender.sendMessage(news)
