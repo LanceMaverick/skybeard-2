@@ -22,11 +22,31 @@ class BeardLoader(type):
     def register(cls, beard):
         cls.beards.append(beard)
 
+def regex_predicate(pattern):
+    def retfunc(msg):
+        try:
+            logging.debug("Matching regex: '{}'".format(pattern))
+            retmatch = re.match(pattern, msg['text'])
+            logging.debug("Match: {}".format(retmatch))
+            return retmatch
+        except KeyError:
+            return False
+
+    return retfunc
 
 def command_predicate(cmd):
-    return lambda x: re.match(r"/{}(?:@\w+)?".format(cmd), x['text'])
+    return regex_predicate(r"^/{}(?:@\w+)?".format(cmd))
 
-class BeardMixin(metaclass=BeardLoader):
+class Filters:
+    @classmethod
+    def text(cls, msg):
+        return "text" in msg
+
+    @classmethod
+    def document(cls, msg):
+        return "document" in msg
+
+class BeardAsyncChatHandlerMixin(metaclass=BeardLoader):
     # Default timeout for Beards
     _timeout = 10
     _all_commands = []
@@ -44,7 +64,14 @@ class BeardMixin(metaclass=BeardLoader):
 
     def register_command(self, cmd, coro):
         self._register_command_with_class(cmd)
-        self._commands.append((command_predicate(cmd), coro))
+        if callable(cmd):
+            logger.debug("Registering coroutine: {}.".format(cmd))
+            self._commands.append((cmd, coro))
+        elif type(cmd) is str:
+            logger.debug("Registering command: {}.".format("/"+cmd))
+            self._commands.append((command_predicate(cmd), coro))
+        else:
+            raise TypeError("register_command requires either str or callable.")
 
     async def on_chat_message(self, msg):
         for predicate, coro in self._commands:
