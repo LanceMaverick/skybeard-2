@@ -2,7 +2,7 @@ import re
 
 import telepot
 
-from skybeard.beards import BeardMixin
+from skybeard.beards import BeardAsyncChatHandlerMixin
 
 import config
 
@@ -15,7 +15,7 @@ def italisize(string):
 async def fetch_user_help():
     """A little bit of magic to fetch all the __userhelp__'s."""
     retdict = dict()
-    for beard in BeardMixin.beards:
+    for beard in BeardAsyncChatHandlerMixin.beards:
         try:
             retdict[beard.__class__.__name__] = beard.__userhelp__
         except AttributeError:
@@ -41,7 +41,7 @@ class Help(telepot.aio.helper.ChatHandler):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # This will make sense when this class inherits from BeardMixin
+        # This will make sense when this class inherits from BeardAsyncChatHandlerMixin
         self.register_command("help", self.send_help)
 
     _timeout = 2
@@ -70,7 +70,7 @@ class Help(telepot.aio.helper.ChatHandler):
 
 def create_help(config):
 
-    class BeardedHelp(Help, BeardMixin):
+    class BeardedHelp(Help, BeardAsyncChatHandlerMixin):
         pass
 
     return BeardedHelp

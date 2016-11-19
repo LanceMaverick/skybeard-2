@@ -5,7 +5,7 @@ import re
 
 import telepot
 import telepot.aio
-from skybeard.beards import BeardMixin, BeardLoader
+from skybeard.beards import BeardAsyncChatHandlerMixin
 
 logger = logging.getLogger(__name__)
 
@@ -16,15 +16,12 @@ def is_pdf(message):
     except KeyError:
         return False
 
-class PdfPreviewBeard(telepot.aio.helper.ChatHandler, BeardMixin):
+class PdfPreviewBeard(telepot.aio.helper.ChatHandler, BeardAsyncChatHandlerMixin):
 
-    # def initialise(self):
-    #     # self.disp.add_handler(CommandHandler("pdfpreviewhelp", self.help))
-    #     self.disp.add_handler(MessageHandler(is_pdf, send_pdf_preview))
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.register_command(is_pdf, self.send_pdf_preview)
 
-    # __init__ is implicit
-
-    print("hello world")
     async def send_pdf_preview(self, msg):
         logger.info("Attempting to upload photo")
         file_id = msg["document"]["file_id"]
@@ -46,7 +43,7 @@ class PdfPreviewBeard(telepot.aio.helper.ChatHandler, BeardMixin):
             sp.check_call("cp {} ~/tmp/".format(png_file.name), shell=True)
             await self.sender.sendPhoto(open(png_file.name, "rb"))
 
-    async def on_chat_message(self, msg):
-        if is_pdf(msg):
-            print("hello world")
-            await self.send_pdf_preview(msg)
+    # async def on_chat_message(self, msg):
+    #     if is_pdf(msg):
+    #         print("hello world")
+    #         await self.send_pdf_preview(msg)

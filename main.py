@@ -11,7 +11,7 @@ from telepot.aio.delegate import per_chat_id, create_open, pave_event_space
 
 import config
 
-from skybeard.beards import BeardMixin
+from skybeard.beards import BeardAsyncChatHandlerMixin
 from skybeard.beards import BeardLoader
 import autoloaders
 from help import create_help
@@ -64,8 +64,8 @@ def main(config):
     for beard_path in config.beard_paths:
         sys.path.pop(0)
 
-    bot = telepot.aio.DelegatorBot(BeardMixin.key, [
-        *[pave_event_space()(per_chat_id(), create_open, beard, timeout=beard._timeout) for beard in BeardMixin.beards],
+    bot = telepot.aio.DelegatorBot(BeardAsyncChatHandlerMixin.key, [
+        *[pave_event_space()(per_chat_id(), create_open, beard, timeout=beard._timeout) for beard in BeardAsyncChatHandlerMixin.beards],
     ])
 
 
@@ -92,7 +92,7 @@ if __name__ == '__main__':
 
     # Set up the master beard
     # Beard.setup_beard(parsed.key)
-    BeardMixin.setup_beards(parsed.key)
+    BeardAsyncChatHandlerMixin.setup_beards(parsed.key)
 
     # If the user does not specially request --no-help, set up help command.
     if not parsed.no_help:
