@@ -1,32 +1,31 @@
-from telegram.ext import CommandHandler, MessageHandler, Filters
-from skybeard.beards import Beard
+# from telegram.ext import CommandHandler, MessageHandler, Filters
+import telepot
+import telepot.aio
+from skybeard.beards import BeardAsyncChatHandlerMixin
 from . import config, steam, overwatch
 
-class Steam(Beard):
-    def initialise(self):
-        self.disp.add_handler(CommandHandler('gamenews', self.game_news))
+class Steam(telepot.aio.helper.ChatHandler, BeardAsyncChatHandlerMixin):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.register_command('gamenews', self.game_news)
 
-    def game_news(self, bot, update):
+    async def game_news(self, msg):
         game_list = list(config.game_ids.keys())
-        text = update.message.text
+        text = msg['text']
         game_list_str = '\n'.join(game_list)
         try:
             game = text.split('/gamenews',1)[1].strip()
         except IndexError:
-            update.message.reply_text(
-                    'Please specify a steam game:\n'+game_list_str, 
-                    quote= False)
+            await self.sender.sendMessage(
+                    'Please specify a steam game:\n'+game_list_str)
             return
         if game == 'overwatch':
-            overwatch.post_news(bot, update)
+            # overwatch.post_news(bot, update)
+            await self.sender.sendMessage("Sorry, working on it!")
         elif game not in game_list:
-            update.message.reply_text(
-                    'Game not recognised. Please specify a steam game:\n'+game_list_str, 
-                    quote= False)
+            await self.sender.sendMessage(
+                    'Game not recognised. Please specify a steam game:\n'+game_list_str)
         else:
             game_id = config.game_ids[game]
-            steam.post_news(bot, update, game_id)
-
-                
-                
-
+            await self.sender.sendMessage("Sorry, working on it!")
+            # steam.post_news(bot, update, game_id)
