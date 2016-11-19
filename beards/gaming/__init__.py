@@ -1,8 +1,27 @@
 # from telegram.ext import CommandHandler, MessageHandler, Filters
+import re
 import telepot
 import telepot.aio
 from skybeard.beards import BeardAsyncChatHandlerMixin
 from . import config, steam, overwatch
+
+def remove_html(string):
+    return re.sub('<[^<]+?>', '', string)
+
+def sanitize_html(string):
+    """Custom function to get rid of non-Telegram html"""
+    # remove the extra href information
+    string = string.replace('target="_blank"', '')
+    string = re.sub(' +>', '>', string)
+
+    # Standalone tags are not allowed
+    string = re.sub(r'(<\w+ />)', '', string)
+
+    # Remove tags that are not allowed
+    allowed_tags = [r'b\b', 'strong', 'i', 'em', 'a', 'code', 'pre']
+    string = re.sub(r'(</?(?!{})[^/>]+>)'.format("|".join(allowed_tags)), '', string)
+    return string
+
 
 class Steam(telepot.aio.helper.ChatHandler, BeardAsyncChatHandlerMixin):
     def __init__(self, *args, **kwargs):
@@ -20,8 +39,13 @@ class Steam(telepot.aio.helper.ChatHandler, BeardAsyncChatHandlerMixin):
                     'Please specify a steam game:\n'+game_list_str)
             return
         if game == 'overwatch':
-            # overwatch.post_news(bot, update)
-            await self.sender.sendMessage("Sorry, working on it!")
+            overwatch_news = overwatch.post_news()
+            try:
+                await self.sender.sendMessage(sanitize_html(overwatch_news), parse_mode='html')
+            except telepot.exception.TelegramError:
+                overwatch_news = remove_html(overwatch_news)
+                await self.sender.sendMessage(overwatch_news)
+
         elif game not in game_list:
             await self.sender.sendMessage(
                     'Game not recognised. Please specify a steam game:\n'+game_list_str)
