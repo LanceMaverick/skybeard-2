@@ -31,7 +31,8 @@ class PostCats(telepot.aio.helper.ChatHandler, BeardAsyncChatHandlerMixin):
                 ]
 
         try:
-            await self.sender.sendPhoto(("cat_photo.jpg", urlopen(random.choice(cat_photos))))
+            choice = random.choice(cat_photos)
+            await self.sender.sendPhoto((choice.split("/")[-1], urlopen(choice)))
         except Exception as e:
             logging.error(e)
             await self.sender.sendPhoto(
