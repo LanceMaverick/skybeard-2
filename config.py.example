@@ -20,7 +20,6 @@ beards = "all"
 # ]
 
 
-# This help will be parsed with HTML.
-__userhelp__ = """This is sample documentation. Please update in your config.py!
+__doc__ = """This is sample documentation. Please update in your config.py!
 
 Current plugins enabled: {}""".format(beards)

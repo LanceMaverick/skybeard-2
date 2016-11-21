@@ -5,18 +5,41 @@ import logging
 import importlib
 import argparse
 
+
 import config
 
 from skybeard.beards import Beard
-from skybeard.utils import (is_module,
-                            get_literal_path,
-                            get_literal_beard_paths,
-                            all_possible_beards,
-                            create_help)
 import autoloaders
+from help import create_help
 
 logger = logging.getLogger(__name__)
 
+def is_module(filename):
+    fname, ext = os.path.splitext(filename)
+    if ext == ".py":
+        return True
+    elif os.path.exists(os.path.join(filename, "__init__.py")):
+        return True
+    else:
+        return False
+
+def get_literal_path(path_or_autoloader):
+    try:
+        return path_or_autoloader.path
+    except AttributeError:
+        assert type(path_or_autoloader) is str, "beard_path is not a str or an AutoLoader!"
+        return path_or_autoloader
+
+def get_literal_beard_paths(beard_paths):
+    return [get_literal_path(x) for x in beard_paths]
+
+def all_possible_beards(paths):
+    literal_paths = get_literal_beard_paths(paths)
+
+    for path in literal_paths:
+        for f in os.listdir(path):
+            if is_module(os.path.join(path, f)):
+                yield os.path.basename(f)
 
 def main(config):
     for beard_path in config.beard_paths:
