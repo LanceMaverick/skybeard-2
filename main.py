@@ -1,14 +1,18 @@
 #!/usr/bin/env python
 import os
+import asyncio
 import sys
 import logging
 import importlib
 import argparse
 
+import telepot
+from telepot.aio.delegate import per_chat_id, create_open, pave_event_space
 
 import config
 
-from skybeard.beards import Beard
+from skybeard.beards import BeardAsyncChatHandlerMixin
+from skybeard.beards import BeardLoader
 import autoloaders
 from help import create_help
 
@@ -56,12 +60,20 @@ def main(config):
         for beard_name in config.beards:
             importlib.import_module(beard_name)
 
+
     for beard_path in config.beard_paths:
         sys.path.pop(0)
 
-    updater = Beard.updater
-    updater.start_polling()
-    updater.idle()
+    bot = telepot.aio.DelegatorBot(BeardAsyncChatHandlerMixin.key, [
+        *[pave_event_space()(per_chat_id(), create_open, beard, timeout=beard._timeout) for beard in BeardAsyncChatHandlerMixin.beards],
+    ])
+
+
+    loop = asyncio.get_event_loop()
+    loop.create_task(bot.message_loop())
+    print('Listening ...')
+
+    loop.run_forever()
 
 if __name__ == '__main__':
 
@@ -79,7 +91,8 @@ if __name__ == '__main__':
 
 
     # Set up the master beard
-    Beard.setup_beard(parsed.key)
+    # Beard.setup_beard(parsed.key)
+    BeardAsyncChatHandlerMixin.setup_beards(parsed.key)
 
     # If the user does not specially request --no-help, set up help command.
     if not parsed.no_help:
