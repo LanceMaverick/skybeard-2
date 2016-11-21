@@ -46,6 +46,10 @@ class Filters:
     def document(cls, msg):
         return "document" in msg
 
+    @classmethod
+    def location(cls, msg):
+        return "location" in msg
+
 class BeardAsyncChatHandlerMixin(metaclass=BeardLoader):
     # Default timeout for Beards
     _timeout = 10
