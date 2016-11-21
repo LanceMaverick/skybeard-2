@@ -17,7 +17,6 @@ async def fetch_user_help():
     retdict = dict()
     for beard in BeardAsyncChatHandlerMixin.beards:
         name = beard.get_name()
-        import pdb; pdb.set_trace()
         try:
             retdict[name] = beard.__userhelp__
         except AttributeError:
