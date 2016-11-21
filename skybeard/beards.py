@@ -66,6 +66,10 @@ class BeardAsyncChatHandlerMixin(metaclass=BeardLoader):
     def _register_command_with_class(cls, cmd):
         cls._all_commands.append(cmd)
 
+    @classmethod
+    def get_name(cls):
+        return cls.__name__
+
     def register_command(self, cmd, coro):
         self._register_command_with_class(cmd)
         if callable(cmd):
