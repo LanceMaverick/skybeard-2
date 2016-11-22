@@ -5,7 +5,6 @@ import yaml
 from telegram.ext import Job
 from telegram import  InlineKeyboardButton, InlineKeyboardMarkup
 from .config import Config
-from .user import UserInfo
 config = Config()
 curr_path = os.path.dirname(__file__)
 info_path = os.path.join(curr_path, 'yamls/activity.yaml')
@@ -296,6 +295,7 @@ class Event(object):
         unshotgun = config.unres_kwd
         ready = config.rdy_kwd
         unready = config.unrdy_kwd
+        print(par)
         print(str(dict(callback, **dict(cmd = '/'+shotgun))))
 
         keyboard = InlineKeyboardMarkup([[
