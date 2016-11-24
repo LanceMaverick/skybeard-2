@@ -7,13 +7,14 @@ import importlib
 import argparse
 
 import telepot
-from telepot.aio.delegate import per_chat_id, create_open, pave_event_space
+from telepot.aio.delegate import (per_chat_id,
+                                  create_open,
+                                  pave_event_space,
+                                  include_callback_query_chat_id)
 
 import config
 
 from skybeard.beards import BeardAsyncChatHandlerMixin
-from skybeard.beards import BeardLoader
-import autoloaders
 from help import create_help
 
 logger = logging.getLogger(__name__)
@@ -27,6 +28,7 @@ def is_module(filename):
     else:
         return False
 
+
 def get_literal_path(path_or_autoloader):
     try:
         return path_or_autoloader.path
@@ -34,8 +36,10 @@ def get_literal_path(path_or_autoloader):
         assert type(path_or_autoloader) is str, "beard_path is not a str or an AutoLoader!"
         return path_or_autoloader
 
+
 def get_literal_beard_paths(beard_paths):
     return [get_literal_path(x) for x in beard_paths]
+
 
 def all_possible_beards(paths):
     literal_paths = get_literal_beard_paths(paths)
@@ -44,6 +48,17 @@ def all_possible_beards(paths):
         for f in os.listdir(path):
             if is_module(os.path.join(path, f)):
                 yield os.path.basename(f)
+
+
+def delegator_beard_gen(beards):
+    for beard in beards:
+        if hasattr(beard, "on_callback_query"):
+            yield include_callback_query_chat_id(pave_event_space())(
+                    per_chat_id(), create_open, beard, timeout=beard._timeout)
+        else:
+            yield pave_event_space()(
+                per_chat_id(), create_open, beard, timeout=beard._timeout)
+
 
 def main(config):
     for beard_path in config.beard_paths:
@@ -60,20 +75,20 @@ def main(config):
         for beard_name in config.beards:
             importlib.import_module(beard_name)
 
-
     for beard_path in config.beard_paths:
         sys.path.pop(0)
 
-    bot = telepot.aio.DelegatorBot(BeardAsyncChatHandlerMixin.key, [
-        *[pave_event_space()(per_chat_id(), create_open, beard, timeout=beard._timeout) for beard in BeardAsyncChatHandlerMixin.beards],
-    ])
-
+    bot = telepot.aio.DelegatorBot(
+        BeardAsyncChatHandlerMixin.key,
+        list(delegator_beard_gen(BeardAsyncChatHandlerMixin.beards))
+    )
 
     loop = asyncio.get_event_loop()
     loop.create_task(bot.message_loop())
     print('Listening ...')
 
     loop.run_forever()
+
 
 if __name__ == '__main__':
 
@@ -86,12 +101,11 @@ if __name__ == '__main__':
 
     parsed = parser.parse_args()
 
-    logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-                        level=parsed.loglevel)
-
+    logging.basicConfig(
+        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+        level=parsed.loglevel)
 
     # Set up the master beard
-    # Beard.setup_beard(parsed.key)
     BeardAsyncChatHandlerMixin.setup_beards(parsed.key)
 
     # If the user does not specially request --no-help, set up help command.
@@ -100,7 +114,12 @@ if __name__ == '__main__':
 
     logger.debug("Config found to be: {}".format(dir(config)))
 
-
     # TODO make an argparse here to override the config file (and also specify
     # the config file)
     main(config)
+
+# bot = telepot.aio.DelegatorBot(TOKEN, [
+#     include_callback_query_chat_id(
+#         pave_event_space())(
+#             per_chat_id(types=['private']), create_open, Lover, timeout=10),
+# ])
