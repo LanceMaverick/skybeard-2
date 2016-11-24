@@ -16,10 +16,11 @@ async def fetch_user_help():
     """A little bit of magic to fetch all the __userhelp__'s."""
     retdict = dict()
     for beard in BeardAsyncChatHandlerMixin.beards:
+        name = beard.get_name()
         try:
-            retdict[beard.__class__.__name__] = beard.__userhelp__
+            retdict[name] = beard.__userhelp__
         except AttributeError:
-            retdict[beard.__class__.__name__] = None
+            retdict[name] = None
 
     return retdict
 
@@ -37,6 +38,11 @@ async def format_user_help(userhelps):
 
     return retstr
 
+# From http://stackoverflow.com/questions/128573/using-property-on-classmethods
+class ClassProperty(property):
+    def __get__(self, cls, owner):
+        return self.fget.__get__(None, owner)()
+
 class Help(telepot.aio.helper.ChatHandler):
 
     def __init__(self, *args, **kwargs):
@@ -46,8 +52,9 @@ class Help(telepot.aio.helper.ChatHandler):
 
     _timeout = 2
 
-    @property
-    def __userhelp__(self):
+    @ClassProperty
+    @classmethod
+    def __userhelp__(cls):
         return "\n".join([
             "I'm the default help beard.",
             "",

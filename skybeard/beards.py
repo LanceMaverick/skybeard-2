@@ -46,12 +46,17 @@ class Filters:
     def document(cls, msg):
         return "document" in msg
 
+    @classmethod
+    def location(cls, msg):
+        return "location" in msg
+
 class BeardAsyncChatHandlerMixin(metaclass=BeardLoader):
     # Default timeout for Beards
     _timeout = 10
     _all_commands = []
 
     def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self._commands = []
 
     @classmethod
@@ -60,18 +65,26 @@ class BeardAsyncChatHandlerMixin(metaclass=BeardLoader):
 
     @classmethod
     def _register_command_with_class(cls, cmd):
-        cls._all_commands.append(cmd)
+            cls._all_commands.append(cmd)
+
+    @classmethod
+    def get_name(cls):
+        return cls.__name__
 
     def register_command(self, cmd, coro):
         self._register_command_with_class(cmd)
-        if callable(cmd):
-            logger.debug("Registering coroutine: {}.".format(cmd))
-            self._commands.append((cmd, coro))
-        elif type(cmd) is str:
-            logger.debug("Registering command: {}.".format("/"+cmd))
-            self._commands.append((command_predicate(cmd), coro))
-        else:
-            raise TypeError("register_command requires either str or callable.")
+        try:
+            if callable(cmd):
+                logger.debug("Registering coroutine: {}.".format(cmd))
+                self._commands.append((cmd, coro))
+            elif type(cmd) is str:
+                logger.debug("Registering command: {}.".format("/"+cmd))
+                self._commands.append((command_predicate(cmd), coro))
+            else:
+                raise TypeError("register_command requires either str or callable.")
+        except AttributeError as e:
+            logger.error("Class not initialised properly. Did you do super().__init__(*args, **kwargs)?")
+            raise e
 
     async def on_chat_message(self, msg):
         for predicate, coro in self._commands:
