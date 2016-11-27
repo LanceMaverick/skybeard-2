@@ -2,7 +2,6 @@ import tempfile
 import subprocess as sp
 import logging
 import re
-
 import telepot
 import telepot.aio
 from skybeard.beards import BeardAsyncChatHandlerMixin
