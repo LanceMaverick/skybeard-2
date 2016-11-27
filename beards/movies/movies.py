@@ -14,6 +14,7 @@ def search(title):
 
     #poll api
     result = omdb.get(title=title)
+    print(result)
     if not result:
         return {"text": ('I could not find what you were looking for. '
                          'Try here: \n\n'+\
