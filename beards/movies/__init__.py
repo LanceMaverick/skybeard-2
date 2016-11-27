@@ -6,6 +6,9 @@ from skybeard.beards import BeardAsyncChatHandlerMixin
 from . import movies
 
 class Movies(telepot.aio.helper.ChatHandler, BeardAsyncChatHandlerMixin):
+    __userhelp__="""
+    Search for the details of a movie with 
+    /movie movie_title"""
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

@@ -3,13 +3,14 @@
 import random
 import logging
 from urllib.request import urlopen
-
 import telepot
 import telepot.aio
-
 from skybeard.beards import BeardAsyncChatHandlerMixin, regex_predicate
 
 class PostCats(telepot.aio.helper.ChatHandler, BeardAsyncChatHandlerMixin):
+    __userhelp__ = """
+    Say give me spacecats or show me spacecats if you want
+    to, well, see cats in space."""
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

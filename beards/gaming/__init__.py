@@ -24,6 +24,11 @@ def sanitize_html(string):
 
 
 class Steam(telepot.aio.helper.ChatHandler, BeardAsyncChatHandlerMixin):
+    __userhelp__ = """
+    Get news and patch notes for a game.
+    Games currently configured:
+    {}""".format(', '.join(k for k in config.game_ids.keys()))
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.register_command('gamenews', self.game_news)

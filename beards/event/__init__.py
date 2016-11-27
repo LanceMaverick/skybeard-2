@@ -12,11 +12,13 @@ config = Config()
 curr_path = os.path.dirname(__file__)
 
 class EventManager(telepot.aio.helper.ChatHandler, BeardAsyncChatHandlerMixin):
-    """ Keeps track of all events initiated by the /event command.
+    __userhelp__ = """ 
+    Keeps track of all events initiated by the /event command.
     Commands:
-        /event      Make a new event. Starts at set default time when created this way
-                    using the callback buttons.
-                    Can also create a specific event at a specific time such as
+        /event      Make a new event. Starts at set default time 
+                    when created this way using the inline buttons.
+                    Can also create a specific event at a specific 
+                    time such as:
                     /event dota at 18:00
                     /event overwatch at 9pm
                     etc

@@ -6,7 +6,7 @@ from . import config
 
 class DigOcean(telepot.aio.helper.ChatHandler, BeardAsyncChatHandlerMixin):
 
-    """
+    __userhelp__="""
     If the bot is being hosted on digital ocean,
     this allows user to get network stats if they are
     an admin

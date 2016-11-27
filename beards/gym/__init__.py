@@ -7,6 +7,9 @@ from skybeard.beards import BeardAsyncChatHandlerMixin, Filters, regex_predicate
 from . import gym
 
 class Gym(telepot.aio.helper.ChatHandler, BeardAsyncChatHandlerMixin):
+    __userhelp__="""
+    Still needs all features to be migrated from Skybeard v1.0.
+    Use the gainz keyword to see mad lifts tho brah"""
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
