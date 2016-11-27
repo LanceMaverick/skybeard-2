@@ -52,6 +52,7 @@ class Filters:
 
 class BeardAsyncChatHandlerMixin(metaclass=BeardLoader):
     # Default timeout for Beards
+    
     _timeout = 10
     _all_commands = []
 
