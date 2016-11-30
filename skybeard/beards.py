@@ -5,6 +5,7 @@ and http://stackoverflow.com/a/17401329
 """
 import re
 import logging
+import json
 
 logger = logging.getLogger(__name__)
 
@@ -18,6 +19,7 @@ class BeardLoader(type):
 
     def register(cls, beard):
         cls.beards.append(beard)
+
 
 
 def regex_predicate(pattern):
@@ -51,15 +53,49 @@ class Filters:
         return "location" in msg
 
 
+BEARD_IDENTIFIERS = dict()
+
+
+class ThatsNotMineException(Exception):
+    pass
+
+
 class BeardAsyncChatHandlerMixin(metaclass=BeardLoader):
     # Default timeout for Beards
 
     _timeout = 10
     _all_commands = []
 
+    def setup_identifier(self):
+        n = 0
+        while True:
+            if n in BEARD_IDENTIFIERS.values():
+                n += 1
+                continue
+            BEARD_IDENTIFIERS[self] = n
+            break
+
+    def teardown_identifier(self):
+        del BEARD_IDENTIFIERS[self]
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._commands = []
+        self.setup_identifier()
+
+    def __del__(self):
+        self.teardown_identifier()
+
+    def serialize(self, data):
+        return json.dumps((BEARD_IDENTIFIERS[self], data))
+
+    def deserialize(self, data):
+        data = json.loads(data)
+        if data[0] == BEARD_IDENTIFIERS[self]:
+            return data[1]
+        else:
+            raise ThatsNotMineException(
+                "Data does not belong to this bot!")
 
     @classmethod
     def setup_beards(cls, key):
