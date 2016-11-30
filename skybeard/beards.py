@@ -1,14 +1,11 @@
-import re
-import os
-import sys
-from telegram.ext import Updater
 """
 Handles the loading and running of skybeard plugins.
 architecture inspired by: http://martyalchin.com/2008/jan/10/simple-plugin-framework/
 and http://stackoverflow.com/a/17401329
 """
-
+import re
 import logging
+
 logger = logging.getLogger(__name__)
 
 
@@ -22,6 +19,7 @@ class BeardLoader(type):
     def register(cls, beard):
         cls.beards.append(beard)
 
+
 def regex_predicate(pattern):
     def retfunc(msg):
         try:
@@ -34,8 +32,10 @@ def regex_predicate(pattern):
 
     return retfunc
 
+
 def command_predicate(cmd):
     return regex_predicate(r"^/{}(?:@\w+)?".format(cmd))
+
 
 class Filters:
     @classmethod
@@ -50,9 +50,10 @@ class Filters:
     def location(cls, msg):
         return "location" in msg
 
+
 class BeardAsyncChatHandlerMixin(metaclass=BeardLoader):
     # Default timeout for Beards
-    
+
     _timeout = 10
     _all_commands = []
 
@@ -82,9 +83,11 @@ class BeardAsyncChatHandlerMixin(metaclass=BeardLoader):
                 logger.debug("Registering command: {}.".format("/"+cmd))
                 self._commands.append((command_predicate(cmd), coro))
             else:
-                raise TypeError("register_command requires either str or callable.")
+                raise TypeError(
+                    "register_command requires either str or callable.")
         except AttributeError as e:
-            logger.error("Class not initialised properly. Did you do super().__init__(*args, **kwargs)?")
+            logger.error(("Class not initialised properly. "
+                          "Did you do super().__init__(*args, **kwargs)?"))
             raise e
 
     async def on_chat_message(self, msg):
