@@ -17,9 +17,9 @@ pip install -r requirements.txt
 
 ## Running Skybeard
 
-To run skybeard define your key in the environment variable `$TG_BOT_TOKEN` and run `main.py`. Alternatively, the key can be supplied with the argument `-k`, e.g:
+To run skybeard define your key in the environment variable `$TG_BOT_TOKEN` or as an argument with `-k` and run `main.py`. this can be done easily e.g.:
 
-    ./main.py -k99121185:RUE-UAa7dsEaagAKkysPDjqa2X7KxX48e 
+    ./main.py -k 99121185:RUE-UAa7dsEaagAKkysPDjqa2X7KxX48e 
 
 ## Skybeard's many beards
 Skybeard wears many beards. The bot will automatically load any "beard" (a plug-in) that is placed in the beards folder. Beards are typically structured like so:
