@@ -53,9 +53,6 @@ class Filters:
         return "location" in msg
 
 
-BEARD_IDENTIFIERS = dict()
-
-
 class ThatsNotMineException(Exception):
     pass
 
@@ -66,32 +63,19 @@ class BeardAsyncChatHandlerMixin(metaclass=BeardLoader):
     _timeout = 10
     _all_commands = []
 
-    def setup_identifier(self):
-        n = 0
-        while True:
-            if n in BEARD_IDENTIFIERS.values():
-                n += 1
-                continue
-            BEARD_IDENTIFIERS[self] = n
-            break
-
-    def teardown_identifier(self):
-        del BEARD_IDENTIFIERS[self]
-
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._commands = []
-        self.setup_identifier()
 
-    def __del__(self):
-        self.teardown_identifier()
+    def _make_uid(self):
+        return type(self).__name__+str(self.chat_id)
 
     def serialize(self, data):
-        return json.dumps((BEARD_IDENTIFIERS[self], data))
+        return json.dumps((self._make_uid(), data))
 
     def deserialize(self, data):
         data = json.loads(data)
-        if data[0] == BEARD_IDENTIFIERS[self]:
+        if data[0] == self._make_uid():
             return data[1]
         else:
             raise ThatsNotMineException(
