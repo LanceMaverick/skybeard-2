@@ -1,7 +1,7 @@
 import telepot
 
 # from skybeard.beards import BeardAsyncChatHandlerMixin
-from skybeard.beards import BeardChatHandler, Beard
+from skybeard.beards import BeardChatHandler, Beard, create_command
 
 import config
 
@@ -44,15 +44,14 @@ async def format_user_help(userhelps):
 
 class Help(telepot.aio.helper.ChatHandler):
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        # This will make sense when this class inherits from BeardAsyncChatHandlerMixin
-        self.register_command("help", self.send_help)
+    commands = [
+        create_command('help', 'send_help'),
+    ]
 
     _timeout = 2
 
     @classmethod
-    def __userhelp__(self):
+    def __userhelp__(cls):
         return "\n".join([
             "I'm the default help beard.",
             "",
@@ -72,7 +71,6 @@ class Help(telepot.aio.helper.ChatHandler):
         userhelp = await fetch_user_help()
         userhelp = await format_user_help(userhelp)
         retstr += "\n\n{}".format(userhelp)
-        # TODO update to something more proper
         await self.sender.sendMessage(retstr, parse_mode='html')
 
 

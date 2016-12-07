@@ -7,9 +7,33 @@ import re
 import logging
 import json
 import telepot.aio
-from copy import deepcopy
 
 logger = logging.getLogger(__name__)
+
+# TODO rename coro to coro_name or something better than that
+
+class Command(object):
+    def __init__(self, pred, coro, hlp=None):
+        self.pred = pred
+        self.coro = coro
+        self.hlp = hlp
+
+
+class SlashCommand(object):
+    def __init__(self, cmd, coro, hlp=None):
+        self.cmd = cmd
+        self.pred = command_predicate(cmd)
+        self.coro = coro
+        self.hlp = hlp
+
+
+def create_command(cmd_or_pred, coro, hlp=None):
+    if isinstance(cmd_or_pred, str):
+        return SlashCommand(cmd_or_pred, coro, hlp)
+    elif callable(cmd_or_pred):
+        return Command(cmd_or_pred, coro, hlp)
+    raise TypeError("cmd_or_pred must be str or callable.")
+
 
 
 # This is a metaclass. Let's do this thing.
@@ -82,7 +106,7 @@ class BeardChatHandler(telepot.aio.helper.ChatHandler, metaclass=Beard):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self._commands = []
+        # self._commands = []
 
     def _make_uid(self):
         return type(self).__name__+str(self.chat_id)
@@ -102,32 +126,35 @@ class BeardChatHandler(telepot.aio.helper.ChatHandler, metaclass=Beard):
     def setup_beards(cls, key):
         cls.key = key
 
-    @classmethod
-    def _register_command_with_class(cls, cmd):
-            cls._all_commands.append(cmd)
+    # @classmethod
+    # def _register_command_with_class(cls, cmd):
+    #         cls._all_commands.append(cmd)
 
     @classmethod
     def get_name(cls):
         return cls.__name__
 
-    def register_command(self, cmd, coro):
-        self._register_command_with_class(cmd)
-        try:
-            if callable(cmd):
-                logger.debug("Registering coroutine: {}.".format(cmd))
-                self._commands.append((cmd, coro))
-            elif type(cmd) is str:
-                logger.debug("Registering command: {}.".format("/"+cmd))
-                self._commands.append((command_predicate(cmd), coro))
-            else:
-                raise TypeError(
-                    "register_command requires either str or callable.")
-        except AttributeError as e:
-            logger.error(("Class not initialised properly. "
-                          "Did you do super().__init__(*args, **kwargs)?"))
-            raise e
+    # def register_command(self, cmd, coro):
+    #     self._register_command_with_class(cmd)
+    #     try:
+    #         if callable(cmd):
+    #             logger.debug("Registering coroutine: {}.".format(cmd))
+    #             self._commands.append((cmd, coro))
+    #         elif type(cmd) is str:
+    #             logger.debug("Registering command: {}.".format("/"+cmd))
+    #             self._commands.append((command_predicate(cmd), coro))
+    #         else:
+    #             raise TypeError(
+    #                 "register_command requires either str or callable.")
+    #     except AttributeError as e:
+    #         logger.error(("Class not initialised properly. "
+    #                       "Did you do super().__init__(*args, **kwargs)?"))
+    #         raise e
 
     async def on_chat_message(self, msg):
-        for predicate, coro in self._commands:
-            if predicate(msg):
-                await coro(msg)
+        # for predicate, coro in self._commands:
+        #     if predicate(msg):
+        #         await coro(msg)
+        for cmd in type(self).commands:
+            if cmd.pred(msg):
+                await getattr(self, cmd.coro)(msg)

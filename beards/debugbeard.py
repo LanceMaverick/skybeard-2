@@ -1,6 +1,6 @@
 import logging
 import telepot
-from skybeard.beards import BeardChatHandler, Beard
+from skybeard.beards import BeardChatHandler, Beard, create_command
 
 logger = logging.getLogger(__name__)
 
@@ -8,10 +8,9 @@ logger = logging.getLogger(__name__)
 # class DebugBeard(telepot.aio.helper.ChatHandler, BeardAsyncChatHandlerMixin):
 class DebugBeard(BeardChatHandler):
 
-    # __init__ is implicit
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.register_command("loadedbeards", self.loaded_beards)
+    commands = [
+        create_command('loadedbeards', 'loaded_beards')
+    ]
 
     async def loaded_beards(self, msg):
         await self.sender.sendMessage(
