@@ -6,20 +6,35 @@ and http://stackoverflow.com/a/17401329
 import re
 import logging
 import json
+import telepot.aio
+from copy import deepcopy
 
 logger = logging.getLogger(__name__)
 
 
-class BeardLoader(type):
+# This is a metaclass. Let's do this thing.
+class Beard(type):
+    beards = list()
+
+    def __new__(mcs, name, bases, dct):
+        # If there is a __userhelp__ present and it's an ordinary string, make
+        # it a function that returns that string
+        if "__userhelp__" in dct:
+            if isinstance(dct["__userhelp__"], str):
+                tmp = dct["__userhelp__"]
+                mcs.__userhelp__ = classmethod(lambda x: tmp)
+                dct["__userhelp__"] = mcs.__userhelp__
+
+        return type.__new__(mcs, name, bases, dct)
+
     def __init__(cls, name, bases, attrs):
-        if hasattr(cls, 'beards'):
-            cls.register(cls)
-        else:
-            cls.beards = []
+        if not ("__is_base_beard__" in attrs and
+                attrs["__is_base_beard__"] == True):
+            Beard.beards.append(cls)
+        super().__init__(name, bases, attrs)
 
     def register(cls, beard):
         cls.beards.append(beard)
-
 
 
 def regex_predicate(pattern):
@@ -57,8 +72,10 @@ class ThatsNotMineException(Exception):
     pass
 
 
-class BeardAsyncChatHandlerMixin(metaclass=BeardLoader):
+class BeardChatHandler(telepot.aio.helper.ChatHandler, metaclass=Beard):
     # Default timeout for Beards
+
+    __is_base_beard__ = True
 
     _timeout = 10
     _all_commands = []

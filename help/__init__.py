@@ -1,28 +1,31 @@
-import re
-
 import telepot
 
-from skybeard.beards import BeardAsyncChatHandlerMixin
+# from skybeard.beards import BeardAsyncChatHandlerMixin
+from skybeard.beards import BeardChatHandler, Beard
 
 import config
+
 
 def embolden(string):
     return "<b>"+string+"</b>"
 
+
 def italisize(string):
     return "<i>"+string+"</i>"
+
 
 async def fetch_user_help():
     """A little bit of magic to fetch all the __userhelp__'s."""
     retdict = dict()
-    for beard in BeardAsyncChatHandlerMixin.beards:
+    for beard in Beard.beards:
         name = beard.get_name()
         try:
-            retdict[name] = beard.__userhelp__
+            retdict[name] = beard.__userhelp__()
         except AttributeError:
             retdict[name] = None
 
     return retdict
+
 
 async def format_user_help(userhelps):
     """Takes a dict of user help messages and formats them."""
@@ -38,10 +41,6 @@ async def format_user_help(userhelps):
 
     return retstr
 
-# From http://stackoverflow.com/questions/128573/using-property-on-classmethods
-class ClassProperty(property):
-    def __get__(self, cls, owner):
-        return self.fget.__get__(None, owner)()
 
 class Help(telepot.aio.helper.ChatHandler):
 
@@ -52,9 +51,8 @@ class Help(telepot.aio.helper.ChatHandler):
 
     _timeout = 2
 
-    @ClassProperty
     @classmethod
-    def __userhelp__(cls):
+    def __userhelp__(self):
         return "\n".join([
             "I'm the default help beard.",
             "",
@@ -63,10 +61,13 @@ class Help(telepot.aio.helper.ChatHandler):
     async def send_help(self, msg):
         retstr = ""
         try:
-            retstr += config.__userhelp__
+            try:
+                retstr += config.__userhelp__
+            except TypeError:
+                retstr += config.__userhelp__()
         except AttributeError:
             retstr += ("My help message is unconfigured. To display "
-                        "something here, add a docstring to my config.py.")
+                       "something here, add a docstring to my config.py.")
 
         userhelp = await fetch_user_help()
         userhelp = await format_user_help(userhelp)
@@ -77,8 +78,7 @@ class Help(telepot.aio.helper.ChatHandler):
 
 def create_help(config):
 
-    class BeardedHelp(Help, BeardAsyncChatHandlerMixin):
+    class BeardedHelp(Help, BeardChatHandler):
         pass
 
     return BeardedHelp
-

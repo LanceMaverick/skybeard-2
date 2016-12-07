@@ -1,14 +1,12 @@
-import tempfile
-import subprocess as sp
 import logging
-import re
 import telepot
-import telepot.aio
-from skybeard.beards import BeardAsyncChatHandlerMixin
+from skybeard.beards import BeardChatHandler, Beard
 
 logger = logging.getLogger(__name__)
 
-class DebugBeard(telepot.aio.helper.ChatHandler, BeardAsyncChatHandlerMixin):
+
+# class DebugBeard(telepot.aio.helper.ChatHandler, BeardAsyncChatHandlerMixin):
+class DebugBeard(BeardChatHandler):
 
     # __init__ is implicit
     def __init__(self, *args, **kwargs):
@@ -18,7 +16,7 @@ class DebugBeard(telepot.aio.helper.ChatHandler, BeardAsyncChatHandlerMixin):
     async def loaded_beards(self, msg):
         await self.sender.sendMessage(
             "Currently loaded beards are:\n\n{}".format(
-                BeardAsyncChatHandlerMixin.beards))
+                Beard.beards))
 
     async def on_chat_message(self, msg):
         if logger.getEffectiveLevel() == logging.DEBUG:

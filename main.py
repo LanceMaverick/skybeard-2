@@ -14,7 +14,8 @@ from telepot.aio.delegate import (per_chat_id,
 
 import config
 
-from skybeard.beards import BeardAsyncChatHandlerMixin
+# from skybeard.beards import BeardAsyncChatHandlerMixin
+from skybeard.beards import Beard, BeardChatHandler
 from help import create_help
 
 logger = logging.getLogger(__name__)
@@ -79,8 +80,8 @@ def main(config):
         sys.path.pop(0)
 
     bot = telepot.aio.DelegatorBot(
-        BeardAsyncChatHandlerMixin.key,
-        list(delegator_beard_gen(BeardAsyncChatHandlerMixin.beards))
+        BeardChatHandler.key,
+        list(delegator_beard_gen(Beard.beards))
     )
 
     loop = asyncio.get_event_loop()
@@ -106,7 +107,7 @@ if __name__ == '__main__':
         level=parsed.loglevel)
 
     # Set up the master beard
-    BeardAsyncChatHandlerMixin.setup_beards(parsed.key)
+    BeardChatHandler.setup_beards(parsed.key)
 
     # If the user does not specially request --no-help, set up help command.
     if not parsed.no_help:
