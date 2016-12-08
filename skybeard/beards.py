@@ -59,11 +59,9 @@ class Beard(type):
     def __new__(mcs, name, bases, dct):
         # If there is a __userhelp__ present and it's an ordinary string, make
         # it a function that returns that string
-        if "__userhelp__" in dct:
-            if isinstance(dct["__userhelp__"], str):
-                tmp_help = dct["__userhelp__"]
-                mcs.__userhelp__ = classmethod(lambda x: tmp_help)
-                dct["__userhelp__"] = mcs.__userhelp__
+        if "__userhelp__" not in dct:
+            dct["__userhelp__"] = ("The author has not defined a "
+                                   "<code>__userhelp__</code> for this beard.")
 
         if "__commands__" in dct:
             for i in range(len(dct["__commands__"])):
@@ -73,6 +71,7 @@ class Beard(type):
         return type.__new__(mcs, name, bases, dct)
 
     def __init__(cls, name, bases, attrs):
+        # import pdb; pdb.set_trace()
 
         # If specified as base beard, do not add to list
         try:

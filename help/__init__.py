@@ -1,7 +1,7 @@
 import telepot
 
 # from skybeard.beards import BeardAsyncChatHandlerMixin
-from skybeard.beards import BeardChatHandler, Beard, create_command
+from skybeard.beards import BeardChatHandler, Beard, SlashCommand
 
 import config
 
@@ -14,13 +14,20 @@ def italisize(string):
     return "<i>"+string+"</i>"
 
 
+# TODO neaten the logic so fetching and formatting are truly separate again
 async def fetch_user_help():
     """A little bit of magic to fetch all the __userhelp__'s."""
     retdict = dict()
     for beard in Beard.beards:
         name = beard.get_name()
         try:
-            retdict[name] = beard.__userhelp__()
+            retdict[name] = beard.__userhelp__
+            if hasattr(beard, '__commands__'):
+                retdict[name] += "\n\n"
+                for cmd in beard.__commands__:
+                    if isinstance(cmd, SlashCommand):
+                        retdict[name] += "/{} - {}\n".format(
+                            cmd.cmd, cmd.hlp)
         except AttributeError:
             retdict[name] = None
 
@@ -42,22 +49,22 @@ async def format_user_help(userhelps):
     return retstr
 
 
-class Help(telepot.aio.helper.ChatHandler):
+def get_all_cmd_helps():
+    all_cmds = set()
+    for beard in Beard.beards:
+        for cmd in beard.__commands__:
+            if isinstance(cmd, SlashCommand):
+                all_cmds.add(cmd)
+    str_list = ["/{} - {}".format(x.cmd, x.hlp) for x in all_cmds]
+    return "\n".join(str_list)
 
-    @classmethod
-    def __userhelp__(cls):
-        return "\n".join([
-            "I'm the default help beard.",
-            "",
-            "/help - display the help for this bot."])
+
+class Help(telepot.aio.helper.ChatHandler):
 
     async def send_help(self, msg):
         retstr = ""
         try:
-            try:
-                retstr += config.__userhelp__
-            except TypeError:
-                retstr += config.__userhelp__()
+            retstr += config.__userhelp__
         except AttributeError:
             retstr += ("My help message is unconfigured. To display "
                        "something here, add a docstring to my config.py.")
@@ -67,13 +74,20 @@ class Help(telepot.aio.helper.ChatHandler):
         retstr += "\n\n{}".format(userhelp)
         await self.sender.sendMessage(retstr, parse_mode='html')
 
+    async def cmd_helps(self, msg):
+        await self.sender.sendMessage(get_all_cmd_helps())
+
 
 def create_help(config):
 
     class BeardedHelp(Help, BeardChatHandler):
         _timeout = 2
         __commands__ = [
-            ('help', 'send_help', None),
+            ('help', 'send_help', "Shows verbose help message."),
+            ('cmdhelps', 'cmd_helps', "Lists all commands available."),
         ]
+
+        __userhelp__ = "I'm the default help beard."
+
 
     return BeardedHelp

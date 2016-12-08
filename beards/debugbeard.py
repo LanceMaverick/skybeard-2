@@ -36,7 +36,4 @@ class DebugBeard(BeardChatHandler):
 
         await super().on_chat_message(msg)
 
-    __userhelp__ = """I automatically print messages if the logger level is DEBUG.
-
-/loadedbeards - Shows the currently loaded beards.
-/debug - Enters a debug trace in the terminal running the bot."""
+    __userhelp__ = "I automatically print messages if the logger level is DEBUG."
