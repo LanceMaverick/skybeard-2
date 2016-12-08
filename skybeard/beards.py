@@ -10,6 +10,24 @@ import telepot.aio
 
 logger = logging.getLogger(__name__)
 
+
+def regex_predicate(pattern):
+    def retfunc(msg):
+        try:
+            logging.debug("Matching regex: '{}'".format(pattern))
+            retmatch = re.match(pattern, msg['text'])
+            logging.debug("Match: {}".format(retmatch))
+            return retmatch
+        except KeyError:
+            return False
+
+    return retfunc
+
+
+def command_predicate(cmd):
+    return regex_predicate(r"^/{}(?:@\w+)?".format(cmd))
+
+
 # TODO rename coro to coro_name or something better than that
 
 class Command(object):
@@ -35,8 +53,6 @@ def create_command(cmd_or_pred, coro, hlp=None):
     raise TypeError("cmd_or_pred must be str or callable.")
 
 
-
-# This is a metaclass. Let's do this thing.
 class Beard(type):
     beards = list()
 
@@ -45,37 +61,31 @@ class Beard(type):
         # it a function that returns that string
         if "__userhelp__" in dct:
             if isinstance(dct["__userhelp__"], str):
-                tmp = dct["__userhelp__"]
-                mcs.__userhelp__ = classmethod(lambda x: tmp)
+                tmp_help = dct["__userhelp__"]
+                mcs.__userhelp__ = classmethod(lambda x: tmp_help)
                 dct["__userhelp__"] = mcs.__userhelp__
+
+        if "__commands__" in dct:
+            for i in range(len(dct["__commands__"])):
+                tmp = dct["__commands__"].pop(0)
+                dct["__commands__"].append(create_command(*tmp))
 
         return type.__new__(mcs, name, bases, dct)
 
     def __init__(cls, name, bases, attrs):
-        if not ("__is_base_beard__" in attrs and
-                attrs["__is_base_beard__"] == True):
+
+        # If specified as base beard, do not add to list
+        try:
+            if attrs["__is_base_beard__"] is False:
+                Beard.beards.append(cls)
+        except KeyError:
+            attrs["__is_base_beard__"] = False
             Beard.beards.append(cls)
+
         super().__init__(name, bases, attrs)
 
     def register(cls, beard):
         cls.beards.append(beard)
-
-
-def regex_predicate(pattern):
-    def retfunc(msg):
-        try:
-            logging.debug("Matching regex: '{}'".format(pattern))
-            retmatch = re.match(pattern, msg['text'])
-            logging.debug("Match: {}".format(retmatch))
-            return retmatch
-        except KeyError:
-            return False
-
-    return retfunc
-
-
-def command_predicate(cmd):
-    return regex_predicate(r"^/{}(?:@\w+)?".format(cmd))
 
 
 class Filters:
@@ -97,16 +107,9 @@ class ThatsNotMineException(Exception):
 
 
 class BeardChatHandler(telepot.aio.helper.ChatHandler, metaclass=Beard):
-    # Default timeout for Beards
-
     __is_base_beard__ = True
 
     _timeout = 10
-    _all_commands = []
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        # self._commands = []
 
     def _make_uid(self):
         return type(self).__name__+str(self.chat_id)
@@ -126,35 +129,11 @@ class BeardChatHandler(telepot.aio.helper.ChatHandler, metaclass=Beard):
     def setup_beards(cls, key):
         cls.key = key
 
-    # @classmethod
-    # def _register_command_with_class(cls, cmd):
-    #         cls._all_commands.append(cmd)
-
     @classmethod
     def get_name(cls):
         return cls.__name__
 
-    # def register_command(self, cmd, coro):
-    #     self._register_command_with_class(cmd)
-    #     try:
-    #         if callable(cmd):
-    #             logger.debug("Registering coroutine: {}.".format(cmd))
-    #             self._commands.append((cmd, coro))
-    #         elif type(cmd) is str:
-    #             logger.debug("Registering command: {}.".format("/"+cmd))
-    #             self._commands.append((command_predicate(cmd), coro))
-    #         else:
-    #             raise TypeError(
-    #                 "register_command requires either str or callable.")
-    #     except AttributeError as e:
-    #         logger.error(("Class not initialised properly. "
-    #                       "Did you do super().__init__(*args, **kwargs)?"))
-    #         raise e
-
     async def on_chat_message(self, msg):
-        # for predicate, coro in self._commands:
-        #     if predicate(msg):
-        #         await coro(msg)
-        for cmd in type(self).commands:
+        for cmd in type(self).__commands__:
             if cmd.pred(msg):
                 await getattr(self, cmd.coro)(msg)

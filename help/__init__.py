@@ -44,12 +44,6 @@ async def format_user_help(userhelps):
 
 class Help(telepot.aio.helper.ChatHandler):
 
-    commands = [
-        create_command('help', 'send_help'),
-    ]
-
-    _timeout = 2
-
     @classmethod
     def __userhelp__(cls):
         return "\n".join([
@@ -77,6 +71,9 @@ class Help(telepot.aio.helper.ChatHandler):
 def create_help(config):
 
     class BeardedHelp(Help, BeardChatHandler):
-        pass
+        _timeout = 2
+        __commands__ = [
+            ('help', 'send_help', None),
+        ]
 
     return BeardedHelp
