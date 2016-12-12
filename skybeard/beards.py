@@ -110,6 +110,10 @@ class BeardChatHandler(telepot.aio.helper.ChatHandler, metaclass=Beard):
 
     _timeout = 10
 
+    def __init__(self, *args, **kwargs):
+        self._instance_commands = []
+        super().__init__(*args, **kwargs)
+
     def _make_uid(self):
         return type(self).__name__+str(self.chat_id)
 
@@ -128,11 +132,19 @@ class BeardChatHandler(telepot.aio.helper.ChatHandler, metaclass=Beard):
     def setup_beards(cls, key):
         cls.key = key
 
+    def register_command(self, pred_or_cmd, coro, hlp=None):
+        logging.debug("Registering instance command: {}".format(pred_or_cmd))
+        self._instance_commands.append(create_command(pred_or_cmd, coro, hlp))
+
     @classmethod
     def get_name(cls):
         return cls.__name__
 
     async def on_chat_message(self, msg):
         for cmd in type(self).__commands__:
+            if cmd.pred(msg):
+                await getattr(self, cmd.coro)(msg)
+
+        for cmd in self._instance_commands:
             if cmd.pred(msg):
                 await getattr(self, cmd.coro)(msg)
