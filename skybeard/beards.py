@@ -6,20 +6,9 @@ and http://stackoverflow.com/a/17401329
 import re
 import logging
 import json
+import telepot.aio
 
 logger = logging.getLogger(__name__)
-
-
-class BeardLoader(type):
-    def __init__(cls, name, bases, attrs):
-        if hasattr(cls, 'beards'):
-            cls.register(cls)
-        else:
-            cls.beards = []
-
-    def register(cls, beard):
-        cls.beards.append(beard)
-
 
 
 def regex_predicate(pattern):
@@ -37,6 +26,65 @@ def regex_predicate(pattern):
 
 def command_predicate(cmd):
     return regex_predicate(r"^/{}(?:@\w+)?".format(cmd))
+
+
+# TODO rename coro to coro_name or something better than that
+
+class Command(object):
+    def __init__(self, pred, coro, hlp=None):
+        self.pred = pred
+        self.coro = coro
+        self.hlp = hlp
+
+
+class SlashCommand(object):
+    def __init__(self, cmd, coro, hlp=None):
+        self.cmd = cmd
+        self.pred = command_predicate(cmd)
+        self.coro = coro
+        self.hlp = hlp
+
+
+def create_command(cmd_or_pred, coro, hlp=None):
+    if isinstance(cmd_or_pred, str):
+        return SlashCommand(cmd_or_pred, coro, hlp)
+    elif callable(cmd_or_pred):
+        return Command(cmd_or_pred, coro, hlp)
+    raise TypeError("cmd_or_pred must be str or callable.")
+
+
+class Beard(type):
+    beards = list()
+
+    def __new__(mcs, name, bases, dct):
+        # If there is a __userhelp__ present and it's an ordinary string, make
+        # it a function that returns that string
+        if "__userhelp__" not in dct:
+            dct["__userhelp__"] = ("The author has not defined a "
+                                   "<code>__userhelp__</code> for this beard.")
+
+        if "__commands__" in dct:
+            for i in range(len(dct["__commands__"])):
+                tmp = dct["__commands__"].pop(0)
+                dct["__commands__"].append(create_command(*tmp))
+
+        return type.__new__(mcs, name, bases, dct)
+
+    def __init__(cls, name, bases, attrs):
+        # import pdb; pdb.set_trace()
+
+        # If specified as base beard, do not add to list
+        try:
+            if attrs["__is_base_beard__"] is False:
+                Beard.beards.append(cls)
+        except KeyError:
+            attrs["__is_base_beard__"] = False
+            Beard.beards.append(cls)
+
+        super().__init__(name, bases, attrs)
+
+    def register(cls, beard):
+        cls.beards.append(beard)
 
 
 class Filters:
@@ -57,15 +105,14 @@ class ThatsNotMineException(Exception):
     pass
 
 
-class BeardAsyncChatHandlerMixin(metaclass=BeardLoader):
-    # Default timeout for Beards
+class BeardChatHandler(telepot.aio.helper.ChatHandler, metaclass=Beard):
+    __is_base_beard__ = True
 
     _timeout = 10
-    _all_commands = []
 
     def __init__(self, *args, **kwargs):
+        self._instance_commands = []
         super().__init__(*args, **kwargs)
-        self._commands = []
 
     def _make_uid(self):
         return type(self).__name__+str(self.chat_id)
@@ -85,32 +132,19 @@ class BeardAsyncChatHandlerMixin(metaclass=BeardLoader):
     def setup_beards(cls, key):
         cls.key = key
 
-    @classmethod
-    def _register_command_with_class(cls, cmd):
-            cls._all_commands.append(cmd)
+    def register_command(self, pred_or_cmd, coro, hlp=None):
+        logging.debug("Registering instance command: {}".format(pred_or_cmd))
+        self._instance_commands.append(create_command(pred_or_cmd, coro, hlp))
 
     @classmethod
     def get_name(cls):
         return cls.__name__
 
-    def register_command(self, cmd, coro):
-        self._register_command_with_class(cmd)
-        try:
-            if callable(cmd):
-                logger.debug("Registering coroutine: {}.".format(cmd))
-                self._commands.append((cmd, coro))
-            elif type(cmd) is str:
-                logger.debug("Registering command: {}.".format("/"+cmd))
-                self._commands.append((command_predicate(cmd), coro))
-            else:
-                raise TypeError(
-                    "register_command requires either str or callable.")
-        except AttributeError as e:
-            logger.error(("Class not initialised properly. "
-                          "Did you do super().__init__(*args, **kwargs)?"))
-            raise e
-
     async def on_chat_message(self, msg):
-        for predicate, coro in self._commands:
-            if predicate(msg):
-                await coro(msg)
+        for cmd in type(self).__commands__:
+            if cmd.pred(msg):
+                await getattr(self, cmd.coro)(msg)
+
+        for cmd in self._instance_commands:
+            if cmd.pred(msg):
+                await getattr(self, cmd.coro)(msg)
