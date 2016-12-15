@@ -46,7 +46,7 @@ The folder can also contain any other python modules and files that are needed f
 ## Growing a new beard
 Creating a new beard requires knowledge of the **telepot** telegram API, see: http://telepot.readthedocs.io/en/latest/
 
-An example plug-in that would echo the user's message would look like this:
+An example async plug-in that would echo the user's message would look like this:
 ```
 import telepot
 import telepot.aio
@@ -57,12 +57,15 @@ class EchoPlugin(telepot.aio.helper.ChatHandler, BeardAsyncChatHandlerMixin):
     
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        #register command "/hello" to dispatch to self.say_hello()
         self.register_command("hello", self.say_hello)
     
+    #is called when "/hello" is sent
     async def say_hello(self, msg):
         name = msg['from']['first_name']
         await self.sender.sendMessage('Hello {}!'.format(name))
     
+    #is called every time a message is sent
     async def on_chat_message(self, msg):
         text = msg['text']
         await self.sender.sendMessage(text)
