@@ -1,17 +1,29 @@
-from telegram.ext import CommandHandler
-from skybeard.beards import Beard
+import telepot
+import telepot.aio
+from urllib.request import urlopen
+from skybeard.beards import BeardChatHandler
 from . import movies
 
-class Movies(Beard):
-    
-    def initialise(self):
-        self.disp.add_handler(CommandHandler('movie', self.movie_search))
+class Movies(BeardChatHandler):
+    __userhelp__="""
+    Search for the details of a movie with 
+    /movie movie_title"""
 
-    def movie_search(self, bot, update):
-        movie_title = update.message.text.split('/movie',1)[1]
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.register_command('movie', self.movie_search)
+
+    async def movie_search(self, msg):
+        movie_title = msg['text'].split('/movie',1)[1].strip()
         if not movie_title:
-            update.message.reply_text('please specify a movie title', quote = False)
+            await self.sender.sendMessage('please specify a movie title')
         else:
-            movies.search(update.message, movie_title)
+            search = movies.search(movie_title)
+            if search["photourl"] and search["photourl"]!='N/A':
+                try:
+                    await self.sender.sendPhoto(("poster.jpg", urlopen(search["photourl"])))
+                except telepot.exception.TelegramError:
+                    await self.sender.sendMessage(search["photourl"])
+            await self.sender.sendMessage(search["text"])
 
 

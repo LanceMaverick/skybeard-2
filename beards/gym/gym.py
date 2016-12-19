@@ -10,7 +10,7 @@ def keySearch(lst,key,value):
     for item in lst:
         if item[key] == value:
             return item
-    return None    
+    return None
 
 def check_gainz(message):
     #if there is no gym history, just post gainz photos anyway
@@ -18,10 +18,10 @@ def check_gainz(message):
         gainz_history = yaml.load(open(history_path,'rb'))
     except IOError:
         return True
-    
+
     user_id = message.from_user.id
     entry = keySearch(gainz_history,'user_id',user_id)
-    
+
     #check if it has been more than one week (168 hours, 10080 minutes) since last gym check-in
     if entry and not expiry(entry['time'],10080):
         return True
@@ -32,13 +32,13 @@ def update_gainz(message):
     user = message.from_user
     user_id = user.id
     name = user.first_name
-    
+
     try:
         gainz_history = yaml.load(open(history_path, 'rb'))
     except IOError:
         logging.warning('no gainz_history.yaml found. Creating new file')
         gainz_history = []
-    
+
     now = datetime.datetime.now()
     user_new ={'user_id': user_id, 'time': now, 'name': name }
     match = keySearch(gainz_history,'user_id',user_id)
@@ -51,31 +51,25 @@ def update_gainz(message):
     yaml.dump(gainz_history,open(history_path, 'wb'))
     yaml.dump(gainz_history,sys.stdout)
 
-def add_gym(bot, update):
+def add_gym(msg):
     pass
 
-def pics(bot, update):
+def pics(msg):
     gain_photos= [
             'http://i.imgur.com/QrdcYCP.jpg',
             'http://i.imgur.com/zopXdvc.jpg',
             'http://i.imgur.com/jEi18ha.jpg'
             ]
-    message = update.message 
-    chat_id = message.chat_id 
-    user_id = message.from_user.id
-    user_name = message.from_user.first_name
-    random.seed()
-    
-    if (check_gainz(message)):
-        i = random.randint(0, len(gain_photos)-1)
-        bot.sendPhoto(chat_id=chat_id, photo=gain_photos[i])
+    user_id = msg["from"]["id"]
+    user_name = msg["from"]["first_name"]
+
+    if check_gainz(msg):
+        return {"text": None,
+                "photourl": random.choice(gain_photos)}
     else:
-        bot.sendPhoto(chat_id=chat_id, photo='http://i.imgur.com/Rra4uun.png') #send blobby gains
-        message.reply_text('I have not seen you go to the gym this week {}. \
-                You do not deserve to see proper gainz.'.format(user_name), quote= False)
+        return {"text": 'I have not seen you go to the gym this week {}. \
+                You do not deserve to see proper gainz.'.format(user_name),
+                "photourl": 'http://i.imgur.com/Rra4uun.png'}
 
-def visit(bot, update):
+def visit(msg):
     pass
-
-
-    

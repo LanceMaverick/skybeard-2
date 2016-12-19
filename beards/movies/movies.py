@@ -1,6 +1,6 @@
 import omdb
 
-def search(message,title):
+def search(title):
     #makes the imdb search url if match not found
     def build_imdb_url(title):
         title_list = [element.strip() for element in title.split(' ')]
@@ -11,13 +11,15 @@ def search(message,title):
                 ]
         url = ''.join(url_elements)
         return url
-    
+
     #poll api
     result = omdb.get(title=title)
+    print(result)
     if not result:
-        message.reply_text('I could not find what you were looking for. Try here: ', quote = False)
-        message.reply_text(build_imdb_url(title), quote = False)
-        #sendText(bot,message.chat_id,str(buildImdbUrl(title)),True)
+        return {"text": ('I could not find what you were looking for. '
+                         'Try here: \n\n'+\
+                         build_imdb_url(title)),
+                "photourl": None}
     else:
         film = result.title
         year = result.year
@@ -27,9 +29,9 @@ def search(message,title):
         plot = result.plot
         poster = result.poster
         imdb = 'http://www.imdb.com/title/'+result.imdb_id
-        
-        #exception handling for movies with no poster   
-        message.reply_photo(photo=poster)
+
+        #exception handling for movies with no poster
+        # message.reply_photo(photo=poster)
         reply = (
                 'Title: '+film+'\n'
                 'Year: '+year+'\n'
@@ -37,7 +39,7 @@ def search(message,title):
                 'Metascore: '+metascore+'\n'
                 'IMDb rating: '+imdbscore+'\n'
                 'Plot:\n'+plot
-                )     
+                )
 
-        message.reply_text(reply, quote = False)
-        message.reply_text(imdb, parse_mode = 'Markdown', quote = False)
+        return {"text": reply+"\n\n"+imdb,
+                "photourl": poster}

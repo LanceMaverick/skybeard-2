@@ -38,56 +38,42 @@ beards
         |    ...
 ```
 
-The `myBeard` folder containts a `requirements.txt` for any additonal dependencies so they can be pipped, a `config.py` file for user specific variables (e.g private API keys) and settings and the `__init__.py` which contains the class that must inheret from `beards.Beard`.
-The folder can also contain any other python modules and files that are needed for the plugin, but Skybeard interfaces only with the `Beard` class in `__init.py__`, allowing you to separate out the beard's logic from the interface.
+In this example the `myBeard` folder containts a `requirements.txt` for any additonal dependencies so they can be pipped, a `config.py` file for configuration of the beard and settings and the `__init__.py` which contains the class that that is the interface between the plug-in and skybeard. 
+This interface class uses the mixin `skybeard.beards.BeardAsyncChatHandlerMixin` which handles the mounting of the plug-in, registering of commands etc, and also the `telepot.aio.helper.ChatHandler`. 
+
+The folder can also contain any other python modules and files that are needed for the plugin.
 
 ## Growing a new beard
-Creating a new beard requires knowledge of the python-telegram-bot API, see: https://github.com/python-telegram-bot/python-telegram-bot#documentation.
-The minimum requirement for a working beard is a plug-in class in the `__init__.py` of your beard's folder, which inherits from `beards.Beard`. 
+Creating a new beard requires knowledge of the **telepot** telegram API, see: http://telepot.readthedocs.io/en/latest/
 
-In this class, the telegram `Updater` and `Dispatcher` can be interfaced with (via `self.updater` and `self.disp` respectively). The beard must define an `initialise()` method that registers any handlers with the bot. 
-For example a simple echo plug-in, that echos a user's message would look like this:
+An example async plug-in that would echo the user's message would look like this:
 ```
-from skybeard.beards import Beard
-from telegram.ext import MessageHandler, Filters
+import telepot
+import telepot.aio
+from skybeard.beards import BeardAsyncChatHandlerMixin
 
-class EchoPlugin(Beard):
+
+class EchoPlugin(telepot.aio.helper.ChatHandler, BeardAsyncChatHandlerMixin):
     
-    def initialise(self):
-        self.disp.add_handler(CommandHandler("help", self.help))
-        self.disp.add_handler(MessageHandler(Filters.text, self.echo))
-
-    def help(self, bot, update):
-        update.message.reply_text('I echo your messages')
-
-    def echo(self, bot, update):
-        update.message.reply_text(update.message.text)
-```
-The interfacing with the python-telegram-bot API is no different to the echobot example supplied by python-telegram-bot:
-https://github.com/python-telegram-bot/python-telegram-bot/blob/master/examples/echobot2.py
-The key differences being that any handlers and listeners are added to the dispatcher in the parent `Beard` class.
-
-### Structure and style
-For large and complex plug-ins, most logic should be kept out of the `Beard` class. When adding command handlers that will directly call some function, they can callback to, for instance, a function in a private module within the plug-in.
-
-For message handlers, or anything that requires some form of processing of the input, it is best to do this within the '`Beard` class before calling the approriate functions. For instance, in the weather plug-in, it is called with the `/weather` command, which gives the weather for a default location specified in the `config.py`, unless a location is given as an argument to this command. E.g. `/weather Dublin, Ireland`. The input is interpreted in the `Weather` class in `__init__.py` before calling the  `forecast()` function in `weather.py` with the relevant arguments:
-
-In `__init.py__`:
-```
-class Weather(Beard):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        #register command "/hello" to dispatch to self.say_hello()
+        self.register_command("hello", self.say_hello)
     
-    #register the command /weather, which will callback to self.forecast
-    def initialise(self):
-        self.disp.add_handler(CommandHandler('weather', self.forecast))
+    #is called when "/hello" is sent
+    async def say_hello(self, msg):
+        name = msg['from']['first_name']
+        await self.sender.sendMessage('Hello {}!'.format(name))
     
-    #forecast interprets th input before weather.forecast() does all the work
-    def forecast(self, bot, update): 
-        location = update.message.text.split('/weather',1)[1]
-        if not location:
-            location = config.default_location
-        weather.forecast(bot, update) 
+    #is called every time a message is sent
+    async def on_chat_message(self, msg):
+        text = msg['text']
+        await self.sender.sendMessage(text)
+        await super().on_chat_message(msg)
 ```
-Separating the two like this ensures command and message handling can be modified easily, such as with adding new features or avoiding conflicts with other plug-ins.
-`__init__.py` can contain as many of these classes as is needed, allowing you to register multiple beards ... or 'multi-beards' within your plug-in.
+
+This plug-in will greet the user when they send "/hello" to Skybeard by using the `register_command()` method of the `BeardAsyncChatHandlerMixin` and will also echo back any text the user sends by overwriting the `on_chat_message()` method (and calling the base method with `super()` afterwards).
+
+See the examples folder for examples of callback functionality, timers, and regex predication. 
 
 
