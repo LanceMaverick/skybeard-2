@@ -141,10 +141,18 @@ class BeardChatHandler(telepot.aio.helper.ChatHandler, metaclass=Beard):
         return cls.__name__
 
     async def on_chat_message(self, msg):
-        for cmd in type(self).__commands__:
-            if cmd.pred(msg):
-                await getattr(self, cmd.coro)(msg)
+        try:
+            for cmd in type(self).__commands__:
+                if cmd.pred(msg):
+                    await getattr(self, cmd.coro)(msg)
+        except AttributeError:
+            # No __commands__ in bot? pass
+            pass
 
         for cmd in self._instance_commands:
             if cmd.pred(msg):
-                await getattr(self, cmd.coro)(msg)
+                
+                if callable(cmd.coro):
+                    await cmd.coro(msg)
+                else:
+                    await getattr(self, cmd.coro)(msg)
