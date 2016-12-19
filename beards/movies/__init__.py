@@ -1,10 +1,10 @@
 import telepot
 import telepot.aio
 from urllib.request import urlopen
-from skybeard.beards import BeardAsyncChatHandlerMixin
+from skybeard.beards import BeardChatHandler
 from . import movies
 
-class Movies(telepot.aio.helper.ChatHandler, BeardAsyncChatHandlerMixin):
+class Movies(BeardChatHandler):
     __userhelp__="""
     Search for the details of a movie with 
     /movie movie_title"""

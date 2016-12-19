@@ -5,9 +5,9 @@ import logging
 from urllib.request import urlopen
 import telepot
 import telepot.aio
-from skybeard.beards import BeardAsyncChatHandlerMixin, regex_predicate
+from skybeard.beards import BeardChatHandler, regex_predicate
 
-class PostCats(telepot.aio.helper.ChatHandler, BeardAsyncChatHandlerMixin):
+class PostCats(BeardChatHandler):
     __userhelp__ = """
     Say give me spacecats or show me spacecats if you want
     to, well, see cats in space."""

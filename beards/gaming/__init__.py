@@ -2,7 +2,7 @@
 import re
 import telepot
 import telepot.aio
-from skybeard.beards import BeardAsyncChatHandlerMixin
+from skybeard.beards import BeardChatHandler
 from . import config, steam, overwatch
 
 def remove_html(string):
@@ -23,7 +23,7 @@ def sanitize_html(string):
     return string
 
 
-class Steam(telepot.aio.helper.ChatHandler, BeardAsyncChatHandlerMixin):
+class Steam(BeardChatHandler):
     __userhelp__ = """
     Get news and patch notes for a game.
     Games currently configured:

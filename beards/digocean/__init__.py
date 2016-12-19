@@ -1,10 +1,10 @@
 import telepot
 import telepot.aio
 import digitalocean
-from skybeard.beards import BeardAsyncChatHandlerMixin
+from skybeard.beards import BeardChatHandler
 from . import config
 
-class DigOcean(telepot.aio.helper.ChatHandler, BeardAsyncChatHandlerMixin):
+class DigOcean(BeardChatHandler):
 
     __userhelp__="""
     If the bot is being hosted on digital ocean,

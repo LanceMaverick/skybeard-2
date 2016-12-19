@@ -4,14 +4,14 @@ import telepot
 import telepot.aio
 from telepot import glance
 from telepot.namedtuple import InlineKeyboardMarkup, InlineKeyboardButton
-from skybeard.beards import BeardAsyncChatHandlerMixin, ThatsNotMineException
+from skybeard.beards import BeardChatHandler, ThatsNotMineException
 from .event import Event
 from .config import Config
 
 config = Config()
 curr_path = os.path.dirname(__file__)
 
-class EventManager(telepot.aio.helper.ChatHandler, BeardAsyncChatHandlerMixin):
+class EventManager(BeardChatHandler):
     __userhelp__ = """ 
     Keeps track of all events initiated by the /event command.
     Commands:

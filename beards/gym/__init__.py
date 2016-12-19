@@ -3,10 +3,10 @@ from urllib.request import urlopen
 import telepot
 import telepot.aio
 # from telegram.ext import CommandHandler, MessageHandler, Filters
-from skybeard.beards import BeardAsyncChatHandlerMixin, Filters, regex_predicate, command_predicate
+from skybeard.beards import BeardChatHandler, Filters, regex_predicate, command_predicate
 from . import gym
 
-class Gym(telepot.aio.helper.ChatHandler, BeardAsyncChatHandlerMixin):
+class Gym(BeardChatHandler):
     __userhelp__="""
     Still needs all features to be migrated from Skybeard v1.0.
     Use the gainz keyword to see mad lifts tho brah"""
