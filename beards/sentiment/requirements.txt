@@ -1,0 +1,10 @@
+dataset==0.7.0
+matplotlib==1.5.3
+nltk==3.2.1
+normality==0.3.0
+numpy==1.11.2
+pandas==0.19.1
+scikit-learn==0.18
+scipy==0.18.1
+seaborn==0.7.1
+vaderSentiment==2.4.1

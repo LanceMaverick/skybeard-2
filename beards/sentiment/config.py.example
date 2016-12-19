@@ -1,0 +1,6 @@
+#rename config.py.example -> config.py
+
+#set the database path
+db_path = 'sqlite:////your/absolute/path/to/database.db'
+cut = -0.85
+
