@@ -39,7 +39,7 @@ beards
 ```
 
 In this example the `myBeard` folder containts a `requirements.txt` for any additonal dependencies so they can be pipped, a `config.py` file for configuration of the beard and settings and the `__init__.py` which contains the class that that is the interface between the plug-in and skybeard. 
-This interface class uses the mixin `skybeard.beards.BeardAsyncChatHandlerMixin` which handles the mounting of the plug-in, registering of commands etc, and also the `telepot.aio.helper.ChatHandler`. 
+This interface class inherits from skybeard.beards.BeardChatHandler` which handles the mounting of the plug-in, registering of commands etc, and also the `telepot.aio.helper.ChatHandler`. 
 
 The folder can also contain any other python modules and files that are needed for the plugin.
 
@@ -50,10 +50,10 @@ An example async plug-in that would echo the user's message would look like this
 ```
 import telepot
 import telepot.aio
-from skybeard.beards import BeardAsyncChatHandlerMixin
+from skybeard.beards import BeardChatHandler
 
 
-class EchoPlugin(telepot.aio.helper.ChatHandler, BeardAsyncChatHandlerMixin):
+class EchoPlugin(telepot.aio.helper.ChatHandler, BeardChatHandler):
     
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -72,7 +72,7 @@ class EchoPlugin(telepot.aio.helper.ChatHandler, BeardAsyncChatHandlerMixin):
         await super().on_chat_message(msg)
 ```
 
-This plug-in will greet the user when they send "/hello" to Skybeard by using the `register_command()` method of the `BeardAsyncChatHandlerMixin` and will also echo back any text the user sends by overwriting the `on_chat_message()` method (and calling the base method with `super()` afterwards).
+This plug-in will greet the user when they send "/hello" to Skybeard by using the `register_command()` method of the `BeardChatHandler` and will also echo back any text the user sends by overwriting the `on_chat_message()` method (and calling the base method with `super()` afterwards).
 
 See the examples folder for examples of callback functionality, timers, and regex predication. 
 
