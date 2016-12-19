@@ -1,4 +1,3 @@
-# from telegram.ext import CommandHandler
 import telepot
 import telepot.aio
 from urllib.request import urlopen
