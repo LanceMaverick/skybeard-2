@@ -4,7 +4,7 @@ import telepot
 import telepot.aio
 from telepot import glance
 from telepot.namedtuple import InlineKeyboardMarkup, InlineKeyboardButton
-from skybeard.beards import BeardAsyncChatHandlerMixin
+from skybeard.beards import BeardAsyncChatHandlerMixin, ThatsNotMineException
 from .event import Event
 from .config import Config
 
@@ -114,10 +114,10 @@ class EventManager(telepot.aio.helper.ChatHandler, BeardAsyncChatHandlerMixin):
         keyboard = InlineKeyboardMarkup(
             inline_keyboard = [[InlineKeyboardButton(
                 text = event.evt_name, 
-                callback_data = str(dict(
+                callback_data = self.serialize(str(dict(
                     cmd = cmd, 
                     arg = event.init_kwd,
-                    chat_id = msg['chat']['id'])))] 
+                    chat_id = msg['chat']['id']))))] 
                 for event in events])
         await self.sender.sendMessage(txt, reply_markup = keyboard)
     
@@ -126,7 +126,12 @@ class EventManager(telepot.aio.helper.ChatHandler, BeardAsyncChatHandlerMixin):
         """Callback function for inline keyboard"""
         #get data on what button was pressed
         query_id, from_id, query_data = glance(msg, flavor='callback_query')
-        data = eval(query_data)
+        
+        try:
+            data = eval(self.deserialize(query_data))
+        except ThatsNotMineException:
+            return
+
         cmd = data['cmd']
         arg = data['arg']
 
@@ -323,13 +328,13 @@ class EventManager(telepot.aio.helper.ChatHandler, BeardAsyncChatHandlerMixin):
         event_type = event_signal['_events_clear']['init_kwd']
         for event in self.events:
             if event.init_kwd == event_type:
-                await event.callback_clear()
+                await event.clear()
 
     async def event_infos(self, msg):
         """Sends the details of all active events to the user/chat"""
         active_events = self.check_status()
         if not active_events:
-            await self.bot.sendMessage('No events planned for today.')
+            await self.sender.sendMessage('No events planned for today.')
         else:
             cmd, arg = self.get_cmd_arg(msg)
             user = msg['from']
@@ -339,4 +344,4 @@ class EventManager(telepot.aio.helper.ChatHandler, BeardAsyncChatHandlerMixin):
                     id = user['id'], 
                     chat_id = msg['chat']['id'])
             for event in active_events:
-                event.post_details(self.bot, msg, par)
+                await event.post_details(self.bot, msg, par)

@@ -142,7 +142,7 @@ class Event(object):
                 self.warn_time,
                 msg_str)
     
-    async def callback_clear(self):
+    async def clear(self, *args):
         """Clear event attributes"""
         self.people = []
         self.ready = []
@@ -356,7 +356,6 @@ class Event(object):
                        chat_id = par['chat_id'])
             else:
                 self.people[index][1]=1
-                print(self.people)
                 await bot.sendMessage(
                         text = '{}, you have readied up for {}.'.format(
                             user['first_name'],
