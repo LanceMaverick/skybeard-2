@@ -8,3 +8,7 @@ command.
 No message text is stored in the database, only 
 when a specific user sent a message and the sentiment
 score of that message.
+
+This requires the nltk Vader data amongst others.
+To download data in nltk check out:
+http://www.nltk.org/data.html
