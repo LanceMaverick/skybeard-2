@@ -53,7 +53,7 @@ import telepot.aio
 from skybeard.beards import BeardChatHandler
 
 
-class EchoPlugin(telepot.aio.helper.ChatHandler, BeardChatHandler):
+class EchoPlugin(BeardChatHandler):
     
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
