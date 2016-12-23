@@ -13,7 +13,11 @@ import pandas as pd
 from . import config
 
 def analyze(msg):
-    text = msg['text']
+    #can take msg or string
+    try:
+        text = msg['text']
+    except TypeError:
+        text = msg
     analyzer = SentimentIntensityAnalyzer()
     score = analyzer.polarity_scores(text)
     return score
@@ -90,7 +94,7 @@ def get_results(msg):
     user_plot = sns.barplot(user_sums, user_names, orient = 'h')
     user_plot.figure.savefig(fpath.format('3'))
     plt.clf()
-    time_plot = sns.pointplot(data=df, x='date', y = 'compound')
+    time_plot = sns.tsplot(data=df, value = 'compound', time='date')
     time_plot.figure.savefig(fpath.format('4'))
     plt.clf()
 
