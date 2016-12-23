@@ -43,7 +43,7 @@ def italisize(string):
 def get_args(msg_or_text, as_string=False):
     try:
         text = msg_or_text['text']
-    except AttributeError:
+    except TypeError:
         text = msg_or_text
 
     if as_string:
