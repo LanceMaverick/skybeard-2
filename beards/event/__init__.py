@@ -1,5 +1,6 @@
 import os
 import logging
+import json
 import telepot
 import telepot.aio
 from telepot import glance
@@ -113,11 +114,13 @@ class EventManager(BeardChatHandler):
         txt: Text message to display with the keyboard"""
         keyboard = InlineKeyboardMarkup(
             inline_keyboard = [[InlineKeyboardButton(
-                text = event.evt_name, 
-                callback_data = self.serialize(str(dict(
+                 text = event.evt_name, 
+                callback_data = json.dumps(dict(
                     cmd = cmd, 
                     arg = event.init_kwd,
-                    chat_id = msg['chat']['id']))))] 
+                    chat_id = msg['chat']['id']))
+#                callback_data = 'hello', 
+               )] 
                 for event in events])
         await self.sender.sendMessage(txt, reply_markup = keyboard)
     
@@ -128,7 +131,7 @@ class EventManager(BeardChatHandler):
         query_id, from_id, query_data = glance(msg, flavor='callback_query')
         
         try:
-            data = eval(self.deserialize(query_data))
+            data = json.loads(query_data)
         except ThatsNotMineException:
             return
 
