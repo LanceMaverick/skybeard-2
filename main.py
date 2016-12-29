@@ -14,11 +14,15 @@ from telepot.aio.delegate import (per_chat_id,
 
 import config
 
-# from skybeard.beards import BeardAsyncChatHandlerMixin
-from skybeard.beards import Beard, BeardChatHandler
+from skybeard.beards import Beard, BeardChatHandler, SlashCommand
 from help import create_help
 
 logger = logging.getLogger(__name__)
+
+
+class DuplicateCommand(Exception):
+    pass
+
 
 def is_module(filename):
     fname, ext = os.path.splitext(filename)
@@ -34,7 +38,8 @@ def get_literal_path(path_or_autoloader):
     try:
         return path_or_autoloader.path
     except AttributeError:
-        assert type(path_or_autoloader) is str, "beard_path is not a str or an AutoLoader!"
+        assert type(path_or_autoloader) is str,\
+            "beard_path is not a str or an AutoLoader!"
         return path_or_autoloader
 
 
@@ -78,6 +83,19 @@ def main(config):
 
     for beard_path in config.beard_paths:
         sys.path.pop(0)
+
+    # Check if there are any duplicate commands
+    all_cmds = set()
+    for beard in Beard.beards:
+        if hasattr(beard, '__commands__'):
+            for cmd in beard.__commands__:
+                if isinstance(cmd, SlashCommand):
+                    if cmd.cmd in (x.cmd for x in all_cmds):
+                        # TODO Tell the user which beards conflict
+                        raise DuplicateCommand(
+                            "The command /{} occurs in more than "
+                            "one beard.".format(cmd.cmd))
+                    all_cmds.add(cmd)
 
     bot = telepot.aio.DelegatorBot(
         BeardChatHandler.key,

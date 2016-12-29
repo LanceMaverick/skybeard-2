@@ -55,7 +55,7 @@ def get_all_cmd_helps():
         for cmd in beard.__commands__:
             if isinstance(cmd, SlashCommand):
                 all_cmds.add(cmd)
-    str_list = ["/{} - {}".format(x.cmd, x.hlp) for x in all_cmds]
+    str_list = ["{} - {}".format(x.cmd, x.hlp) for x in all_cmds]
     return "\n".join(str_list)
 
 
@@ -75,6 +75,9 @@ class Help(telepot.aio.helper.ChatHandler):
         await self.sender.sendMessage(retstr, parse_mode='html')
 
     async def cmd_helps(self, msg):
+        await self.sender.sendMessage(
+            "Forward the following to the BotFather when he asks for your "
+            "list of commands.")
         await self.sender.sendMessage(get_all_cmd_helps())
 
 
@@ -88,6 +91,5 @@ def create_help(config):
         ]
 
         __userhelp__ = "I'm the default help beard."
-
 
     return BeardedHelp
