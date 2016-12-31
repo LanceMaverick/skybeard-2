@@ -37,9 +37,8 @@ class DebugBeard(BeardChatHandler):
                 parse_mode='Markdown')
 
     async def on_chat_message(self, msg):
-        if logger.getEffectiveLevel() == logging.DEBUG:
-            await self.sender.sendMessage("DEBUG: I've recieved your message")
-            await self.sender.sendMessage("DEBUG: {}".format(msg))
+        self.logger.debug("I've recieved your message")
+        self.logger.debug(msg)
 
         await super().on_chat_message(msg)
 
