@@ -57,8 +57,6 @@ class Beard(type):
     beards = list()
 
     def __new__(mcs, name, bases, dct):
-        # If there is a __userhelp__ present and it's an ordinary string, make
-        # it a function that returns that string
         if "__userhelp__" not in dct:
             dct["__userhelp__"] = ("The author has not defined a "
                                    "<code>__userhelp__</code> for this beard.")
@@ -71,8 +69,6 @@ class Beard(type):
         return type.__new__(mcs, name, bases, dct)
 
     def __init__(cls, name, bases, attrs):
-        # import pdb; pdb.set_trace()
-
         # If specified as base beard, do not add to list
         try:
             if attrs["__is_base_beard__"] is False:
@@ -151,7 +147,6 @@ class BeardChatHandler(telepot.aio.helper.ChatHandler, metaclass=Beard):
 
         for cmd in self._instance_commands:
             if cmd.pred(msg):
-                
                 if callable(cmd.coro):
                     await cmd.coro(msg)
                 else:
