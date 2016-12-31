@@ -1,5 +1,6 @@
 import logging
 from skybeard.beards import BeardChatHandler, Beard
+from skybeard.decorators import onerror
 
 logger = logging.getLogger(__name__)
 
@@ -9,7 +10,13 @@ class DebugBeard(BeardChatHandler):
     __commands__ = [
         ('loadedbeards', 'loaded_beards', "Shows the currently loaded beards."),
         ('debug', 'enter_debug', "Enters a debug trace in the terminal running the bot."),
+        ('except', 'except_on_purpose',
+         "Raises generic exception in code (useful for testing.)")
     ]
+
+    @onerror
+    async def except_on_purpose(self, msg):
+        raise Exception("Raising generic exception")
 
     async def loaded_beards(self, msg):
         await self.sender.sendMessage(
