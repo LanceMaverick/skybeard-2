@@ -7,11 +7,7 @@ def onerror(f):
         try:
             return await f(beard, *fargs, **fkwargs)
         except Exception as e:
-            if hasattr(beard, '__onerror__'):
-                await beard.__onerror__(e)
-            else:
-                await beard.sender.sendMessage(
-                    "Sorry, something went wrong with {}".format(beard))
+            await beard.__onerror__(e)
             raise e
 
     return g

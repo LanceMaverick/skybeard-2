@@ -110,6 +110,15 @@ class BeardChatHandler(telepot.aio.helper.ChatHandler, metaclass=Beard):
         self._instance_commands = []
         super().__init__(*args, **kwargs)
 
+    async def __onerror__(self, e):
+        import traceback
+        await self.sender.sendMessage(
+            "Sorry, something went wrong with {}"
+            "\n\nMore details:\n\n```{}```".format(
+                self,
+                "".join(traceback.format_tb(e.__traceback__))),
+            parse_mode='markdown')
+
     def _make_uid(self):
         return type(self).__name__+str(self.chat_id)
 
