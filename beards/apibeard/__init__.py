@@ -1,4 +1,4 @@
-from multiprocessing import Process
+# from multiprocessing import Process
 import logging
 
 from skybeard.beards import BeardChatHandler
@@ -21,16 +21,14 @@ class APIBeard(BeardChatHandler):
     async def who_am_i(self, msg):
         await self.sender.sendMessage("Current chat_id: "+str(self.chat_id))
 
-    sanic_proc = Process(target=server.start_app, args=(None,))
+    sanic_proc = server.start()
 
     @classmethod
     def _restart_server(cls):
-        pass
+        server.stop()
+        server.start()
 
     @onerror
     async def restart_server(self, msg):
         await self.logger.debug("Server: "+str(APIBeard.sanic_proc))
         return self._restart_server()
-
-
-APIBeard.sanic_proc.start()
