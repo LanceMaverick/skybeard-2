@@ -22,6 +22,7 @@ class APIBeard(BeardChatHandler):
         await self.sender.sendMessage("Current chat_id: "+str(self.chat_id))
 
     sanic_proc = server.start()
+    allowed_keys = {"abcd"}
 
     @classmethod
     def _restart_server(cls):
