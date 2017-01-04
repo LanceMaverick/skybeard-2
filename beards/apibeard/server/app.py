@@ -12,10 +12,11 @@ async def hello_world(request):
     return "Hello World! Your API beard is working!"
 
 
-@app.route('/sendMessage', methods=["POST"])
-async def send_message(request):
+@app.route('/relay/<method:[A-z]+>', methods=["POST", "GET"])
+async def relay_tg_request(request, method):
     """Acts as a proxy for telegram's sendMessage."""
-    resp = await tg.post('sendMessage', data=request.json)
+    resp = await getattr(tg, request.method.lower())(
+        'sendMessage', data=request.json)
     async with resp:
         ret_json = await resp.json()
 
