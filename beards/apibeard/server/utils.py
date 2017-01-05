@@ -2,7 +2,7 @@ import functools
 import re
 import logging
 
-from .. import APIBeard
+from .. import apibeard
 
 logger = logging.getLogger(__name__)
 
@@ -14,7 +14,7 @@ def is_key_match(url):
     logger.debug("Matches found: {}".format(match))
     logger.debug("Key is: {}".format(key))
     if match:
-        if key in APIBeard.allowed_keys:
+        if key in apibeard.APIBeard.allowed_keys:
             return True
 
     return False
