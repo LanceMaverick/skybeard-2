@@ -3,9 +3,12 @@ Handles the loading and running of skybeard plugins.
 architecture inspired by: http://martyalchin.com/2008/jan/10/simple-plugin-framework/
 and http://stackoverflow.com/a/17401329
 """
+import asyncio
 import re
 import logging
 import json
+import traceback
+
 import telepot.aio
 
 logger = logging.getLogger(__name__)
@@ -53,12 +56,24 @@ def create_command(cmd_or_pred, coro, hlp=None):
     raise TypeError("cmd_or_pred must be str or callable.")
 
 
+class TelegramHandler(logging.Handler):
+    """A logging handler that posts directly to telegram"""
+
+    def __init__(self, bot, parse_mode=None):
+        self.bot = bot
+        self.parse_mode = parse_mode
+        super().__init__()
+
+    def emit(self, record):
+        coro = self.bot.sender.sendMessage(
+            self.format(record), parse_mode=self.parse_mode)
+        asyncio.ensure_future(coro)
+
+
 class Beard(type):
     beards = list()
 
     def __new__(mcs, name, bases, dct):
-        # If there is a __userhelp__ present and it's an ordinary string, make
-        # it a function that returns that string
         if "__userhelp__" not in dct:
             dct["__userhelp__"] = ("The author has not defined a "
                                    "<code>__userhelp__</code> for this beard.")
@@ -71,8 +86,6 @@ class Beard(type):
         return type.__new__(mcs, name, bases, dct)
 
     def __init__(cls, name, bases, attrs):
-        # import pdb; pdb.set_trace()
-
         # If specified as base beard, do not add to list
         try:
             if attrs["__is_base_beard__"] is False:
@@ -113,6 +126,22 @@ class BeardChatHandler(telepot.aio.helper.ChatHandler, metaclass=Beard):
     def __init__(self, *args, **kwargs):
         self._instance_commands = []
         super().__init__(*args, **kwargs)
+        self.logger = logging.getLogger(
+            "beardlogger.{}.{}".format(self.get_name(), self.chat_id))
+        self._handler = TelegramHandler(self)
+        self.logger.addHandler(self._handler)
+
+    def on_close(self, e):
+        self.logger.removeHandler(self._handler)
+        super().on_close(e)
+
+    async def __onerror__(self, e):
+        await self.sender.sendMessage(
+            "Sorry, something went wrong with {}"
+            "\n\nMore details:\n\n```{}```".format(
+                self,
+                "".join(traceback.format_tb(e.__traceback__))),
+            parse_mode='markdown')
 
     def _make_uid(self):
         return type(self).__name__+str(self.chat_id)
@@ -151,7 +180,6 @@ class BeardChatHandler(telepot.aio.helper.ChatHandler, metaclass=Beard):
 
         for cmd in self._instance_commands:
             if cmd.pred(msg):
-                
                 if callable(cmd.coro):
                     await cmd.coro(msg)
                 else:
