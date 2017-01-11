@@ -15,6 +15,11 @@ then install the base requirements with
 pip install -r requirements.txt
 ```
 
+You will then need to make a `config.py`. An example `config.py` is provided so you can simply:
+```
+cp config.py.example config.py
+```
+
 ## Running Skybeard
 
 To run skybeard define your key in the environment variable `$TG_BOT_TOKEN` or as an argument with `-k` and run `main.py`. this can be done easily e.g.:

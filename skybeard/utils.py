@@ -1,5 +1,9 @@
 import os
 import shlex
+import logging
+
+logger = logging.getLogger(__name__)
+
 
 def is_module(filename):
     fname, ext = os.path.splitext(filename)
@@ -40,13 +44,18 @@ def italisize(string):
     return "<i>"+string+"</i>"
 
 
-def get_args(msg_or_text, as_string=False):
+def get_args(msg_or_text, return_string=False, **kwargs):
+    if "as_string" in kwargs:
+        logger.warning(
+            "as_string is being depreciated, please use return_string.")
+        return_string = kwargs["as_string"]
+
     try:
         text = msg_or_text['text']
     except TypeError:
         text = msg_or_text
 
-    if as_string:
+    if return_string:
         return " ".join(text.split(" ")[1:])
     else:
         return shlex.split(text)[1:]

@@ -25,22 +25,22 @@ class LoggerBeard(BeardChatHandler):
             #responds message if a user sends a really negative message.
             #Set the cutoff for this in in config.py
             if score['compound']< config.cut:
-                await self.sender.sendMessage(
-                        'Are u ok {}?'.format(msg['from']['first_name']))
+                #await self.sender.sendMessage(
+                #        'Are u ok {}?'.format(msg['from']['first_name']))
 
                 #Uncomment to send a gif in the folder saved as "upset.gif".
                 #For example: http://knowyourmeme.com/photos/481115-flying-lawnmower
-#            await self.sender.sendDocument((
-#                    'upset.gif', 
-#                    open(os.path.join(self.curr_path, 'upset.gif'),'rb' )))
+                await self.sender.sendDocument((
+                        'upset.gif', 
+                        open(os.path.join(self.curr_path, 'upset.gif'),'rb' )))
             
             await sent.save(msg, score)
         await super().on_chat_message(msg)
 
     async def report(self, msg):
         plot1, plot2, plot3, plot4 = sent.get_results(msg)
-#        await self.sender.sendPhoto((
-#                'sentiment1.png', plot1)) 
+        await self.sender.sendPhoto((
+                'sentiment1.png', plot1)) 
         await self.sender.sendPhoto((
                 'sentiment2.png', plot2)) 
         await self.sender.sendPhoto((
