@@ -57,21 +57,37 @@ def get_results(msg):
     neg = []
     compound = []
     date = []
+    names = []
         
     for row in results_list:
         pos.append(row['pos'])
         neg.append(row['neg'])
         compound.append(row['compound'])
         date.append(row['date'])
+        names.append(row['user_name'])
         user_name = row['user_name']
         user_scores[user_name].append(row['compound'])
 
     user_names = [k for k in user_scores.keys()]
     user_sums = [sum(v)/float(len(v)) for v in user_scores.values()]
-
-    data = np.column_stack((pos, neg, compound, date))
-    df = pd.DataFrame(data, columns=["pos", "neg", "compound", "date"])
     
+
+    #data = np.column_stack((pos, neg, compound, date, names))
+    #print(data)
+    #df = pd.DataFrame(data, columns=["pos", "neg", "compound", "date", "names"])
+    #df['names'] = df['names'].astype(str)
+    #print(df)
+    
+    df = pd.DataFrame(
+            {
+                'pos': pos,
+                'neg': neg,
+                'compound': compound,
+                'date': date,
+                'names': names
+                })
+
+
     #Plotting and sending. A bit rough. Would be better to use figures.
     fpath = os.path.join(
             os.path.dirname(__file__),
@@ -79,23 +95,45 @@ def get_results(msg):
     
     sns.set(style="ticks")
     
-    matrix_plot = sns.pairplot(df, hue = "compound");
-    matrix_plot.savefig(fpath.format('1'))
+    u_plot = sns.stripplot(
+               x = 'names', 
+               y = 'compound', 
+               data=df, 
+               jitter = True,
+               order = user_names,
+#               palette = 'deep',
+               #fit_reg=False, 
+#               hue="names",  
+#               palette = 'Set2',
+               #scatter_kws={"marker": "D", 
+                            #"s": 100}
+                            )
+    for item in u_plot.get_xticklabels():
+        item.set_rotation(45)
+    sns.plt.title('Message scores for each user.')
+    plt.savefig(fpath.format('2'), bbox_inches='tight')
+    
+    #matrix_plot = sns.pairplot(df, hue = "compound");
+    #matrix_plot.savefig(fpath.format('1'))
     plt.clf()
 
     s_plot = sns.lmplot('pos', 'neg', 
                data=df, 
                fit_reg=False, 
+               legend = False,
                hue="compound",  
+               palette = 'RdBu',
                scatter_kws={"marker": "D", 
                             "s": 100})
-    s_plot.savefig(fpath.format('2'))
+    sns.plt.title('All message scores. Hue = compound score.')
+    s_plot.savefig(fpath.format('1'), bbox_inches='tight')
     plt.clf()
     user_plot = sns.barplot(user_sums, user_names, orient = 'h')
-    user_plot.figure.savefig(fpath.format('3'))
+    sns.plt.title('Average scores for each user.')
+    user_plot.figure.savefig(fpath.format('3'), bbox_inches='tight')
     plt.clf()
     time_plot = sns.tsplot(data=df, value = 'compound', time='date')
-    time_plot.figure.savefig(fpath.format('4'))
+    time_plot.figure.savefig(fpath.format('4'), bbox_inches='tight')
     plt.clf()
 
     plot1 = open(fpath.format('1'), 'rb')
