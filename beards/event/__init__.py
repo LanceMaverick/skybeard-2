@@ -134,9 +134,11 @@ class EventManager(BeardChatHandler):
             data = json.loads(query_data)
         except ThatsNotMineException:
             return
-
-        cmd = data['cmd']
-        arg = data['arg']
+        try:
+            cmd = data['cmd']
+            arg = data['arg']
+        except TypeError:
+            return
 
         #find out who pressed it and add info to callback_data
         user = dict(
