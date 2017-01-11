@@ -33,7 +33,7 @@ def start(debug=False):
         ),
         kwargs=dict(
             debug=debug,
-            after_start=[setup_telegram]
+            after_start=setup_telegram
         )
     )
     proc.start()

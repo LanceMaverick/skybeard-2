@@ -1,5 +1,7 @@
 # from multiprocessing import Process
 import logging
+import functools
+import re
 
 from skybeard.beards import BeardChatHandler
 from skybeard.decorators import onerror, debugonly
@@ -24,7 +26,10 @@ class APIBeard(BeardChatHandler):
     async def who_am_i(self, msg):
         await self.sender.sendMessage("Current chat_id: "+str(self.chat_id))
 
-    sanic_proc = server.start()
+    if logger.getEffectiveLevel() <= logging.DEBUG:
+        sanic_proc = server.start(debug=True)
+    else:
+        sanic_proc = server.start()
 
     @classmethod
     def _restart_server(cls):
@@ -42,6 +47,20 @@ class APIBeard(BeardChatHandler):
             "\n".join((
                 "{}:{}".format(
                     x["chat_id"], x["key"]) for x in database.get_all_keys()))))
+
+    @classmethod
+    @functools.lru_cache()
+    def is_key_match(cls, url):
+
+        match = re.match(r"/key([A-z]+)/.*", url)
+        key = match.group(1)
+        logger.debug("Matches found: {}".format(match))
+        logger.debug("Key is: {}".format(key))
+        if match:
+            if key in cls.allowed_keys:
+                return True
+
+        return False
 
     async def get_key(self, msg):
         entry = database.get_key(self.chat_id)
