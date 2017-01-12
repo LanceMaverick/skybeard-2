@@ -48,20 +48,6 @@ class APIBeard(BeardChatHandler):
                 "{}:{}".format(
                     x["chat_id"], x["key"]) for x in database.get_all_keys()))))
 
-    @classmethod
-    @functools.lru_cache()
-    def is_key_match(cls, url):
-
-        match = re.match(r"/key([A-z]+)/.*", url)
-        key = match.group(1)
-        logger.debug("Matches found: {}".format(match))
-        logger.debug("Key is: {}".format(key))
-        if match:
-            if key in cls.allowed_keys:
-                return True
-
-        return False
-
     async def get_key(self, msg):
         entry = database.get_key(self.chat_id)
         return await self.sender.sendMessage("Your key: {}".format(entry["key"]))
