@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 
 
 def regex_predicate(pattern):
-    def retfunc(msg):
+    def retfunc(chat_handler, msg):
         try:
             logging.debug("Matching regex: '{}'".format(pattern))
             retmatch = re.match(pattern, msg['text'])
@@ -28,7 +28,22 @@ def regex_predicate(pattern):
 
 
 def command_predicate(cmd):
-    return regex_predicate(r"^/{}(?:@\w+)?".format(cmd))
+    async def retcoro(chat_handler, msg):
+        bot_json = await chat_handler.bot.getMe()
+        pattern = r"^/{}(?:@{}|[^@])".format(
+            cmd,
+            bot_json['username'],
+        )
+        try:
+            logging.debug("Matching regex: '{}'".format(pattern))
+            retmatch = re.match(pattern, msg['text'])
+            logging.debug("Match: {}".format(retmatch))
+            return retmatch
+        except KeyError:
+            return False
+
+    # return regex_predicate(r"^/{}(?:@\w+)?".format(cmd))
+    return retcoro
 
 
 # TODO rename coro to coro_name or something better than that
@@ -102,15 +117,15 @@ class Beard(type):
 
 class Filters:
     @classmethod
-    def text(cls, msg):
+    def text(cls, chat_handler, msg):
         return "text" in msg
 
     @classmethod
-    def document(cls, msg):
+    def document(cls, chat_handler, msg):
         return "document" in msg
 
     @classmethod
-    def location(cls, msg):
+    def location(cls, chat_handler, msg):
         return "location" in msg
 
 
@@ -122,6 +137,8 @@ class BeardChatHandler(telepot.aio.helper.ChatHandler, metaclass=Beard):
     __is_base_beard__ = True
 
     _timeout = 10
+
+    __commands__ = []
 
     def __init__(self, *args, **kwargs):
         self._instance_commands = []
@@ -170,17 +187,23 @@ class BeardChatHandler(telepot.aio.helper.ChatHandler, metaclass=Beard):
         return cls.__name__
 
     async def on_chat_message(self, msg):
-        try:
-            for cmd in type(self).__commands__:
-                if cmd.pred(msg):
-                    await getattr(self, cmd.coro)(msg)
-        except AttributeError:
-            # No __commands__ in bot? pass
-            pass
+        # try:
+        #     for cmd in type(self).__commands__:
+        #         if cmd.pred(msg):
+        #             await getattr(self, cmd.coro)(msg)
+        # except AttributeError:
+        #     # No __commands__ in bot? pass
+        #     pass
 
-        for cmd in self._instance_commands:
-            if cmd.pred(msg):
-                if callable(cmd.coro):
+        for cmd in self._instance_commands + type(self).__commands__:
+            if asyncio.iscoroutinefunction(cmd.pred):
+                pred_value = await cmd.pred(self, msg)
+            else:
+                pred_value = cmd.pred(self, msg)
+            if pred_value:
+                if asyncio.iscoroutinefunction(cmd.coro):
                     await cmd.coro(msg)
+                elif callable(cmd.coro):
+                    cmd.coro(msg)
                 else:
                     await getattr(self, cmd.coro)(msg)
