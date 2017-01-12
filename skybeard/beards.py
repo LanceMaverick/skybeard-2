@@ -8,6 +8,7 @@ import re
 import logging
 import json
 import traceback
+import functools
 
 import telepot.aio
 
@@ -28,6 +29,7 @@ def regex_predicate(pattern):
 
 
 def command_predicate(cmd):
+    @functools.lru_cache()
     async def retcoro(chat_handler, msg):
         bot_json = await chat_handler.bot.getMe()
         pattern = r"^/{}(?:@{}|[^@])".format(
@@ -187,14 +189,6 @@ class BeardChatHandler(telepot.aio.helper.ChatHandler, metaclass=Beard):
         return cls.__name__
 
     async def on_chat_message(self, msg):
-        # try:
-        #     for cmd in type(self).__commands__:
-        #         if cmd.pred(msg):
-        #             await getattr(self, cmd.coro)(msg)
-        # except AttributeError:
-        #     # No __commands__ in bot? pass
-        #     pass
-
         for cmd in self._instance_commands + type(self).__commands__:
             if asyncio.iscoroutinefunction(cmd.pred):
                 pred_value = await cmd.pred(self, msg)
