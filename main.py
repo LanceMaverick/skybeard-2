@@ -70,7 +70,7 @@ def main(config):
     for beard_path in config.beard_paths:
         sys.path.insert(0, get_literal_path(beard_path))
 
-    logger.info("Loaded the following plugins:\n {}".format(
+    logger.info("The following plugins were found:\n {}".format(
         ', '.join(list(all_possible_beards(config.beard_paths)))))
     logger.info("config.beards: {}".format(config.beards))
 
