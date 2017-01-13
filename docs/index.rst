@@ -12,7 +12,7 @@ Welcome to Skybeard's documentation!
     
    introduction
    quickstart
-   source/modules
+   modules
 
 
 
