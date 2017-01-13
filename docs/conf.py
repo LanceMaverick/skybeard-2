@@ -20,13 +20,14 @@
 import os
 import sys
 #trick to fix autodocs
-import mock
-MOCK_MODULES = ['functools', 'asyncio', 're', 'json', 'traceback', 'telepot.aio', 'telepot', 'config']
-for mod_name in MOCK_MODULES:
-    sys.modules[mod_name] = mock.Mock()
+#import mock
+#MOCK_MODULES = ['functools', 'asyncio', 're', 'json', 'traceback', 'telepot.aio', 'telepot', 'config']
+#for mod_name in MOCK_MODULES:
+#    sys.modules[mod_name] = mock.Mock()
 sys.path.insert(0, os.path.abspath('.'))
 sys.path.insert(0, os.path.abspath('../'))
 sys.path.insert(0, os.path.abspath('../skybeard/'))
+sys.path.insert(0, os.path.abspath('../../'))
 
 
 # -- General configuration ------------------------------------------------
