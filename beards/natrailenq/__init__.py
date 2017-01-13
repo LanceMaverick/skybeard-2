@@ -15,6 +15,7 @@ class NationalRailDepartures(BeardChatHandler):
     __commands__ = [
         ("departures", "checkTimes", "Displays departures from stated station.\n optional argument ' to [destination]' can be added to refine search."),
         ("searchstations", "searchStats", "Search stations for key phrase."),
+        ("status", "getStatus", "Check status of Train Operating Companies."),
     ]
 
     @onerror
@@ -24,6 +25,10 @@ class NationalRailDepartures(BeardChatHandler):
        out, other  = natRail.searchStations(out)
        await self.sender.sendMessage(out)
 
+    async def getStatus(self, msg):
+       natRail = NatRail.RailScraper('http://ojp.nationalrail.co.uk/service/', 'beards/natrailenq/station_codes.json')
+       output = natRail.getStatus()
+       await self.sender.sendMessage(output, parse_mode="Markdown")
     async def checkTimes(self, msg):
         natRail = NatRail.RailScraper('http://ojp.nationalrail.co.uk/service/', 'beards/natrailenq/station_codes.json')
         out = msg['text'].replace('/departures ','')

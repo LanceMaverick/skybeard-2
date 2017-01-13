@@ -42,7 +42,15 @@ class RailScraper:
               out_str += '{}\n'.format(key)
               out_list.append(key)
          return (out_str, out_list)         
-
+    
+      def getStatus(self):
+       webpage = requests.get('http://www.nationalrail.co.uk/service_disruptions/indicator.aspx')
+       toc = re.findall(r'class\=\"first\">([\w\s\(\d\)\'\,]+)', webpage.content.decode('utf-8'))[1:]
+       status = re.findall(r'(Major[\w\s]+|Good[\w\s]+|Minor[\w\s]+)+', webpage.content.decode('utf-8'))[1:]
+       out_str = ''
+       for i,j in zip(toc, status): 
+         out_str += '*{}* {}\n'.format(i, j)
+       return out_str        
 
       def getDepartures(self, station, To=''):
         if To != '':
