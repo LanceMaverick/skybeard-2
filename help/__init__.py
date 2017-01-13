@@ -78,7 +78,7 @@ class Help(telepot.aio.helper.ChatHandler):
         await self.sender.sendMessage(
             "Forward the following to the BotFather when he asks for your "
             "list of commands.")
-        await self.sender.sendMessage(get_all_cmd_helps())
+        await self.sender.sendMessage(get_all_cmd_helps(), parse_mode="HTML")
 
 
 def create_help(config):
