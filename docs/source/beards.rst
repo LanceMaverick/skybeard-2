@@ -1,5 +1,8 @@
-beards module
+beards Module
 =============
+
+:mod:`beards` Module
+--------------------
 
 .. automodule:: beards
     :members:
