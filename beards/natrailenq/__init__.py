@@ -3,6 +3,7 @@
 import telepot
 import telepot.aio
 from skybeard.beards import BeardChatHandler, regex_predicate
+from skybeard.decorators import onerror
 from . import NatRail
 import re
 
@@ -13,11 +14,20 @@ class NationalRailDepartures(BeardChatHandler):
 
     __commands__ = [
         ("departures", "checkTimes", "Displays departures from stated station.\n optional argument ' to [destination]' can be added to refine search."),
+        ("journey", "planTrip", "Displays departures from stated station.\n optional argument ' to [destination]' can be added to refine search."),
     ]
 
+    async def planTrip(self, msg):
+        natRail = NatRail.RailScraper('http://ojp.nationalrail.co.uk/service/', 'beards/natrailenq/station_codes.json')
+        out = msg['text'].replace('/journey ','')
+        org, dest = re.findall(r'([\w\s\'\(\)\,\&\.]+)(?:to|To|TO)([\w\s\'\(\)\,\&\.]+)\s', out)[0]
+        date, time = re.findall(r'(\d\d\/\d\d\/\d\d\d\d|today|Today|now|Now)\s+(\d\d\:\d\d|now|Now)', out)[0]
 
+        natRail.planJourney(org, dest, date, time) 
+
+    @onerror
     async def checkTimes(self, msg):
-        natRail = NatRail.RailScraper('http://ojp.nationalrail.co.uk/service/ldbboard/dep/', 'beards/natrailenq/station_codes.json')
+        natRail = NatRail.RailScraper('http://ojp.nationalrail.co.uk/service/', 'beards/natrailenq/station_codes.json')
         out = msg['text'].replace('/departures ','')
         res1 = re.findall(r'(.+)\s(?:To|TO|to)\s(.+)', out)
         if len(res1) == 0:
