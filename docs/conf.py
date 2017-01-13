@@ -28,7 +28,7 @@ sys.path.insert(0, os.path.abspath('.'))
 sys.path.insert(0, os.path.abspath('../'))
 sys.path.insert(0, os.path.abspath('../skybeard/'))
 sys.path.insert(0, os.path.abspath('../../'))
-sys.path.insert(0, os.path.abspath('../help'))
+sys.path.insert(0, os.path.abspath('../help/'))
 
 
 # -- General configuration ------------------------------------------------
