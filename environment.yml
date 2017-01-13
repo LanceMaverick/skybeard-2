@@ -14,3 +14,4 @@ dependencies:
   - momoko>=2.2.3
   - psycopg2>=2.6.1
   - tornado==4.3
+  - telepot==10.4
