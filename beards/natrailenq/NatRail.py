@@ -52,6 +52,7 @@ class RailScraper:
         i=1
         result = re.findall(r'(?:\s{29})([\w\s\&\.\)\(\']+)&\w+;(.*?)<\/td>', webpage.content.decode('utf-8'))	
         times = re.findall(r'(\d\d:\d\d|Cancelled|On time)', webpage.content.decode('utf-8'))
+        plat = re.findall(r'<td>(\d+|)<\/td>', webpage.content.decode('utf-8'))
         if not result or not times:
           return
         due = times[0::3]
@@ -63,6 +64,7 @@ class RailScraper:
            self.info[i]['via'] = via
            self.info[i]['due'] = due[i-1]
            self.info[i]['expected'] = expt[i-1]
+           self.info[i]['plat'] = plat[i-1]
            i+=1
       def makeDeptString(self, station, via=''):
            self.getDepartures(station, via)
@@ -70,10 +72,13 @@ class RailScraper:
            if bool(self.info):
             print("Passed")
             for key in self.info:
-             out_str +='*{}*\t{}'.format(self.info[key]['due'], self.info[key]['destination'])
+             out_str +='*{}* {}'.format(self.info[key]['due'], self.info[key]['destination'])
              if self.info[key]['via'] != '':
-                out_str += '\tvia {}'.format(self.info[key]['via'])
-             out_str += '\t_{}_\n'.format(self.info[key]['expected'])
+                out_str += ' {}'.format(self.info[key]['via'])
+             out_str += ' _{}_'.format(self.info[key]['expected'])
+             if self.info[key]['plat'] == '':
+                self.info[key]['plat'] = '-'
+             out_str+=' Plat {}\n'.format(self.info[key]['plat'])
              print(out_str)
             
            else:

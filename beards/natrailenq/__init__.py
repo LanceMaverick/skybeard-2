@@ -20,9 +20,13 @@ class NationalRailDepartures(BeardChatHandler):
     async def planTrip(self, msg):
         natRail = NatRail.RailScraper('http://ojp.nationalrail.co.uk/service/', 'beards/natrailenq/station_codes.json')
         out = msg['text'].replace('/journey ','')
-        org, dest = re.findall(r'([\w\s\'\(\)\,\&\.]+)(?:to|To|TO)([\w\s\'\(\)\,\&\.]+)\s', out)[0]
-        date, time = re.findall(r'(\d\d\/\d\d\/\d\d\d\d|today|Today|now|Now)\s+(\d\d\:\d\d|now|Now)', out)[0]
-
+        org, dest  = re.findall(r'(.+)\s(?:to|To|TO)\s(.+)(?:\s\d\d\/)', out)[0]
+        x = re.findall(r'(\d\d\/\d\d\/\d\d\d\d|today|Today|now|Now)\s+(\d\d\:\d\d|now|Now)', out)
+        if len(x) == 0:
+          date = 'now'
+          time = 'now'
+        else:
+           date, time = x 
         natRail.planJourney(org, dest, date, time) 
 
     @onerror
