@@ -8,3 +8,4 @@ Project Modules
    decorators
    utils
    help
+   autoloaders
