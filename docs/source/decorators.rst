@@ -1,5 +1,8 @@
-decorators module
+decorators Module
 =================
+
+:mod:`decorators` Module
+------------------------
 
 .. automodule:: decorators
     :members:
