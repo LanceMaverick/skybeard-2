@@ -166,7 +166,7 @@ class BeardChatHandler(telepot.aio.helper.ChatHandler, metaclass=Beard):
 
     async def __onerror__(self, e):
         self.logger.debug(
-            "More details:\n\n```{}```".format(
+            "More details on crash of {}:\n\n{}".format(
                 self,
                 "".join(traceback.format_tb(e.__traceback__))))
 
