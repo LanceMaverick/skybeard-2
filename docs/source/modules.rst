@@ -1,5 +1,5 @@
-skybeard
-========
+Project Modules
+===============
 
 .. toctree::
    :maxdepth: 4
