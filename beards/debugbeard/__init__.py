@@ -11,8 +11,13 @@ class DebugBeard(BeardChatHandler):
         ('loadedbeards', 'loaded_beards', "Shows the currently loaded beards."),
         ('debug', 'enter_debug', "Enters a debug trace in the terminal running the bot."),
         ('except', 'except_on_purpose',
-         "Raises generic exception in code (useful for testing.)")
+         "Raises generic exception in code (useful for testing.)"),
+        ('getme', 'who_am_i', "Returns JSON for bot.getMe().")
     ]
+
+    @onerror
+    async def who_am_i(self, msg):
+        await self.sender.sendMessage(str(await self.bot.getMe()))
 
     @onerror
     async def except_on_purpose(self, msg):
