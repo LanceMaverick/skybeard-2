@@ -1,0 +1,8 @@
+#how many headlines to display
+item_limit = 10
+#list of feeds. key is used as argument to bot command
+feeds = {
+        'economist': 'http://www.economist.com/sections/economics/rss.xml',
+        'eurogamer': 'http://www.eurogamer.net/?format=rss',
+}
+
