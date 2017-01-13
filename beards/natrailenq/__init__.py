@@ -17,25 +17,13 @@ class NationalRailDepartures(BeardChatHandler):
         ("searchstations", "searchStats", "Search stations for key phrase."),
     ]
 
+    @onerror
     async def searchStats(self, msg):
        natRail = NatRail.RailScraper('http://ojp.nationalrail.co.uk/service/', 'beards/natrailenq/station_codes.json')
        out = msg['text'].replace('/searchstations ','')
        out, other  = natRail.searchStations(out)
        await self.sender.sendMessage(out)
 
-    async def planTrip(self, msg):
-        natRail = NatRail.RailScraper('http://ojp.nationalrail.co.uk/service/', 'beards/natrailenq/station_codes.json')
-        out = msg['text'].replace('/journey ','')
-        org, dest  = re.findall(r'(.+)(?:\sto|\sTo|\sTO)\s(.+)(?:\s\d\d\/|\snow|)', out)[0]
-        x = re.findall(r'(\d\d\/\d\d\/\d\d\d\d|today|Today|now|Now)\s+(\d\d\:\d\d|now|Now)', out)
-        if len(x) == 0:
-          date = 'now'
-          time = 'now'
-        else:
-           date, time = x 
-        out = natRail.planJourney(org, dest, date, time) 
-        await self.sender.sendMessage(out, parse_mode="Markdown")
-    @onerror
     async def checkTimes(self, msg):
         natRail = NatRail.RailScraper('http://ojp.nationalrail.co.uk/service/', 'beards/natrailenq/station_codes.json')
         out = msg['text'].replace('/departures ','')

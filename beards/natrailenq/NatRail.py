@@ -43,35 +43,6 @@ class RailScraper:
               out_list.append(key)
          return (out_str, out_list)         
 
-      def planJourney(self, station, To, date='today',time='now'):
-       org = self.codes[station]
-       dest = self.codes[To] 
-       if time.lower() == 'now':
-          time = roundTo15(self.time)
-       else:
-          time = time.replace(':','')
-       if date.lower() == 'today' or date.lower()=='now':
-          date = self.date
-       else:
-          date = date.replace('/','')
-       webpage = requests.get(self.coreurl+'/timesandfares/{}/{}/{}/{}/dep'.format(org,dest,date,time)) 
-       
-       print(self.coreurl+'timesandfares/{}/{}/{}/{}/dep'.format(org,dest,date,time))
-
-       dep_time = re.findall(r'(.*?)<td\sclass\=\"dep\"\>(\d\d:\d\d)', webpage.content.decode('utf-8'))
-       print(dep_time)
-       arr_time = re.findall(r'(.*?)<td\sclass\=\"arr\"\>(\d\d:\d\d)', webpage.content.decode('utf-8'))
-       print(arr_time)
-       print(webpage.content.decode('utf-8'))
-       duration = (re.findall(r'(.*?)<td\sclass\=\"dur\"\>\d+', webpage.content.decode('utf-8')), re.findall(r'\d\d<abbr', webpage.content.decode('utf-8')))
-       changes = re.findall(r'changestip\-link\"\>\d+', webpage.content.decode('utf-8'))
-       ticket_info =re.findall(r'\<input\stype\=\"hidden" value\=\"([\w\s]+)\|\d+\|\w+\|([\w\-\s]+)\|(?:\w+|)\|(\d+.\d+)\|(?:\w+|)\|\w+\|\w+\|(?:\w+|)\|\w+\|([\w\d\s]+)\|\d+\|\d+\|([\w\s\d]+)', webpage.content.decode('utf-8'))
-       out_str = '' 
-       for i, j, k, l, m in zip(dep_time, arr_time, duration, changes, ticket_info):
-          (fare_type, fare_desc, price, toc, desc) = m
-          out_str += '*{}* {} to {}*{}* {} {}\n'.format(i, station, To, j, '£'+price, fare_desc)
-          out_str += 'A {} service. {}\n'.format(toc, desc)
-       return out_str
 
       def getDepartures(self, station, To=''):
         if To != '':
@@ -108,6 +79,7 @@ class RailScraper:
            success = self.getDepartures(station, via)
            out_str = ''
            if bool(self.info):
+            out_str += "Departure from {}\n".format(station)
             print("Passed")
             for key in self.info:
              out_str +='*{}* {}'.format(self.info[key]['due'], self.info[key]['destination'])
@@ -123,14 +95,14 @@ class RailScraper:
               out_str = ''
               if x != '':
                  for i in y:
-                   out_str += "Departs from {}\n".format(i)
+                   out_str += "Departures from {}\n".format(i)
                    out_str += self.makeDeptString(i,via)
            elif success == "nTo":
               x,y = self.searchStations(via)
               out_str = ''
               if x != '':
                  for i in y:
-                   out_str += "Departs from {}\n".format(station)
+                   out_str += "Departure from {}\n".format(station)
                    out_str += self.makeDeptString(station,i)
            else:
               out_str = "No Services From This Station."
