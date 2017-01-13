@@ -19,7 +19,7 @@ class DebugBeard(BeardChatHandler):
     async def who_am_i(self, msg):
         await self.sender.sendMessage(str(await self.bot.getMe()))
 
-    @onerror
+    @onerror("I just excepted on purpose!")
     async def except_on_purpose(self, msg):
         raise Exception("Raising generic exception")
 
