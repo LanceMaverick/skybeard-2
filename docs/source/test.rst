@@ -1,0 +1,11 @@
+test Package
+============
+
+:mod:`test` Package
+-------------------
+
+.. automodule:: test
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
