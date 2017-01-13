@@ -7,3 +7,4 @@ Project Modules
    beards
    decorators
    utils
+   help
