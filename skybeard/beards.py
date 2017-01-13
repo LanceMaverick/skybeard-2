@@ -8,7 +8,6 @@ import re
 import logging
 import json
 import traceback
-import functools
 
 import telepot.aio
 
@@ -18,7 +17,8 @@ logger = logging.getLogger(__name__)
 def regex_predicate(pattern):
     def retfunc(chat_handler, msg):
         try:
-            logging.debug("Matching regex: '{}'".format(pattern))
+            logging.debug("Matching regex: '{}' in '{}'".format(
+                pattern, msg['text']))
             retmatch = re.match(pattern, msg['text'])
             logging.debug("Match: {}".format(retmatch))
             return retmatch
@@ -29,22 +29,21 @@ def regex_predicate(pattern):
 
 
 def command_predicate(cmd):
-    @functools.lru_cache()
-    async def retcoro(chat_handler, msg):
-        bot_json = await chat_handler.bot.getMe()
-        pattern = r"^/{}(?:@{}|[^@])".format(
+    async def retcoro(beard_chat_handler, msg):
+        bot_username = await beard_chat_handler.get_username()
+        pattern = r"^/{}(?:@{}|[^@]|$)".format(
             cmd,
-            bot_json['username'],
+            bot_username,
         )
         try:
-            logging.debug("Matching regex: '{}'".format(pattern))
+            logging.debug("Matching regex: '{}' in '{}'".format(
+                pattern, msg['text']))
             retmatch = re.match(pattern, msg['text'])
             logging.debug("Match: {}".format(retmatch))
             return retmatch
         except KeyError:
             return False
 
-    # return regex_predicate(r"^/{}(?:@\w+)?".format(cmd))
     return retcoro
 
 
@@ -141,6 +140,17 @@ class BeardChatHandler(telepot.aio.helper.ChatHandler, metaclass=Beard):
     _timeout = 10
 
     __commands__ = []
+
+    # Should be got with get_username.
+    #
+    # TODO find a way to use coroutines as property getters and setters
+    _username = None
+
+    async def get_username(self):
+        if type(self)._username is None:
+            type(self)._username = (await self.bot.getMe())['username']
+
+        return type(self)._username
 
     def __init__(self, *args, **kwargs):
         self._instance_commands = []
