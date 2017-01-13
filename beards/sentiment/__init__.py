@@ -8,7 +8,7 @@ from . import sentiment as sent
 from . import config
 
 
-class LoggerBeard(BeardChatHandler):
+class SentBeard(BeardChatHandler):
     __commands__ = [
            ('saltreport', 'report', 'Sends a detailed summary of the scores so far'),
            ('score', 'instant_report', 'Sends you the score of that text. Score not logged'),
@@ -16,7 +16,10 @@ class LoggerBeard(BeardChatHandler):
             ]
     __userhelp__ = """
     Logging for sentiment analysis.
-    Send report with /saltreport"""
+   """ 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
     
     async def log_message_score(self, msg):
         #don't bother saving /score messages as they are likely not
