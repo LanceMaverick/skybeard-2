@@ -43,19 +43,6 @@ def onerror(f_or_text=None, **kwargs):
     return g
 
 
-def onerror_with_message(message, parse_args=None):
-    def _onerror_with_message(f):
-        @wraps(f)
-        async def g(beard, *fargs, **fkwargs):
-            try:
-                return await f(beard, *fargs, **fkwargs)
-            except Exception as e:
-                await beard.sender.sendMessage(message, parse_args=parse_args)
-                raise e
-
-        return g
-
-
 def debugonly(f):
     @wraps(f)
     async def g(beard, *fargs, **fkwargs):
