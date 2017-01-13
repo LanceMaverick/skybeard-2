@@ -19,7 +19,6 @@ def onerror(f_or_text=None, **kwargs):
     If only kwargs are passed, then the decorated function attempts
     beard.sender.sendMessage(**kwargs) and then calls
     beard.__onerror__(exception).
-
     """
     if isinstance(f_or_text, str):
         return partial(onerror, text=f_or_text, **kwargs)
