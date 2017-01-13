@@ -13,10 +13,12 @@ def onerror(f_or_text=None, **kwargs):
 
     If a string is passed as the first argument, then the decorated function
     sends this message instead of calling the beard.__onerror__ function.
-    kwargs are passed to beard.sender.sendMessage.
+    kwargs are passed to beard.sender.sendMessage and
+    beard.__onerror__(exception) is called.
 
     If only kwargs are passed, then the decorated function attempts
-    beard.sender.sendMessage(**kwargs).
+    beard.sender.sendMessage(**kwargs) and then calls
+    beard.__onerror__(exception).
 
     """
     if isinstance(f_or_text, str):
@@ -32,7 +34,10 @@ def onerror(f_or_text=None, **kwargs):
             if kwargs:
                 await beard.sender.sendMessage(**kwargs)
             else:
-                await beard.__onerror__(e)
+                await beard.sender.sendMessage(
+                    "Sorry, something went wrong")
+
+            await beard.__onerror__(e)
             raise e
 
     return g
