@@ -2,21 +2,14 @@ import telepot
 
 # from skybeard.beards import BeardAsyncChatHandlerMixin
 from skybeard.beards import BeardChatHandler, Beard, SlashCommand
+from skybeard.utils import embolden, italisize
 
 import config
 
-
-def embolden(string):
-    return "<b>"+string+"</b>"
-
-
-def italisize(string):
-    return "<i>"+string+"</i>"
-
-
 # TODO neaten the logic so fetching and formatting are truly separate again
 async def fetch_user_help():
-    """A little bit of magic to fetch all the __userhelp__'s."""
+    """Returns a dictionary of all the __userhelp__'s defined in the loaded
+    plug-ins."""
     retdict = dict()
     for beard in Beard.beards:
         name = beard.get_name()
@@ -50,6 +43,8 @@ async def format_user_help(userhelps):
 
 
 def get_all_cmd_helps():
+    """Retrieves the help messages in the tuples of each plug-in's
+    __commands__ list"""
     all_cmds = set()
     for beard in Beard.beards:
         for cmd in beard.__commands__:
@@ -62,6 +57,7 @@ def get_all_cmd_helps():
 class Help(telepot.aio.helper.ChatHandler):
 
     async def send_help(self, msg):
+        """sends the user a combined help message for all plug-ins"""
         retstr = ""
         try:
             retstr += config.__userhelp__
@@ -75,6 +71,8 @@ class Help(telepot.aio.helper.ChatHandler):
         await self.sender.sendMessage(retstr, parse_mode='html')
 
     async def cmd_helps(self, msg):
+        """sends the user a formatted list of commands for easy registering with
+        botfather"""
         await self.sender.sendMessage(
             "Forward the following to the BotFather when he asks for your "
             "list of commands.")
@@ -84,6 +82,7 @@ class Help(telepot.aio.helper.ChatHandler):
 def create_help(config):
 
     class BeardedHelp(Help, BeardChatHandler):
+        """Beard for interfacing help functionality with telegram"""
         _timeout = 2
         __commands__ = [
             ('help', 'send_help', "Shows verbose help message."),
