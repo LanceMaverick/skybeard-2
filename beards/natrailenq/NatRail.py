@@ -61,19 +61,19 @@ class RailScraper:
       def getDepartures(self, station, To=''):
         if To != '':
           if To.replace('/departures ','').replace('Road','Rd') in self.codes:
-            To = self.codes[To.replace('/departures ','').replace('Road','Rd')]
+            to = self.codes[To.replace('/departures ','').replace('Road','Rd')]
           elif To.replace('/departures ', '') in self.codes.values():
                to = To
           else:
             return 'nTo'
-          To = '/{}/To'.format(to)
+          to = '/{}/To'.format(to)
         if station.replace('/departures ','').replace('Road','Rd') in self.codes:
           stc = self.codes[station.replace('/departures ','').replace('Road','Rd')]
         elif station.replace('/departures ','') in self.codes.values():
           stc = station
         else:
           return 'nOrigin'
-        webpage = requests.get(self.coreurl+'ldbboard/dep/'+stc+To)
+        webpage = requests.get(self.coreurl+'ldbboard/dep/'+stc+to)
         i=1
         result = re.findall(r'(?:\s{29})([\w\s\&\.\)\(\']+)&\w+;(.*?)<\/td>', webpage.content.decode('utf-8'))	
         times = re.findall(r'(\d\d:\d\d|Cancelled|On time)', webpage.content.decode('utf-8'))
