@@ -67,3 +67,27 @@ def get_args(msg_or_text, return_string=False, **kwargs):
         return " ".join(text.split(" ")[1:])
     else:
         return shlex.split(text)[1:]
+
+def partition_text(text):
+    """Generator for splitting long texts into ones below the 
+    character limit. Messages are split at the nearest line break
+    and each successive chunk is yielded. Relatively untested"""
+    if len(text) < 4096:
+        yield text
+    else:
+        text_list = text.split('\n')
+        l = 0
+        i= 0
+        j = 0
+        for m in text_list:
+            l+=len(m)
+            try:
+                if l+len(text_list[i+1])> 4096:
+                    indices = [i, j]
+                    yield '\n'.join(
+                            [msg for k, msg in enumerate(text_list) if k in indices])
+                    i = j+1
+                j+=1
+            except IndexError:
+                yield text_list[i]
+
