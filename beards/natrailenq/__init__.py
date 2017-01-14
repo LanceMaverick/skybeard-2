@@ -5,6 +5,7 @@ import telepot.aio
 from skybeard.beards import BeardChatHandler, regex_predicate
 from skybeard.decorators import onerror
 from . import NatRail
+from . import config
 import re
 
 class NationalRailDepartures(BeardChatHandler):
@@ -21,23 +22,23 @@ class NationalRailDepartures(BeardChatHandler):
 
     @onerror
     async def searchStats(self, msg):
-       natRail = NatRail.RailScraper('http://ojp.nationalrail.co.uk/service/', 'beards/natrailenq/station_codes.json')
+       natRail = NatRail.RailScraper(config.rail_url, config.stat_codes)
        out = msg['text'].replace('/searchstations ','')
        out, other  = natRail.searchStations(out)
        await self.sender.sendMessage(out)
 
     async def getStatus(self, msg):
-       natRail = NatRail.RailScraper('http://ojp.nationalrail.co.uk/service/', 'beards/natrailenq/station_codes.json')
+       natRail = NatRail.RailScraper(config.rail_url, config.stat_codes)
        output = natRail.getStatus()
        await self.sender.sendMessage(output, parse_mode="Markdown")
 
     async def getDisruptions(self, msg):
-       natRail = NatRail.RailScraper('http://ojp.nationalrail.co.uk/service/', 'beards/natrailenq/station_codes.json')
+       natRail = NatRail.RailScraper(config.rail_url, config.stat_codes)
        output = natRail.getNews(msg['text'].replace('/disruptions ','').replace('/disruptions',''))
        await self.sender.sendMessage(output, parse_mode="Markdown")
 
     async def checkTimes(self, msg):
-        natRail = NatRail.RailScraper('http://ojp.nationalrail.co.uk/service/', 'beards/natrailenq/station_codes.json')
+        natRail = NatRail.RailScraper(config.rail_url, config.stat_codes)
         out = msg['text'].replace('/departures ','')
         res1 = re.findall(r'(.+)\s(?:To|TO|to)\s(.+)', out)
         if len(res1) == 0:
