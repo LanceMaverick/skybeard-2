@@ -34,6 +34,12 @@ class RailScraper:
         self.time = '{}{}'.format(h,M)
         self.date = '{}{}{}'.format(d,m,y)
 
+      def getStationFromCode(self, stat):
+          for key in self.codes:
+             if self.codes[key] == stat:
+                 return key
+          return stat
+
       def searchStations(self, search):
          out_str = '' 
          out_list = []
@@ -55,24 +61,28 @@ class RailScraper:
       def getDepartures(self, station, To=''):
         if To != '':
           if To.replace('/departures ','').replace('Road','Rd') in self.codes:
-            stc = self.codes[To.replace('/departures ','').replace('Road','Rd')]
+            To = self.codes[To.replace('/departures ','').replace('Road','Rd')]
+          elif To.replace('/departures ', '') in self.codes.values():
+               to = To
           else:
             return 'nTo'
-          To = self.codes[To]
-          To = '/{}/To'.format(To)
+          To = '/{}/To'.format(to)
         if station.replace('/departures ','').replace('Road','Rd') in self.codes:
           stc = self.codes[station.replace('/departures ','').replace('Road','Rd')]
+        elif station.replace('/departures ','') in self.codes.values():
+          stc = station
         else:
           return 'nOrigin'
         webpage = requests.get(self.coreurl+'ldbboard/dep/'+stc+To)
         i=1
         result = re.findall(r'(?:\s{29})([\w\s\&\.\)\(\']+)&\w+;(.*?)<\/td>', webpage.content.decode('utf-8'))	
         times = re.findall(r'(\d\d:\d\d|Cancelled|On time)', webpage.content.decode('utf-8'))
-        plat = re.findall(r'<td>(\d+|)<\/td>', webpage.content.decode('utf-8'))
+        plat = re.findall(r'<td>([\d\w]+|)<\/td>', webpage.content.decode('utf-8'))
         if not result or not times:
           return
         due = times[0::3]
         expt = times[1::3]
+        print(plat) 
         for element in result:
            dest, via = element
            self.info[i] = {}
@@ -83,11 +93,14 @@ class RailScraper:
            self.info[i]['plat'] = plat[i-1]
            i+=1
         return "Success"
+
       def makeDeptString(self, station, via=''):
            success = self.getDepartures(station, via)
+           station = self.getStationFromCode(station)
+           via = self.getStationFromCode(via)
            out_str = ''
            if bool(self.info):
-            out_str += "Departure from {}\n".format(station)
+            out_str += "Departures from {}\n".format(station)
             print("Passed")
             for key in self.info:
              out_str +='*{}* {}'.format(self.info[key]['due'], self.info[key]['destination'])
