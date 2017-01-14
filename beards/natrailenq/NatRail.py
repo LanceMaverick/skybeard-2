@@ -128,3 +128,22 @@ class RailScraper:
            else:
               out_str = "No Services From This Station."
            return out_str
+
+      def getNews(self, search=''):
+          webpage = requests.get('http://www.nationalrail.co.uk/service_disruptions/today.aspx')
+          news = re.findall(r'colspan\=\"2\">([\w\d\s\:\'\)\(\-\,\.&amp;\/]+)', webpage.content.decode('utf-8'))
+          start = '*Service Disruptions Today*\n\n'
+          out_str = start
+          print(search)
+          for item in news:
+             if search != '':
+               if search in item:
+                 out_str += '- {}\n\n'.format(item)
+             else:
+                 out_str += '- {}\n\n'.format(item)
+          if out_str == start:
+             if search != '':
+               out_str = 'There are currently no reported disruptions on {} services.'.format(search)
+             else:
+               out_str = 'There are currently no disruptions on the National Rail network.'
+          return out_str
