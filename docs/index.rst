@@ -5,7 +5,6 @@
    
 .. figure:: http://i.imgur.com/BkjfI3k.png
    :alt: Skybeard
-
 Welcome to Skybeard's documentation!
 ====================================
 
