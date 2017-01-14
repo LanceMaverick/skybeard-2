@@ -28,6 +28,8 @@ def get_literal_beard_paths(beard_paths):
 
 
 def all_possible_beards(paths):
+    """List generator of all plug-ins that Skybeard has found and can
+    be loaded"""
     literal_paths = get_literal_beard_paths(paths)
 
     for path in literal_paths:
@@ -37,14 +39,20 @@ def all_possible_beards(paths):
 
 
 def embolden(string):
+    """wraps a string in bold tags"""
     return "<b>"+string+"</b>"
 
 
 def italisize(string):
+    """wraps a string in italic tags"""
     return "<i>"+string+"</i>"
 
 
 def get_args(msg_or_text, return_string=False, **kwargs):
+    """Helper function when the command used in the telegram
+    chat may have arguments, e.g /command arg1 arg2.
+    Returns a list of any arguments found after the command"""
+
     if "as_string" in kwargs:
         logger.warning(
             "as_string is being depreciated, please use return_string.")
