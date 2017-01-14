@@ -27,6 +27,7 @@ To run skybeard define your key in the environment variable `$TG_BOT_TOKEN` or a
     ./main.py -k 99121185:RUE-UAa7dsEaagAKkysPDjqa2X7KxX48e 
 
 ## Skybeard's many beards
+Skybeard source documentation: http://skybeard-2.readthedocs.io/en/latest/
 Skybeard wears many beards. The bot will automatically load any "beard" (a plug-in) that is placed in the beards folder. Beards are typically structured like so:
 
 ```
