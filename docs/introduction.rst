@@ -1,3 +1,5 @@
+.. figure:: http://i.imgur.com/BkjfI3k.png
+   :alt: Skybeard
 Introduction
 ============
 
