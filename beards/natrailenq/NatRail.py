@@ -59,6 +59,7 @@ class RailScraper:
        return out_str        
 
       def getDepartures(self, station, To=''):
+        to = ''
         if To != '':
           if To.replace('/departures ','').replace('Road','Rd') in self.codes:
             to = self.codes[To.replace('/departures ','').replace('Road','Rd')]
