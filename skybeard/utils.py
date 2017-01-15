@@ -72,21 +72,32 @@ def partition_text(text):
     """Generator for splitting long texts into ones below the 
     character limit. Messages are split at the nearest line break
     and each successive chunk is yielded. Relatively untested"""
-    if len(text) < 4096:
+    if len(text) < 3500:
         yield text
     else:
         text_list = text.split('\n')
-        l = 0
-        i= 0
-        j = 0
+        l = 0 #length iterator of current block
+        i= 0 #start position of block
+        j = 0 #end position of block
+
+        #j scans through list of lines from start position i
+        #l tracks length of all characters in the current scan
+        #If length of everything from i to j+1 > the limit,
+        #yield current block, joined into single string, and 
+        #shift the scanning position up to the start of the new
+        #block.
         for m in text_list:
             l+=len(m)
             try:
-                if l+len(text_list[i+1])> 4096:
+                #if  adding another line will breach the limit,
+                #yield current block
+                if l+len(text_list[j+1])> 3500:
                     indices = [i, j]
                     yield '\n'.join(
                             [msg for k, msg in enumerate(text_list) if k in indices])
+                    #shift start position for the next block
                     i = j+1
+                    l = 0
                 j+=1
             except IndexError:
                 yield text_list[i]
