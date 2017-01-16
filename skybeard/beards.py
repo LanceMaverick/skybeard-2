@@ -95,6 +95,8 @@ class TelegramHandler(logging.Handler):
 
 
 class Beard(type):
+    """Metaclass for creating beards."""
+
     beards = list()
 
     def __new__(mcs, name, bases, dct):
@@ -121,6 +123,7 @@ class Beard(type):
         super().__init__(name, bases, attrs)
 
     def register(cls, beard):
+        """Add beard to internal list of beards."""
         cls.beards.append(beard)
 
 
