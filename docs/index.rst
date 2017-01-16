@@ -3,10 +3,11 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
    
-.. figure:: http://i.imgur.com/BkjfI3k.png
-   :alt: Skybeard
+
 Welcome to Skybeard's documentation!
 ====================================
+.. figure:: http://i.imgur.com/BkjfI3k.png
+   :alt: Skybeard
 
 .. toctree::
    :maxdepth: 2
