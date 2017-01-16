@@ -53,13 +53,14 @@ def debugonly(f_or_text=None, **kwargs):
     the default message when not in debug mode.
 
     e.g.
-    
+
     .. code:: python
-       @debugonly("Skybeard is not in debug mode.")
-       async def foo(self, msg):
-           # This message will only be sent if skybeard is run in debug mode
-           await self.sender.sendMessage("You are in debug mode!")
-    
+
+      @debugonly("Skybeard is not in debug mode.")
+      async def foo(self, msg):
+          # This message will only be sent if skybeard is run in debug mode
+          await self.sender.sendMessage("You are in debug mode!")
+
     """
 
     if isinstance(f_or_text, str):
