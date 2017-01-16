@@ -5,17 +5,21 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-def is_module(filename):
-    fname, ext = os.path.splitext(filename)
+def is_module(path):
+    """Checks if path is a module."""
+
+    fname, ext = os.path.splitext(path)
     if ext == ".py":
         return True
-    elif os.path.exists(os.path.join(filename, "__init__.py")):
+    elif os.path.exists(os.path.join(path, "__init__.py")):
         return True
     else:
         return False
 
 
 def get_literal_path(path_or_autoloader):
+    """Gets literal path from AutoLoader or returns input."""
+
     try:
         return path_or_autoloader.path
     except AttributeError:
@@ -24,6 +28,8 @@ def get_literal_path(path_or_autoloader):
 
 
 def get_literal_beard_paths(beard_paths):
+    """Returns list of literal beard paths."""
+
     return [get_literal_path(x) for x in beard_paths]
 
 
@@ -68,37 +74,36 @@ def get_args(msg_or_text, return_string=False, **kwargs):
     else:
         return shlex.split(text)[1:]
 
+
 def partition_text(text):
-    """Generator for splitting long texts into ones below the 
+    """Generator for splitting long texts into ones below the
     character limit. Messages are split at the nearest line break
     and each successive chunk is yielded. Relatively untested"""
     if len(text) < 3500:
         yield text
     else:
         text_list = text.split('\n')
-        l = 0 #length iterator of current block
-        i= 0 #start position of block
-        j = 0 #end position of block
+        l = 0                   # length iterator of current block
+        i = 0                   # start position of block
+        j = 0                   # end position of block
 
-        #j scans through list of lines from start position i
-        #l tracks length of all characters in the current scan
-        #If length of everything from i to j+1 > the limit,
-        #yield current block, joined into single string, and 
-        #shift the scanning position up to the start of the new
-        #block.
+        # j scans through list of lines from start position i l tracks length
+        # of all characters in the current scan If length of everything from i
+        # to j+1 > the limit, yield current block, joined into single string,
+        # and shift the scanning position up to the start of the new block.
         for m in text_list:
-            l+=len(m)
+            l += len(m)
             try:
-                #if  adding another line will breach the limit,
-                #yield current block
-                if l+len(text_list[j+1])> 3500:
+                # if adding another line will breach the limit,
+                # yield current block
+                if l+len(text_list[j+1]) > 3500:
                     indices = [i, j]
                     yield '\n'.join(
-                            [msg for k, msg in enumerate(text_list) if k in indices])
-                    #shift start position for the next block
+                            [msg for k, msg in enumerate(text_list)
+                             if k in indices])
+                    # shift start position for the next block
                     i = j+1
                     l = 0
-                j+=1
+                j += 1
             except IndexError:
                 yield text_list[i]
-

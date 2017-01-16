@@ -15,6 +15,7 @@ logger = logging.getLogger(__name__)
 
 
 def regex_predicate(pattern):
+    """Returns a predicate function which returns True if pattern is matched."""
     def retfunc(chat_handler, msg):
         try:
             logging.debug("Matching regex: '{}' in '{}'".format(
@@ -28,7 +29,9 @@ def regex_predicate(pattern):
     return retfunc
 
 
+# TODO make command_predicate in terms of regex_predicate
 def command_predicate(cmd):
+    """Returns a predicate coroutine which returns True if command is sent."""
     async def retcoro(beard_chat_handler, msg):
         bot_username = await beard_chat_handler.get_username()
         pattern = r"^/{}(?:@{}|[^@]|$)".format(
@@ -50,6 +53,7 @@ def command_predicate(cmd):
 # TODO rename coro to coro_name or something better than that
 
 class Command(object):
+    """Holds information to determine whether a function should be triggered."""
     def __init__(self, pred, coro, hlp=None):
         self.pred = pred
         self.coro = coro
@@ -57,6 +61,7 @@ class Command(object):
 
 
 class SlashCommand(object):
+    """Holds information to determine whether a telegram command was sent."""
     def __init__(self, cmd, coro, hlp=None):
         self.cmd = cmd
         self.pred = command_predicate(cmd)
@@ -65,6 +70,9 @@ class SlashCommand(object):
 
 
 def create_command(cmd_or_pred, coro, hlp=None):
+    """Creates a Command or SlashCommand object as appropriate.
+
+    Used to make __commands__ tuples into Command objects."""
     if isinstance(cmd_or_pred, str):
         return SlashCommand(cmd_or_pred, coro, hlp)
     elif callable(cmd_or_pred):
@@ -87,6 +95,8 @@ class TelegramHandler(logging.Handler):
 
 
 class Beard(type):
+    """Metaclass for creating beards."""
+
     beards = list()
 
     def __new__(mcs, name, bases, dct):
@@ -113,13 +123,17 @@ class Beard(type):
         super().__init__(name, bases, attrs)
 
     def register(cls, beard):
+        """Add beard to internal list of beards."""
         cls.beards.append(beard)
 
 
 class Filters:
-    """Filters used to call plugin methods when particular types of 
-    messages are received. 
-    For usage, see description of the BeardChatHandler.__commands__ variable. """
+    """Filters used to call plugin methods when particular types of
+    messages are received.
+
+    For usage, see description of the BeardChatHandler.__commands__ variable.
+
+    """
     @classmethod
     def text(cls, chat_handler, msg):
         """Filters for text messages"""
@@ -137,35 +151,40 @@ class Filters:
 
 
 class ThatsNotMineException(Exception):
-    """Used to check if serialized callback data belongs
-    to the plugin. See BeardChatHandler.serialize()"""
+    """Raised if data does not match beard.
+
+    Used to check if serialized callback data belongs to the plugin. See
+    BeardChatHandler.serialize()"""
     pass
 
 
 class BeardChatHandler(telepot.aio.helper.ChatHandler, metaclass=Beard):
-    """Chat handler for beards. This is the primary interface between
-    skybeard and any plug-in. The plug-in must define a class that inherets
-    from BeardChatHandler. 
+    """Chat handler for beards.
+
+    This is the primary interface between skybeard and any plug-in. The plug-in
+    must define a class that inherets from BeardChatHandler.
+
     This class should overwrite __commands__ with a list of tuples that route
-    messages containing commands, or if they pass certain "Filters" 
+    messages containing commands, or if they pass certain "Filters"
     (see skybeard.beards.Filters).
     E.g:
-    
+
+    ```Python
     __commands__ = [
             ('mycommand', 'my_func', 'this is a help message'),
             (Filters.location, 'my_other_func', 'another help message')]
-    
-    In this case, when the bot receives the command "/mycommand", it 
-    will call self.my_func(msg) where msg is a dict containing all the 
-    message information.
-    The filter (from skybeard.beards) will call self.my_other_func(msg)
-    whenever "msg" contains a location. 
-    The help messages are collected by the help functions and automatically
-    formatted and sent when a user sends /help to the bot.
+    ```
+
+    In this case, when the bot receives the command "/mycommand", it will call
+    self.my_func(msg) where msg is a dict containing all the message
+    information. The filter (from skybeard.beards) will call
+    self.my_other_func(msg) whenever "msg" contains a location. The help
+    messages are collected by the help functions and automatically formatted
+    and sent when a user sends /help to the bot.
 
     Instances of the plug-in classes are created when required (such as when
     a filter is passed, a command or a regex pattern for the bot is matched
-    etc.) and they are destructed after a set timeout. The default is 10 
+    etc.) and they are destructed after a set timeout. The default is 10
     seconds, but this can be overwritten with, for example
 
     _timeout = 90
@@ -200,10 +219,18 @@ class BeardChatHandler(telepot.aio.helper.ChatHandler, metaclass=Beard):
         self.logger.addHandler(self._handler)
 
     def on_close(self, e):
+        """Removes per beard logger handler and calls telepot default on_close."""
         self.logger.removeHandler(self._handler)
         super().on_close(e)
 
     async def __onerror__(self, e):
+        """Runs when functions decorated with @onerror except.
+
+        Useful for emitting debug crash logs. Can be overridden to use custom
+        error tracking (e.g. telegramming the author of the beard when a crash
+        happens.)
+
+        """
         self.logger.debug(
             "More details on crash of {}:\n\n{}".format(
                 self,
@@ -215,11 +242,14 @@ class BeardChatHandler(telepot.aio.helper.ChatHandler, metaclass=Beard):
         return type(self).__name__+str(self.chat_id)
 
     def serialize(self, data):
-        """Serialize callback data (such as with inline keyboard
-        buttons). The id of the plug-in is encoded into the 
-        callback data so ownership of callbacks can be easily 
-        checked when it is deserialized. Also avoids the same 
-        plug-in receiving callback data from another chat""" 
+        """Serialises data to be specific for each beard instance.
+
+        Serialize callback data (such as with inline keyboard buttons). The id
+        of the plug-in is encoded into the callback data so ownership of
+        callbacks can be easily checked when it is deserialized. Also avoids
+        the same plug-in receiving callback data from another chat
+
+        """
         return json.dumps((self._make_uid(), data))
 
     def deserialize(self, data):
@@ -233,20 +263,46 @@ class BeardChatHandler(telepot.aio.helper.ChatHandler, metaclass=Beard):
 
     @classmethod
     def setup_beards(cls, key):
+        """Perform setup necessary for all beards."""
         cls.key = key
 
     def register_command(self, pred_or_cmd, coro, hlp=None):
+        """Registers an instance level command.
+
+        This can be used to create instance specific commands e.g. if a user
+        needs to type /cmdSOMEAPIKEY:
+
+        ```
+        self.register_commmand('cmd{}'.format(SOMEAPIKEY), 'name_of_coro')
+        ```
+        """
+
         logging.debug("Registering instance command: {}".format(pred_or_cmd))
         self._instance_commands.append(create_command(pred_or_cmd, coro, hlp))
 
     @classmethod
     def get_name(cls):
+        """Get the name of the beard (e.g. cls.__name__)."""
         return cls.__name__
 
     async def on_chat_message(self, msg):
-        """Can be overwritten in order to define the behaviour of the plug-in
-        whenever any message is received. super() MUST be called in the overwrite
-        to preserve default behaviour"""
+        """Default on_chat_message for beards.
+
+        Can be overwritten in order to define the behaviour of the plug-in
+        whenever any message is received.
+
+        NOTE: super().on_chat_message(msg) must be called in the overwrite to
+        preserve default behaviour. This is usually done after custom
+        behaviour, e.g.
+
+        ```Python
+        async def on_chat_message(self, msg):
+            await self.sender.sendMessage("I got your message!")
+
+            super().on_chat_message(msg)
+        ```
+
+        """
         for cmd in self._instance_commands + type(self).__commands__:
             if asyncio.iscoroutinefunction(cmd.pred):
                 pred_value = await cmd.pred(self, msg)
