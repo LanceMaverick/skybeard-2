@@ -127,7 +127,10 @@ class Beard(type):
 class Filters:
     """Filters used to call plugin methods when particular types of
     messages are received.
-    For usage, see description of the BeardChatHandler.__commands__ variable. """
+
+    For usage, see description of the BeardChatHandler.__commands__ variable.
+
+    """
     @classmethod
     def text(cls, chat_handler, msg):
         """Filters for text messages"""
@@ -145,31 +148,36 @@ class Filters:
 
 
 class ThatsNotMineException(Exception):
-    """Used to check if serialized callback data belongs
-    to the plugin. See BeardChatHandler.serialize()"""
+    """Raised if data does not match beard.
+
+    Used to check if serialized callback data belongs to the plugin. See
+    BeardChatHandler.serialize()"""
     pass
 
 
 class BeardChatHandler(telepot.aio.helper.ChatHandler, metaclass=Beard):
-    """Chat handler for beards. This is the primary interface between
-    skybeard and any plug-in. The plug-in must define a class that inherets
-    from BeardChatHandler.
+    """Chat handler for beards.
+
+    This is the primary interface between skybeard and any plug-in. The plug-in
+    must define a class that inherets from BeardChatHandler.
+
     This class should overwrite __commands__ with a list of tuples that route
     messages containing commands, or if they pass certain "Filters"
     (see skybeard.beards.Filters).
     E.g:
 
+    ```Python
     __commands__ = [
             ('mycommand', 'my_func', 'this is a help message'),
             (Filters.location, 'my_other_func', 'another help message')]
+    ```
 
-    In this case, when the bot receives the command "/mycommand", it
-    will call self.my_func(msg) where msg is a dict containing all the
-    message information.
-    The filter (from skybeard.beards) will call self.my_other_func(msg)
-    whenever "msg" contains a location.
-    The help messages are collected by the help functions and automatically
-    formatted and sent when a user sends /help to the bot.
+    In this case, when the bot receives the command "/mycommand", it will call
+    self.my_func(msg) where msg is a dict containing all the message
+    information. The filter (from skybeard.beards) will call
+    self.my_other_func(msg) whenever "msg" contains a location. The help
+    messages are collected by the help functions and automatically formatted
+    and sent when a user sends /help to the bot.
 
     Instances of the plug-in classes are created when required (such as when
     a filter is passed, a command or a regex pattern for the bot is matched
@@ -231,11 +239,14 @@ class BeardChatHandler(telepot.aio.helper.ChatHandler, metaclass=Beard):
         return type(self).__name__+str(self.chat_id)
 
     def serialize(self, data):
-        """Serialize callback data (such as with inline keyboard
-        buttons). The id of the plug-in is encoded into the
-        callback data so ownership of callbacks can be easily
-        checked when it is deserialized. Also avoids the same
-        plug-in receiving callback data from another chat"""
+        """Serialises data to be specific for each beard instance.
+
+        Serialize callback data (such as with inline keyboard buttons). The id
+        of the plug-in is encoded into the callback data so ownership of
+        callbacks can be easily checked when it is deserialized. Also avoids
+        the same plug-in receiving callback data from another chat
+
+        """
         return json.dumps((self._make_uid(), data))
 
     def deserialize(self, data):
