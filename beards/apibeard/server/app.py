@@ -5,6 +5,8 @@ from sanic import Sanic, Blueprint
 from sanic.response import json, text
 from sanic.exceptions import NotFound
 
+from skybeard.beards import Beard
+
 from . import telegram as tg
 from .. import database
 # from . import utils
@@ -18,7 +20,12 @@ key_blueprint = Blueprint('key', url_prefix='/key[A-z]+')
 
 @app.route('/')
 async def hello_world(request):
-    return text("Hello World! Your API beard is working! Running Sanic version: {}.".format(sanic.__version__))
+    return text(
+        ("Hello World! Your API beard is working! "
+         "Running Sanic version: {}. Beards running: {}.").format(
+        sanic.__version__,
+        Beard.beards
+    ))
 
 
 @key_blueprint.route('/relay/<method:[A-z]+>', methods=["POST", "GET"])
