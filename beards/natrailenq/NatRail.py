@@ -23,7 +23,7 @@ def roundTo15(time):
 class RailScraper:
       def __init__(self, url, station_codes_doc):
         self.coreurl = url
-        self.codes = json.load(open(station_codes_doc, 'r'))     
+        self.codes = json.load(open(station_codes_doc, 'r'))
         self.info = {}
         y = datetime.datetime.now().strftime('%Y')
         m = datetime.datetime.now().strftime('%m')
@@ -50,7 +50,8 @@ class RailScraper:
          return (out_str, out_list)         
     
       def getStatus(self):
-       webpage = requests.get('http://www.nationalrail.co.uk/service_disruptions/indicator.aspx')
+       webpage = requests.get('http://www.nationalrail.co.uk/service_disruptions/indicator.aspx', timeout=0.0001)
+       webpage.raise_for_status()
        toc = re.findall(r'class\=\"first\">([\w\s\(\d\)\'\,]+)', webpage.content.decode('utf-8'))[1:]
        status = re.findall(r'(Major[\w\s]+|Good[\w\s]+|Minor[\w\s]+)+', webpage.content.decode('utf-8'))[1:]
        out_str = ''
@@ -74,7 +75,9 @@ class RailScraper:
           stc = station
         else:
           return 'nOrigin'
-        webpage = requests.get(self.coreurl+'ldbboard/dep/'+stc+to)
+        webpage = requests.get(self.coreurl+'ldbboard/dep/'+stc+to, timeout=10)
+        webpage.raise_for_status()
+
         i=1
         result = re.findall(r'(?:\s{29})([\w\s\&\.\)\(\']+)&\w+;(.*?)<\/td>', webpage.content.decode('utf-8'))	
         times = re.findall(r'(\d\d:\d\d|Cancelled|On time)', webpage.content.decode('utf-8'))
@@ -131,7 +134,8 @@ class RailScraper:
            return out_str
 
       def getNews(self, search=''):
-          webpage = requests.get('http://www.nationalrail.co.uk/service_disruptions/today.aspx')
+          webpage = requests.get('http://www.nationalrail.co.uk/service_disruptions/today.aspx', timeout=10)
+          webpage.raise_for_status()
           news = re.findall(r'colspan\=\"2\">([\w\d\s\:\'\)\(\-\,\.&amp;\/]+)', webpage.content.decode('utf-8'))
           start = '*Service Disruptions Today*\n\n'
           out_str = start
