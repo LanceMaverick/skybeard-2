@@ -22,6 +22,11 @@ def _start_server(the_app, *args, **kwargs):
 
 # from https://github.com/channelcat/sanic/issues/275
 async def run_web_app(app, port, *, loop, logger, request_timeout=20):
+
+    # Some setup for telegram. WARNING: this function does stuff behind the
+    # scenes!
+    await setup_telegram()
+
     connections = {}
     signal = sanic.server.Signal()
     handler_factory = lambda: HttpProtocol(

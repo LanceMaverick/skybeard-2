@@ -23,6 +23,7 @@ def not_implemented(*args, **kwargs):
 
 post = not_implemented
 get = not_implemented
+_session = not_implemented
 
 
 async def setup_telegram(*args):
