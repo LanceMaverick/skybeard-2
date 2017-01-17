@@ -36,7 +36,7 @@ class RailScraper:
 
       def getStationFromCode(self, stat):
           for key in self.codes:
-             if self.codes[key] == stat:
+             if self.codes[key] == stat.upper():
                  return key
           return stat
 
