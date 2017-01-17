@@ -12,13 +12,11 @@ from telepot.aio.delegate import (per_chat_id,
                                   pave_event_space,
                                   include_callback_query_chat_id)
 
-import config
-
-from skybeard.beards import Beard, BeardChatHandler, SlashCommand
-from help import create_help
-
 logger = logging.getLogger(__name__)
 
+from skybeard.beards import Beard, BeardChatHandler, SlashCommand
+from skybeard.help import create_help
+import config
 
 class DuplicateCommand(Exception):
     pass
