@@ -23,9 +23,10 @@ def not_implemented(*args, **kwargs):
 
 post = not_implemented
 get = not_implemented
+_session = not_implemented
 
 
-def setup_telegram(*args):
+async def setup_telegram(*args):
     """Sets up telegram functions for the app to use.
 
     NOTE: this is not a referentially transparent funtion; it relies on the

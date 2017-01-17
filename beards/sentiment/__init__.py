@@ -24,6 +24,7 @@ class SentBeard(BeardChatHandler):
     async def log_message_score(self, msg):
         #don't bother saving /score messages as they are likely not
         #representitive of chat
+        print(msg['chat']['id'])
 
         if not msg['text'].startswith('/score'):
             score = sent.analyze(msg)

@@ -1,7 +1,9 @@
 # from multiprocessing import Process
 import logging
+import functools
+import re
 
-from skybeard.beards import BeardChatHandler
+from skybeard.beards import BeardChatHandler, regex_predicate
 from skybeard.decorators import onerror, debugonly
 
 from . import server
@@ -19,12 +21,16 @@ class APIBeard(BeardChatHandler):
         ('whoami', 'who_am_i', 'Returns the chat id for current chat.'),
         ('allkeys', 'all_keys', 'Gets all the keys if in debug mode.'),
         ('getkey', 'get_key', 'TODO'),
+        (regex_predicate('_test'), 'test', None),
     ]
 
     async def who_am_i(self, msg):
         await self.sender.sendMessage("Current chat_id: "+str(self.chat_id))
 
-    sanic_proc = server.start()
+    if logger.getEffectiveLevel() <= logging.DEBUG:
+        sanic_proc = server.start(debug=True)
+    else:
+        sanic_proc = server.start()
 
     @classmethod
     def _restart_server(cls):
@@ -42,6 +48,11 @@ class APIBeard(BeardChatHandler):
             "\n".join((
                 "{}:{}".format(
                     x["chat_id"], x["key"]) for x in database.get_all_keys()))))
+
+    @onerror("Some test failed. Turn on debug to see more detail.")
+    async def test(self, msg):
+        from . import test
+        await test.main(self, msg)
 
     async def get_key(self, msg):
         entry = database.get_key(self.chat_id)
