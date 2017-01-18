@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html ng-app="APIBeardDemo">
+    <head>
+        <link rel="stylesheet" type="text/css" href="bootstrap.min.css" />
+        <script type="text/javascript" src="angular.min.js"></script>
+        <script type="text/javascript" src="app.js"></script>
+    </head>
+
+    <body>
+        <section ng-controller="APIBeardDemoController as apiCtrl">
+            <ul>
+                <li>
+                    <a href ng-click="apiCtrl.onClick()">
+                        {{apiCtrl.result}}
+                    </a>
+                </li>
+            </ul>
+        </section>
+    </body>
+</html>
