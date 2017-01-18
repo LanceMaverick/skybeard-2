@@ -1,4 +1,9 @@
-certifi==2016.9.26
-future==0.16.0
-python-telegram-bot==5.2.0
-urllib3==1.19
+aiohttp==1.2.0
+async-timeout==1.1.0
+chardet==2.3.0
+multidict==2.1.4
+pkg-resources==0.0.0
+telepot==10.4
+urllib3==1.19.1
+yarl==0.8.1
+
