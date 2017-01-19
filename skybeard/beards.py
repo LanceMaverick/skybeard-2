@@ -4,55 +4,22 @@ architecture inspired by: http://martyalchin.com/2008/jan/10/simple-plugin-frame
 and http://stackoverflow.com/a/17401329
 """
 import asyncio
-import re
 import logging
 import json
 import traceback
-import dataset
-from sqlalchemy.util import safe_reraise
 
 import telepot.aio
+import pyconfig
+
+from .bearddbtable import BeardDBTable
+from .logging import TelegramHandler
+from .predicates import command_predicate
 
 logger = logging.getLogger(__name__)
 
 
-def regex_predicate(pattern):
-    """Returns a predicate function which returns True if pattern is matched."""
-    def retfunc(chat_handler, msg):
-        try:
-            logging.debug("Matching regex: '{}' in '{}'".format(
-                pattern, msg['text']))
-            retmatch = re.match(pattern, msg['text'])
-            logging.debug("Match: {}".format(retmatch))
-            return retmatch
-        except KeyError:
-            return False
-
-    return retfunc
-
-
-# TODO make command_predicate in terms of regex_predicate
-def command_predicate(cmd):
-    """Returns a predicate coroutine which returns True if command is sent."""
-    async def retcoro(beard_chat_handler, msg):
-        bot_username = await beard_chat_handler.get_username()
-        pattern = r"^/{}(?:@{}|[^@]|$)".format(
-            cmd,
-            bot_username,
-        )
-        try:
-            logging.debug("Matching regex: '{}' in '{}'".format(
-                pattern, msg['text']))
-            retmatch = re.match(pattern, msg['text'])
-            logging.debug("Match: {}".format(retmatch))
-            return retmatch
-        except KeyError:
-            return False
-
-    return retcoro
-
-
 # TODO rename coro to coro_name or something better than that
+
 
 class Command(object):
     """Holds information to determine whether a function should be triggered."""
@@ -80,57 +47,6 @@ def create_command(cmd_or_pred, coro, hlp=None):
     elif callable(cmd_or_pred):
         return Command(cmd_or_pred, coro, hlp)
     raise TypeError("cmd_or_pred must be str or callable.")
-
-
-class TelegramHandler(logging.Handler):
-    """A logging handler that posts directly to telegram"""
-
-    def __init__(self, bot, parse_mode=None):
-        self.bot = bot
-        self.parse_mode = parse_mode
-        super().__init__()
-
-    def emit(self, record):
-        coro = self.bot.sender.sendMessage(
-            self.format(record), parse_mode=self.parse_mode)
-        asyncio.ensure_future(coro)
-
-
-class BeardDBTable(object):
-    """Placeholder for database object for beards.
-
-    For use with async with.
-
-    """
-    def __init__(self, beard, table_name, **kwargs):
-        self.beard_name = type(beard).__name__
-        self.table_name = "{}_{}".format(
-            self.beard_name,
-            table_name
-        )
-        self.kwargs = kwargs
-
-    def __enter__(self):
-        self.db = dataset.connect(BeardChatHandler.db_url)
-        self.db.__enter__()
-        self.table = self.db.get_table(self.table_name, **self.kwargs)
-        logger.debug("BeardDBTable initalised with: self.table: {}, self.db: {}".format(
-            self.table, self.db))
-        return self
-
-    def __exit__(self, error_type, error_value, traceback):
-        self.db.__exit__(error_type, error_value, traceback)
-
-        del self.table
-        del self.db
-
-    def __getattr__(self, name):
-        """If the normal getattr fails, try getattr(self.table, name)."""
-        try:
-            return getattr(self.table, name)
-        except AttributeError:
-            raise AttributeError(
-                "Open table not found. Are you using BeardDBTable with with?")
 
 
 class Beard(type):
@@ -164,29 +80,6 @@ class Beard(type):
     def register(cls, beard):
         """Add beard to internal list of beards."""
         cls.beards.append(beard)
-
-
-class Filters:
-    """Filters used to call plugin methods when particular types of
-    messages are received.
-
-    For usage, see description of the BeardChatHandler.__commands__ variable.
-
-    """
-    @classmethod
-    def text(cls, chat_handler, msg):
-        """Filters for text messages"""
-        return "text" in msg
-
-    @classmethod
-    def document(cls, chat_handler, msg):
-        """Filters for sent documents"""
-        return "document" in msg
-
-    @classmethod
-    def location(cls, chat_handler, msg):
-        """Filters for sent locations"""
-        return "location" in msg
 
 
 class ThatsNotMineException(Exception):
@@ -257,7 +150,13 @@ class BeardChatHandler(telepot.aio.helper.ChatHandler, metaclass=Beard):
         self._handler = TelegramHandler(self)
         self.logger.addHandler(self._handler)
 
-    def get_db_table(self, table_name, **kwargs):
+    def create_db_table(self, table_name, **kwargs):
+        """Creates `BeardDBTable` using current beard.
+
+        Note that this does not create a table in the database. Tables are only
+        created once the `BeardDBTable` is used with `with`.
+
+        """
         return BeardDBTable(self, table_name, **kwargs)
 
     def on_close(self, e):
@@ -306,6 +205,8 @@ class BeardChatHandler(telepot.aio.helper.ChatHandler, metaclass=Beard):
     @classmethod
     def setup_beards(cls, key, db_url):
         """Perform setup necessary for all beards."""
+        pyconfig.set('key', key)
+        pyconfig.set('db_url', db_url)
         cls.key = key
         cls.db_url = db_url
 

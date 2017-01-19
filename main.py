@@ -5,6 +5,7 @@ import sys
 import logging
 import importlib
 import argparse
+import pyconfig
 
 import telepot
 from telepot.aio.delegate import (per_chat_id,
@@ -96,7 +97,7 @@ def main(config):
                     all_cmds.add(cmd)
 
     bot = telepot.aio.DelegatorBot(
-        BeardChatHandler.key,
+        pyconfig.get('key'),
         list(delegator_beard_gen(Beard.beards))
     )
 
@@ -123,6 +124,8 @@ if __name__ == '__main__':
         level=parsed.loglevel)
 
     # Set up the master beard
+    # TODO consider making this not a parrt of the BeardChatHandler class now
+    # that we use pyconfig.
     BeardChatHandler.setup_beards(parsed.key, config.db_url)
 
     # If the user does not specially request --no-help, set up help command.
