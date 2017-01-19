@@ -8,6 +8,8 @@ import re
 import logging
 import json
 import traceback
+import dataset
+from sqlalchemy.util import safe_reraise
 
 import telepot.aio
 
@@ -92,6 +94,43 @@ class TelegramHandler(logging.Handler):
         coro = self.bot.sender.sendMessage(
             self.format(record), parse_mode=self.parse_mode)
         asyncio.ensure_future(coro)
+
+
+class BeardDBTable(object):
+    """Placeholder for database object for beards.
+
+    For use with async with.
+
+    """
+    def __init__(self, beard, table_name, **kwargs):
+        self.beard_name = type(beard).__name__
+        self.table_name = "{}_{}".format(
+            self.beard_name,
+            table_name
+        )
+        self.kwargs = kwargs
+
+    def __enter__(self):
+        self.db = dataset.connect(BeardChatHandler.db_url)
+        self.db.__enter__()
+        self.table = self.db.get_table(self.table_name, **self.kwargs)
+        logger.debug("BeardDBTable initalised with: self.table: {}, self.db: {}".format(
+            self.table, self.db))
+        return self
+
+    def __exit__(self, error_type, error_value, traceback):
+        self.db.__exit__(error_type, error_value, traceback)
+
+        del self.table
+        del self.db
+
+    def __getattr__(self, name):
+        """If the normal getattr fails, try getattr(self.table, name)."""
+        try:
+            return getattr(self.table, name)
+        except AttributeError:
+            raise AttributeError(
+                "Open table not found. Are you using BeardDBTable with with?")
 
 
 class Beard(type):
@@ -218,6 +257,9 @@ class BeardChatHandler(telepot.aio.helper.ChatHandler, metaclass=Beard):
         self._handler = TelegramHandler(self)
         self.logger.addHandler(self._handler)
 
+    def get_db_table(self, table_name, **kwargs):
+        return BeardDBTable(self, table_name, **kwargs)
+
     def on_close(self, e):
         """Removes per beard logger handler and calls telepot default on_close."""
         self.logger.removeHandler(self._handler)
@@ -262,9 +304,10 @@ class BeardChatHandler(telepot.aio.helper.ChatHandler, metaclass=Beard):
                 "Data does not belong to this bot!")
 
     @classmethod
-    def setup_beards(cls, key):
+    def setup_beards(cls, key, db_url):
         """Perform setup necessary for all beards."""
         cls.key = key
+        cls.db_url = db_url
 
     def register_command(self, pred_or_cmd, coro, hlp=None):
         """Registers an instance level command.

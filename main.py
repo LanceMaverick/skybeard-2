@@ -123,7 +123,7 @@ if __name__ == '__main__':
         level=parsed.loglevel)
 
     # Set up the master beard
-    BeardChatHandler.setup_beards(parsed.key)
+    BeardChatHandler.setup_beards(parsed.key, config.db_url)
 
     # If the user does not specially request --no-help, set up help command.
     if not parsed.no_help:
