@@ -36,6 +36,11 @@ async def hello_world(request):
     ))
 
 
+@app.route('/loadedBeards', methods=["GET"])
+async def loaded_beards(request):
+    return json([str(x) for x in Beard.beards])
+
+
 @key_blueprint.route('/relay/<method:[A-z]+>', methods=["POST", "GET"])
 async def relay_tg_request(request, method):
     """Acts as a proxy for telegram's sendMessage."""
