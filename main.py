@@ -14,7 +14,9 @@ from telepot.aio.delegate import (per_chat_id,
                                   include_callback_query_chat_id)
 
 from skybeard.beards import Beard, BeardChatHandler, SlashCommand
-from skybeard import server
+# Currently there is a bug in sanic which sets the global logger level so the
+# skybeard server MUST be imported after the command line arguments have been
+# dealt with
 from skybeard.help import create_help
 import config
 
@@ -67,7 +69,18 @@ def delegator_beard_gen(beards):
                 per_chat_id(), create_open, beard, timeout=beard._timeout)
 
 
+async def run(bot, server):
+    asyncio.ensure_future(bot.message_loop())
+    asyncio.ensure_future(server.start())
+    while True:
+        asyncio.wait(1)
+
+
 def main(config):
+    # Bug in sanic 0.1.7 means this import must happen after parsing CL args
+    # (see above)
+    from skybeard import server
+
     for beard_path in config.beard_paths:
         sys.path.insert(0, get_literal_path(beard_path))
 
@@ -104,9 +117,10 @@ def main(config):
     )
 
     loop = asyncio.get_event_loop()
-    # TODO DOES NOT WORK
+
     loop.create_task(bot.message_loop())
-    asyncio.ensure_future(server.start())
+    loop.create_task(server.start())
+
     print('Listening ...')
 
     loop.run_forever()
@@ -126,6 +140,7 @@ if __name__ == '__main__':
     logging.basicConfig(
         format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
         level=parsed.loglevel)
+    logger.debug("Debug activated!")
 
     # Set up the master beard
     # TODO consider making this not a parrt of the BeardChatHandler class now

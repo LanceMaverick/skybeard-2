@@ -7,12 +7,15 @@ https://en.wikipedia.org/wiki/Functional_programming.
 
 # for https://github.com/channelcat/sanic/issues/275
 import asyncio
+import logging
 import sanic
 from sanic.server import HttpProtocol
 import pyconfig
 
 from .app import app
 from .telegram import setup_telegram
+
+logger = logging.getLogger(__name__)
 
 
 def _start_server(the_app, *args, **kwargs):
@@ -65,7 +68,6 @@ async def start(debug=False):
     Returns the started process.
 
     """
-    import logging
     logger = logging.getLogger("async_sanic")
 
     port = pyconfig.get('sanic_port', 8000)
