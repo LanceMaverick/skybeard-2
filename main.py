@@ -13,11 +13,13 @@ from telepot.aio.delegate import (per_chat_id,
                                   pave_event_space,
                                   include_callback_query_chat_id)
 
-logger = logging.getLogger(__name__)
-
 from skybeard.beards import Beard, BeardChatHandler, SlashCommand
+from skybeard import server
 from skybeard.help import create_help
 import config
+
+logger = logging.getLogger(__name__)
+
 
 class DuplicateCommand(Exception):
     pass
@@ -102,7 +104,9 @@ def main(config):
     )
 
     loop = asyncio.get_event_loop()
+    # TODO DOES NOT WORK
     loop.create_task(bot.message_loop())
+    asyncio.ensure_future(server.start())
     print('Listening ...')
 
     loop.run_forever()
