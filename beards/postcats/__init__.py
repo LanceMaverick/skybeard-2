@@ -6,7 +6,7 @@ from urllib.request import urlopen
 import telepot
 import telepot.aio
 from skybeard.beards import BeardChatHandler
-from skybeard.predicate import regex_predicate
+from skybeard.predicates import regex_predicate
 
 class PostCats(BeardChatHandler):
     __userhelp__ = """
