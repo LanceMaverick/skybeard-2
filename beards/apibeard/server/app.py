@@ -5,10 +5,10 @@ from sanic import Sanic, Blueprint
 from sanic.response import json, text
 from sanic.exceptions import NotFound
 
-try:
-    from sanic_cors import CORS
-except ImportError:
-    assert False, "Missing dependency (sanic_cors). To install: pip install https://github.com/ashleysommer/sanic-cors/"
+# try:
+#     from sanic_cors import CORS
+# except ImportError:
+#     assert False, "Missing dependency (sanic_cors). To install: pip install https://github.com/ashleysommer/sanic-cors/"
 
 from skybeard.beards import Beard
 
@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 app = Sanic(__name__)
 
 # CORS: https://en.wikipedia.org/wiki/Cross-origin_resource_sharing
-CORS(app)
+# CORS(app)
 key_blueprint = Blueprint('key', url_prefix='/key[A-z]+')
 
 

@@ -66,24 +66,24 @@ def start(debug=False):
     Returns the started process.
 
     """
-    # global proc
-    # proc = Process(
-    #     target=_start_server,
-    #     args=(
-    #         app,
-    #     ),
-    #     kwargs=dict(
-    #         debug=debug,
-    #         after_start=setup_telegram
-    #     )
-    # )
-    # proc.start()
-    # return proc
-    import logging
-    logger = logging.getLogger("async_sanic")
+    global proc
+    proc = Process(
+        target=_start_server,
+        args=(
+            app,
+        ),
+        kwargs=dict(
+            debug=debug,
+            after_start=setup_telegram
+        )
+    )
+    proc.start()
+    return proc
+    # import logging
+    # logger = logging.getLogger("async_sanic")
     
-    coro = run_web_app(app, 8000, loop=asyncio.get_event_loop(), logger=logger)
-    return asyncio.ensure_future(coro)
+    # coro = run_web_app(app, 8000, loop=asyncio.get_event_loop(), logger=logger)
+    # return asyncio.ensure_future(coro)
 
 
 def stop():

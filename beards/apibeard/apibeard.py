@@ -3,7 +3,8 @@ import logging
 import functools
 import re
 
-from skybeard.beards import BeardChatHandler, regex_predicate
+from skybeard.beards import BeardChatHandler
+from skybeard.predicates import regex_predicate
 from skybeard.decorators import onerror, debugonly
 
 from . import server
