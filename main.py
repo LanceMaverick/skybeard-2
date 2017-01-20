@@ -14,7 +14,6 @@ from telepot.aio.delegate import (per_chat_id,
                                   include_callback_query_chat_id)
 
 from skybeard.beards import Beard, BeardChatHandler, SlashCommand
-from skybeard import server
 from skybeard.help import create_help
 import config
 
@@ -68,6 +67,10 @@ def delegator_beard_gen(beards):
 
 
 def main(config):
+
+    if pyconfig.get('start_server'):
+        from skybeard import server
+
     for beard_path in config.beard_paths:
         sys.path.insert(0, get_literal_path(beard_path))
 
@@ -103,10 +106,11 @@ def main(config):
         list(delegator_beard_gen(Beard.beards))
     )
 
+    if pyconfig.get('start_server'):
+        asyncio.ensure_future(server.start())
+
     loop = asyncio.get_event_loop()
-    # TODO DOES NOT WORK
     loop.create_task(bot.message_loop())
-    asyncio.ensure_future(server.start())
     print('Listening ...')
 
     loop.run_forever()
@@ -120,8 +124,11 @@ if __name__ == '__main__':
     parser.add_argument('--no-help', action='store_true')
     parser.add_argument('-d', '--debug', action='store_const', dest="loglevel",
                         const=logging.DEBUG, default=logging.INFO)
+    parser.add_argument('--start-server', action='store_const', const=True, default=False)
 
     parsed = parser.parse_args()
+
+    pyconfig.set('start_server', parsed.start_server)
 
     logging.basicConfig(
         format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
