@@ -24,7 +24,7 @@ class NationalRailDepartures(BeardChatHandler):
      """
 
     __commands__ = [
-        ("teleplot", "makePlot", "Make plot from two arrays"),
+        ("teleplot", "makePlot", "Make plot from two arrays.\n`\\teleplot [x1,x2,..,xN] [y1,y2,..,yN]`\n`\\teleplot (x**2+2*x+3)`\nAdditional options: `-xaxis \"label\"`, `-yaxis \"label\"`\n Currently only index, add, subtract, divide, multiply available for equation notation."),
     ]
 
     @onerror
