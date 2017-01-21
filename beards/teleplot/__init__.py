@@ -28,13 +28,13 @@ class NationalRailDepartures(BeardChatHandler):
     ]
 
     @onerror
-
     async def makePlot(self, msg):
       in_string = msg['text'].replace('/teleplot ', '')
       arrays = re.findall(r'(\[[\-\d\,\.\s]+\])+', in_string)
         
       options = re.findall(r'\-(\w+)\s\"([\w\d\s\.\-\'\)\(\,]+)', in_string)
       
+      print("options: ")
       print(options)
       if len(arrays) < 1:
         eqn = re.findall(r'(\([\w\(\)\d\s\-\+\*\/]+\))', in_string)
@@ -47,11 +47,11 @@ class NationalRailDepartures(BeardChatHandler):
          Y.append(j)
 
       else:
-        print(arrays)
-        assert len(arrays) == 1 or len(arrays) > 2, "Error: Insufficient Number of Arrays Given."
+        print("Arrays: ")
+        assert len(arrays) == 2, "Error: Insufficient Number of Arrays Given."
         X = re.findall(r'([\d\.\-]+)', arrays[0])
         Y = re.findall(r'([\d\.\-]+)', arrays[1])
-       
+        print(X,Y) 
       content_type, chat_type, chat_id = telepot.glance(msg)
     
       plotter = TelePlot.TelePlot(X, Y)
