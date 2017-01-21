@@ -13,8 +13,11 @@ def is_module(path):
         return True
     elif os.path.exists(os.path.join(path, "__init__.py")):
         return True
-    else:
-        return False
+    try:
+        if any(os.path.splitext(x)[1] == ".py" for x in os.listdir(path)):
+            return True
+    except FileNotFoundError:
+        pass
 
 
 def get_literal_path(path_or_autoloader):
