@@ -6,7 +6,3 @@ pkg-resources==0.0.0
 telepot==10.4
 urllib3==1.19.1
 yarl==0.8.1
-bs4==0.0.1
-sympy==0.7.6.1
-numpy==1.11.0
-matplotlib==1.5.1
