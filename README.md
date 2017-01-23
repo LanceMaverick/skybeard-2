@@ -67,19 +67,19 @@ class Echo(BeardChatHandler):
         ('hello',          'say_hello', 'Greets the user'),
     ]
 
-    # __init__ is implicit
-    #is called when a text message is recieved
     async def echo(self, msg):
         await self.sender.sendMessage(msg['text'])
 
-    #is called when "/hello" is sent
     async def say_hello(self, msg):
         name = msg['from']['first_name']
         await self.sender.sendMessage('Hello {}!'.format(name))
 
 ```
-
 This plug-in will greet the user when they send "/hello" to Skybeard  and will also echo back any text the user sends.
+
+`__userhelp__` is a brief string used to generate the bot's help message.
+`__commands__` is a list of tuples. the 0th element of each tuple gives a condition, such as a filter, or a command string (without the slash). The 1st element is the function that is called when the condition is met, and the 2nd element is the help text which, along with `__userhelp__` is used to generate the help message (such as when the user types "/help").
+
 
 See the examples folder for examples of callback functionality, timers, and regex predication. 
 
