@@ -64,7 +64,7 @@ class Echo(BeardChatHandler):
     __commands__ = [
         #(condition/command, callback coro, help text)
         (Filters.text, 'echo', 'Echos everything said by anyone.'),
-        ('hello',          'say_hello', 'Greets the user'),
+        ('hello', 'say_hello', 'Greets the user'),
     ]
 
     async def echo(self, msg):
