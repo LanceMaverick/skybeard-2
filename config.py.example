@@ -19,6 +19,7 @@ beards = [
     "pdfpreviewbeard", # From git (above)
 ]
 
+db_url = "sqlite:///skybeard-2.db"
 
 __doc__ = """This is sample documentation. Please update in your config.py!
 

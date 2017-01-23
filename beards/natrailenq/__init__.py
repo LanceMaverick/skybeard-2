@@ -2,7 +2,7 @@
 # Adapted from work by LanceMaverick
 import telepot
 import telepot.aio
-from skybeard.beards import BeardChatHandler, regex_predicate
+from skybeard.beards import BeardChatHandler
 from skybeard.decorators import onerror
 from skybeard.utils import get_args
 from . import NatRail

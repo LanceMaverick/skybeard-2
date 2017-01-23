@@ -5,6 +5,7 @@ import sys
 import logging
 import importlib
 import argparse
+import pyconfig
 
 import telepot
 from telepot.aio.delegate import (per_chat_id,
@@ -12,11 +13,12 @@ from telepot.aio.delegate import (per_chat_id,
                                   pave_event_space,
                                   include_callback_query_chat_id)
 
-logger = logging.getLogger(__name__)
-
 from skybeard.beards import Beard, BeardChatHandler, SlashCommand
 from skybeard.help import create_help
 import config
+
+logger = logging.getLogger(__name__)
+
 
 class DuplicateCommand(Exception):
     pass
@@ -65,6 +67,10 @@ def delegator_beard_gen(beards):
 
 
 def main(config):
+
+    if pyconfig.get('start_server'):
+        from skybeard import server
+
     for beard_path in config.beard_paths:
         sys.path.insert(0, get_literal_path(beard_path))
 
@@ -96,9 +102,12 @@ def main(config):
                     all_cmds.add(cmd)
 
     bot = telepot.aio.DelegatorBot(
-        BeardChatHandler.key,
+        pyconfig.get('key'),
         list(delegator_beard_gen(Beard.beards))
     )
+
+    if pyconfig.get('start_server'):
+        asyncio.ensure_future(server.start())
 
     loop = asyncio.get_event_loop()
     loop.create_task(bot.message_loop())
@@ -115,15 +124,20 @@ if __name__ == '__main__':
     parser.add_argument('--no-help', action='store_true')
     parser.add_argument('-d', '--debug', action='store_const', dest="loglevel",
                         const=logging.DEBUG, default=logging.INFO)
+    parser.add_argument('--start-server', action='store_const', const=True, default=False)
 
     parsed = parser.parse_args()
+
+    pyconfig.set('start_server', parsed.start_server)
 
     logging.basicConfig(
         format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
         level=parsed.loglevel)
 
     # Set up the master beard
-    BeardChatHandler.setup_beards(parsed.key)
+    # TODO consider making this not a parrt of the BeardChatHandler class now
+    # that we use pyconfig.
+    BeardChatHandler.setup_beards(parsed.key, config.db_url)
 
     # If the user does not specially request --no-help, set up help command.
     if not parsed.no_help:

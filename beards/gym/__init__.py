@@ -3,7 +3,8 @@ from urllib.request import urlopen
 import telepot
 import telepot.aio
 # from telegram.ext import CommandHandler, MessageHandler, Filters
-from skybeard.beards import BeardChatHandler, Filters, regex_predicate, command_predicate
+from skybeard.beards import BeardChatHandler
+from skybeard.predicates import Filters, regex_predicate, command_predicate
 from . import gym
 
 class Gym(BeardChatHandler):
