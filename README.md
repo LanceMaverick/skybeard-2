@@ -53,32 +53,33 @@ The folder can also contain any other python modules and files that are needed f
 Creating a new beard requires knowledge of the **telepot** telegram API, see: http://telepot.readthedocs.io/en/latest/
 
 An example async plug-in that would echo the user's message would look like this:
+
+
+
 ```Python
-import telepot
-import telepot.aio
-from skybeard.beards import BeardChatHandler
+class Echo(BeardChatHandler):
 
+    __userhelp__ = """A simple echo beard. Echos whatever it is sent."""
+ 
+    __commands__ = [
+        #(condition/command, callback coro, help text)
+        (Filters.text, 'echo', 'Echos everything said by anyone.'),
+        ('hello',          'say_hello', 'Greets the user'),
+    ]
 
-class EchoPlugin(BeardChatHandler):
-    
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        #register command "/hello" to dispatch to self.say_hello()
-        self.register_command("hello", self.say_hello)
-    
+    # __init__ is implicit
+    #is called when a text message is recieved
+    async def echo(self, msg):
+        await self.sender.sendMessage(msg['text'])
+
     #is called when "/hello" is sent
     async def say_hello(self, msg):
         name = msg['from']['first_name']
         await self.sender.sendMessage('Hello {}!'.format(name))
-    
-    #is called every time a message is sent
-    async def on_chat_message(self, msg):
-        text = msg['text']
-        await self.sender.sendMessage(text)
-        await super().on_chat_message(msg)
+
 ```
 
-This plug-in will greet the user when they send "/hello" to Skybeard by using the `register_command()` method of the `BeardChatHandler` and will also echo back any text the user sends by overwriting the `on_chat_message()` method (and calling the base method with `super()` afterwards).
+This plug-in will greet the user when they send "/hello" to Skybeard  and will also echo back any text the user sends.
 
 See the examples folder for examples of callback functionality, timers, and regex predication. 
 
