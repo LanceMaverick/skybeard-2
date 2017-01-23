@@ -1,6 +1,32 @@
 import matplotlib.pyplot as plt
 from uuid import uuid4
+import mpmath as mt
+import re
 
+      
+trig_dict = {'sin' : mt.sin, 'cos' : mt.cos, 'tan' : mt.tan,
+             'asin' : mt.asin, 'acos' : mt.acos, 'atan' : mt.tan,
+             'cosec' : mt.csc, 'sec' : mt.sec, 'cot' : mt.cot}
+hyp_dict = {'sinh' : mt.sinh, 'cosh' : mt.cosh, 'tanh' : mt.tan,
+            'asinh' : mt.asinh, 'acosh' : mt.acosh, 'atanh' : mt.tanh,
+            'cosech' : mt.csch, 'sech' : mt.sech, 'coth' : mt.coth}
+
+logInd_dict = {'log' : mt.log, 'exp' : mt.exp, 'log10' : mt.log10}
+
+eqn_parser = {}
+eqn_parser.update(trig_dict)
+eqn_parser.update(hyp_dict)
+eqn_parser.update(logInd_dict)
+                  
+
+def checkandParse(string):
+  opts2perform = {}
+  for key in eqn_parser:
+     regex_str = '({})\(([xy\+\-\/\*\.\d]+)\)'.format(key)
+     res = re.findall(regex_str, string)
+     if len(res) > 0:
+       opts2perform[key] = res[0]
+  return opts2perform
 
 class TelePlot:
    def __init__(self, x, y, plot_type='scatter', style='default'):

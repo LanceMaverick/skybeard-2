@@ -31,20 +31,35 @@ class NationalRailDepartures(BeardChatHandler):
     async def makePlot(self, msg):
       in_string = msg['text'].replace('/teleplot ', '')
       arrays = re.findall(r'(\[[\-\d\,\.\s]+\])+', in_string)
-        
+      eq_parser = TelePlot.eqn_parser 
       options = re.findall(r'\-(\w+)\s\"([\w\d\s\.\-\'\)\(\,]+)', in_string)
       
       print("options: ")
       print(options)
       if len(arrays) < 1:
-        eqn = re.findall(r'(\([\w\(\)\d\s\-\+\*\/]+\))', in_string)
-        eqn = eqn[0]
-        X = linspace(-10, 10, 100)
         Y = []
-        for i in X:
-         equation = eqn.replace('x','{}'.format(i)).replace('(','').replace(')','')
-         j = sp.simplify(equation) 
-         Y.append(j)
+        X = linspace(-10, 10, 100)
+        opts2perform = TelePlot.checkandParse(in_string)
+        print(opts2perform)
+        if len(opts2perform) == 0:
+         eqn = re.findall(r'(\([\w\(\)\d\s\-\+\*\/]+\))', in_string)
+         eqn = eqn[0]
+         for i in X:
+          equation = eqn.replace('x','{}'.format(i)).replace('(','').replace(')','')
+          j = sp.simplify(equation) 
+          Y.append(j)
+        else:
+         strings_for_y = []
+         for i in X:
+          final_string = in_string[1:-1]
+          for key in opts2perform:
+            inside = sp.simplify(opts2perform[key][1].replace('x','{}'.format(i)))
+            operation = eq_parser[key](inside)
+            final_string = final_string.replace('{}({})'.format(opts2perform[key][0], opts2perform[key][1]), '{}'.format(operation))
+          strings_for_y.append(final_string)
+         for y in strings_for_y:
+            j = sp.simplify(y)
+            Y.append(j)
 
       else:
         print("Arrays: ")
@@ -52,7 +67,6 @@ class NationalRailDepartures(BeardChatHandler):
         X = re.findall(r'([\d\.\-]+)', arrays[0])
         Y = re.findall(r'([\d\.\-]+)', arrays[1])
         print(X,Y) 
-      content_type, chat_type, chat_id = telepot.glance(msg)
     
       plotter = TelePlot.TelePlot(X, Y)
       file_name = plotter.parseOpts(options)
