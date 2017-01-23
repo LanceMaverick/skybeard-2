@@ -3,7 +3,8 @@ import logging
 import re
 import telepot
 import telepot.aio
-from skybeard.beards import BeardChatHandler, Filters
+from skybeard.beards import BeardChatHandler
+from skybeard.predicates import Filters
 from . import sentiment as sent
 from . import config
 
