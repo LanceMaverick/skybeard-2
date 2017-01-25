@@ -57,7 +57,10 @@ class TelePlot:
           if 'range' in opts_tuple[0]:
             numbers = opts_tuple[1].split(',')
             range_ = numbers
-      self.x = np.linspace(int(range_[0]), int(range_[1]), 100)
+            n = 100
+            if len(range_) > 2:
+             n = (float(range_[1])-float(range_[0]))/int(range_[2])
+      self.x = np.linspace(float(range_[0]), float(range_[1]), n)
       
    def savePlot(self):
       plt.xlabel(self.xlabel)
