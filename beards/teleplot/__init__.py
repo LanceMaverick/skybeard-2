@@ -18,7 +18,7 @@ def format_msg(msg):
     return ' '.join(get_args(text)).title()
 
 
-class NationalRailDepartures(BeardChatHandler):
+class TelePlotSB(BeardChatHandler):
     __userhelp__ = """
     The following commands are available:
      """
@@ -31,20 +31,39 @@ class NationalRailDepartures(BeardChatHandler):
     async def makePlot(self, msg):
       in_string = msg['text'].replace('/teleplot ', '')
       arrays = re.findall(r'(\[[\-\d\,\.\s]+\])+', in_string)
-        
-      options = re.findall(r'\-(\w+)\s\"([\w\d\s\.\-\'\)\(\,]+)', in_string)
+      eq_parser = TelePlot.eqn_parser 
+      options = re.findall(r'\-(\w+)\s\"([\w\d\/\s\.\-\'\)\(\,]+)', in_string)
       
       print("options: ")
       print(options)
+      plotter = TelePlot.TelePlot()
+      plotter.parseOpts(options)
+
       if len(arrays) < 1:
-        eqn = re.findall(r'(\([\w\(\)\d\s\-\+\*\/]+\))', in_string)
-        eqn = eqn[0]
-        X = linspace(-10, 10, 100)
-        Y = []
-        for i in X:
-         equation = eqn.replace('x','{}'.format(i)).replace('(','').replace(')','')
-         j = sp.simplify(equation) 
-         Y.append(j)
+        opts2perform = TelePlot.checkandParse(in_string)
+        if len(opts2perform) == 0:
+         eqn = re.findall(r'(\([\w\(\)\d\s\-\+\*\/]+\))', in_string)
+         eqn = eqn[0]
+         for i in plotter.x:
+          equation = eqn.replace('x','{}'.format(i)).replace('(','').replace(')','')
+          print(equation)
+          j = sp.simplify(equation) 
+          plotter.y.append(j)
+        else:
+         strings_for_y = []
+         for i in plotter.x:
+          res = re.findall(r'\(([\w\*\d\+\/\-\.\,]+)\)',  in_string)[0]
+          final_string = res[0]
+          for key in opts2perform:
+            inside = opts2perform[key][1].replace('x','{}'.format(i))
+            inside = sp.simplify(inside)
+            operation = eq_parser[key](inside)
+            final_string = final_string.replace('x'.format(opts2perform[key][0], opts2perform[key][1]), '{}'.format(operation))
+            print(final_string)
+          strings_for_y.append(final_string)
+         for y in strings_for_y:
+            j = sp.simplify(y)
+            plotter.y.append(j)
 
       else:
         print("Arrays: ")
@@ -52,9 +71,6 @@ class NationalRailDepartures(BeardChatHandler):
         X = re.findall(r'([\d\.\-]+)', arrays[0])
         Y = re.findall(r'([\d\.\-]+)', arrays[1])
         print(X,Y) 
-      content_type, chat_type, chat_id = telepot.glance(msg)
-    
-      plotter = TelePlot.TelePlot(X, Y)
-      file_name = plotter.parseOpts(options)
+      file_name = plotter.savePlot()    
       await self.sender.sendPhoto(('temp.png', open('{}'.format(file_name), 'rb')))
       os.remove('{}'.format(file_name))
