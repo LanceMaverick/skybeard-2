@@ -50,7 +50,7 @@ class RailScraper:
          return (out_str, out_list)         
     
       def getStatus(self):
-       webpage = requests.get('http://www.nationalrail.co.uk/service_disruptions/indicator.aspx', timeout=0.0001)
+       webpage = requests.get('http://www.nationalrail.co.uk/service_disruptions/indicator.aspx', timeout=10)
        webpage.raise_for_status()
        toc = re.findall(r'class\=\"first\">([\w\s\(\d\)\'\,]+)', webpage.content.decode('utf-8'))[1:]
        status = re.findall(r'(Major[\w\s]+|Good[\w\s]+|Minor[\w\s]+)+', webpage.content.decode('utf-8'))[1:]
