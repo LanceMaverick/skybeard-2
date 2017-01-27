@@ -78,34 +78,29 @@ like this:
 
 .. code:: python
 
-    import telepot
-    import telepot.aio
-    from skybeard.beards import BeardChatHandler
+    class Echo(BeardChatHandler):
 
+        __userhelp__ = """A simple echo beard. Echos whatever it is sent."""
+ 
+        __commands__ = [
+            #(condition/command, callback coro, help text)
+            (Filters.text, 'echo', 'Echos everything said by anyone.'),
+            ('hello', 'say_hello', 'Greets the user'),
+        ]
 
-    class EchoPlugin(BeardChatHandler):
-        
-        def __init__(self, *args, **kwargs):
-            super().__init__(*args, **kwargs)
-            #register command "/hello" to dispatch to self.say_hello()
-            self.register_command("hello", self.say_hello)
-        
-        #is called when "/hello" is sent
+        async def echo(self, msg):
+            await self.sender.sendMessage(msg['text'])
+
         async def say_hello(self, msg):
             name = msg['from']['first_name']
             await self.sender.sendMessage('Hello {}!'.format(name))
-        
-        #is called every time a message is sent
-        async def on_chat_message(self, msg):
-            text = msg['text']
-            await self.sender.sendMessage(text)
-            await super().on_chat_message(msg)
 
-This plug-in will greet the user when they send "/hello" to Skybeard by
-using the ``register_command()`` method of the ``BeardChatHandler`` and
-will also echo back any text the user sends by overwriting the
-``on_chat_message()`` method (and calling the base method with
-``super()`` afterwards).
+
+This plug-in will greet the user when they send "/hello" to Skybeard  and will also echo back any text the user sends.
+
+``__userhelp__`` is a brief string used to generate the bot's help message.
+``__commands__`` is a list of tuples. the 0th element of each tuple gives a condition, such as a filter, or a command string (without the slash). The 1st element is the function that is called when the condition is met, and the 2nd element is the help text which, along with ``__userhelp__`` is used to generate the help message (such as when the user types "/help").
+
 
 See the examples folder for examples of callback functionality, timers,
 and regex predication.
