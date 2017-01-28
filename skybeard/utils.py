@@ -1,4 +1,6 @@
 import os
+import importlib
+import sys
 import shlex
 import logging
 
@@ -11,13 +13,27 @@ def is_module(path):
     fname, ext = os.path.splitext(path)
     if ext == ".py":
         return True
-    elif os.path.exists(os.path.join(path, "__init__.py")):
-        return True
     try:
+        # Python 3 allows modules not to have an __init__.py
         if any(os.path.splitext(x)[1] == ".py" for x in os.listdir(path)):
             return True
     except FileNotFoundError:
         pass
+
+
+def contains_setup_beard_py(path):
+    """Checks if path contains setup_beard.py."""
+
+    return os.path.isfile(os.path.join(path, "setup_beard.py"))
+
+
+def setup_beard(beard_module):
+    """Sets up a beard for use.
+
+    Note: at the moment this function does nothing!
+
+    """
+    logger.warning("This function (setup_beard) currently does nothing!")
 
 
 def get_literal_path(path_or_autoloader):
