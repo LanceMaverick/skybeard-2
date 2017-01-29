@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 import os
 import asyncio
-import sys
 import logging
 import itertools
 import importlib
@@ -145,11 +144,15 @@ if __name__ == '__main__':
     parser.add_argument('--no-help', action='store_true')
     parser.add_argument('-d', '--debug', action='store_const', dest="loglevel",
                         const=logging.DEBUG, default=logging.INFO)
-    parser.add_argument('--start-server', action='store_const', const=True, default=False)
+    parser.add_argument('--start-server', action='store_const', const=True,
+                        default=False)
+    parser.add_argument('--no-auto-pip', action='store_const', const=True,
+                        default=False)
 
     parsed = parser.parse_args()
 
     pyconfig.set('start_server', parsed.start_server)
+    pyconfig.set('no_auto_pip', parsed.no_auto_pip)
 
     logging.basicConfig(
         format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',

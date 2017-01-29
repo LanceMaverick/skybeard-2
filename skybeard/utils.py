@@ -6,6 +6,8 @@ import shlex
 import logging
 import pip
 
+import pyconfig
+
 logger = logging.getLogger(__name__)
 
 
@@ -54,13 +56,17 @@ def setup_beard(beard_module_name,
     logger.debug("This function was called from the file: " +
                  callers_frame.f_code.co_filename)
     base_path = os.path.dirname(callers_frame.f_code.co_filename)
+
     # Install requirements
     requirements_file = os.path.join(base_path, beard_requirements_file)
-    if os.path.isfile(requirements_file):
+    if not pyconfig.get('no_auto_pip') and os.path.isfile(requirements_file):
         pip.main([
             'install',
             '-r',
             requirements_file])
+        # Invalidate import path cache, since it's probably changed if new
+        # requirements have been installed
+        importlib.invalidate_caches()
 
     # Import beard
     beard_python_path = os.path.join(base_path, beard_python_path)
