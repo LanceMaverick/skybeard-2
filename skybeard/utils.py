@@ -4,6 +4,7 @@ import sys
 import inspect
 import shlex
 import logging
+import pip
 
 logger = logging.getLogger(__name__)
 
@@ -40,7 +41,9 @@ class PythonPathContext:
         sys.path.pop(0)
 
 
-def setup_beard(beard_module_name, beard_python_path="python"):
+def setup_beard(beard_module_name,
+                beard_python_path="python",
+                beard_requirements_file="requirements.txt"):
     """Sets up a beard for use.
 
     Note: beard_python_path must be a path relative to the file setup_beard is
@@ -51,6 +54,15 @@ def setup_beard(beard_module_name, beard_python_path="python"):
     logger.debug("This function was called from the file: " +
                  callers_frame.f_code.co_filename)
     base_path = os.path.dirname(callers_frame.f_code.co_filename)
+    # Install requirements
+    requirements_file = os.path.join(base_path, beard_requirements_file)
+    if os.path.isfile(requirements_file):
+        pip.main([
+            'install',
+            '-r',
+            requirements_file])
+
+    # Import beard
     beard_python_path = os.path.join(base_path, beard_python_path)
     with PythonPathContext(beard_python_path):
         # Attempt to import the module named specified in the call to
