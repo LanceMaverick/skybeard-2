@@ -60,10 +60,16 @@ def setup_beard(beard_module_name,
     # Install requirements
     requirements_file = os.path.join(base_path, beard_requirements_file)
     if not pyconfig.get('no_auto_pip') and os.path.isfile(requirements_file):
-        pip.main([
+        pip_args = [
             'install',
             '-r',
-            requirements_file])
+            requirements_file
+        ]
+
+        if pyconfig.get('auto_pip_upgrade'):
+            pip_args.append('--upgrade')
+
+        pip.main(pip_args)
         # Invalidate import path cache, since it's probably changed if new
         # requirements have been installed
         importlib.invalidate_caches()

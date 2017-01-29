@@ -148,11 +148,14 @@ if __name__ == '__main__':
                         default=False)
     parser.add_argument('--no-auto-pip', action='store_const', const=True,
                         default=False)
+    parser.add_argument('--auto-pip-upgrade', action='store_const', const=True,
+                        default=False)
 
     parsed = parser.parse_args()
 
     pyconfig.set('start_server', parsed.start_server)
     pyconfig.set('no_auto_pip', parsed.no_auto_pip)
+    pyconfig.set('auto_pip_upgrade', parsed.auto_pip_upgrade)
 
     logging.basicConfig(
         format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
