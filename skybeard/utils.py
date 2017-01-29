@@ -1,6 +1,7 @@
 import os
 import importlib
 import sys
+import inspect
 import shlex
 import logging
 
@@ -27,13 +28,39 @@ def contains_setup_beard_py(path):
     return os.path.isfile(os.path.join(path, "setup_beard.py"))
 
 
-def setup_beard(beard_module):
+class PythonPathContext:
+    def __init__(self, path_to_add):
+        self.path_to_add = path_to_add
+
+    def __enter__(self):
+        sys.path.insert(0, self.path_to_add)
+
+    def __exit__(self, type, value, tb):
+        assert sys.path[0] == self.path_to_add
+        sys.path.pop(0)
+
+
+def setup_beard(beard_module_name, beard_python_path="python"):
     """Sets up a beard for use.
 
-    Note: at the moment this function does nothing!
+    Note: beard_python_path must be a path relative to the file setup_beard is
+    called from.
 
     """
-    logger.warning("This function (setup_beard) currently does nothing!")
+    callers_frame = inspect.currentframe().f_back
+    logger.debug("This function was called from the file: " +
+                 callers_frame.f_code.co_filename)
+    base_path = os.path.dirname(callers_frame.f_code.co_filename)
+    beard_python_path = os.path.join(base_path, beard_python_path)
+    with PythonPathContext(beard_python_path):
+        # Attempt to import the module named specified in the call to
+        # setup_beard.
+        #
+        # Often, a module with the same name has already be imported, so the
+        # module is reloaded to ensure that if a module is found in
+        # beard_python_path called beard_module_name, *that* module is loaded.
+        mod = importlib.import_module(beard_module_name)
+        importlib.reload(mod)
 
 
 def get_literal_path(path_or_autoloader):

@@ -20,7 +20,8 @@ from skybeard.utils import (is_module,
                             contains_setup_beard_py,
                             get_literal_path,
                             get_literal_beard_paths,
-                            all_possible_beards)
+                            all_possible_beards,
+                            PythonPathContext)
 import config
 
 logger = logging.getLogger(__name__)
@@ -86,20 +87,27 @@ def main(config):
     for beard_path, possible_beard in itertools.product(
             config.beard_paths, beards_to_load):
 
+        with PythonPathContext(get_literal_path(beard_path)):
+            try:
+                importlib.import_module(possible_beard+".setup_beard")
+            except ImportError as ex:
+                # If the module named by possible_beard does not exist, pass.
+                #
+                # If the module named by possible_beard does exist, but
+                # .setup_beard does not exist, the module is imported anyway.
+                pass
+
+    # Check if all expected beards were imported.
+    #
+    # NOTE: This does not check for beards, only that the modules specified in
+    # config.beards have been imported.
+    for beard_name in beards_to_load:
         try:
-            sys.path.insert(0, get_literal_path(beard_path))
-            importlib.import_module(possible_beard+".setup_beard")
-        except ImportError as ex:
-            # If the module does not exist, pass. If the module exists, but
-            # setup_beard does not exist, the module is imported anyway
-            #
-            # TODO Say something if a beard is specified in config.beard, but
-            # never imported
-            pass
-        finally:
-            sys.path.pop(0)
-
-
+            importlib.import_module(beard_name)
+        except ImportError as e:
+            logging.error("{} was not imported! Check your config.".format(
+                beard_name))
+            raise e
 
     # Check if there are any duplicate commands
     all_cmds = set()
