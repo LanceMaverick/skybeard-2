@@ -1,10 +1,12 @@
 import os
+import shutil
 import importlib
 import sys
 import inspect
 import shlex
 import logging
 import pip
+import yaml
 
 import pyconfig
 
@@ -43,9 +45,28 @@ class PythonPathContext:
         sys.path.pop(0)
 
 
+def get_beard_config(config_file="../../config.yml"):
+    """Attempts to load a yaml file in the beard directory.
+
+    NOTE: The file location should be relative from where this function is
+    called.
+
+    """
+    callers_frame = inspect.currentframe().f_back
+    logger.debug("This function was called from the file: " +
+                 callers_frame.f_code.co_filename)
+    base_path = os.path.dirname(callers_frame.f_code.co_filename)
+    config = yaml.safe_load(open(os.path.join(base_path, config_file)))
+    return config
+
+
 def setup_beard(beard_module_name,
+                *,
                 beard_python_path="python",
-                beard_requirements_file="requirements.txt"):
+                beard_requirements_file="requirements.txt",
+                config_file="config.yml",
+                example_config_file="config.yml.example",
+                copy_config=False):
     """Sets up a beard for use.
 
     Note: beard_python_path must be a path relative to the file setup_beard is
@@ -56,6 +77,14 @@ def setup_beard(beard_module_name,
     logger.debug("This function was called from the file: " +
                  callers_frame.f_code.co_filename)
     base_path = os.path.dirname(callers_frame.f_code.co_filename)
+
+    if copy_config:
+        if not os.path.isfile(os.path.join(base_path, config_file)):
+            logger.info("Attempting to copy config file.")
+            shutil.copyfile(
+                os.path.join(base_path, example_config_file),
+                os.path.join(base_path, config_file),
+            )
 
     # Install requirements
     requirements_file = os.path.join(base_path, beard_requirements_file)
