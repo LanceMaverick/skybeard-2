@@ -1,6 +1,14 @@
 import os
+import shutil
+import importlib
+import sys
+import inspect
 import shlex
 import logging
+import pip
+import yaml
+
+import pyconfig
 
 logger = logging.getLogger(__name__)
 
@@ -11,13 +19,101 @@ def is_module(path):
     fname, ext = os.path.splitext(path)
     if ext == ".py":
         return True
-    elif os.path.exists(os.path.join(path, "__init__.py")):
-        return True
     try:
+        # Python 3 allows modules not to have an __init__.py
         if any(os.path.splitext(x)[1] == ".py" for x in os.listdir(path)):
             return True
     except FileNotFoundError:
         pass
+
+
+def contains_setup_beard_py(path):
+    """Checks if path contains setup_beard.py."""
+
+    return os.path.isfile(os.path.join(path, "setup_beard.py"))
+
+
+class PythonPathContext:
+    def __init__(self, path_to_add):
+        self.path_to_add = path_to_add
+
+    def __enter__(self):
+        sys.path.insert(0, self.path_to_add)
+
+    def __exit__(self, type, value, tb):
+        assert sys.path[0] == self.path_to_add
+        sys.path.pop(0)
+
+
+def get_beard_config(config_file="../../config.yml"):
+    """Attempts to load a yaml file in the beard directory.
+
+    NOTE: The file location should be relative from where this function is
+    called.
+
+    """
+    callers_frame = inspect.currentframe().f_back
+    logger.debug("This function was called from the file: " +
+                 callers_frame.f_code.co_filename)
+    base_path = os.path.dirname(callers_frame.f_code.co_filename)
+    config = yaml.safe_load(open(os.path.join(base_path, config_file)))
+    return config
+
+
+def setup_beard(beard_module_name,
+                *,
+                beard_python_path="python",
+                beard_requirements_file="requirements.txt",
+                config_file="config.yml",
+                example_config_file="config.yml.example",
+                copy_config=False):
+    """Sets up a beard for use.
+
+    Note: beard_python_path must be a path relative to the file setup_beard is
+    called from.
+
+    """
+    callers_frame = inspect.currentframe().f_back
+    logger.debug("This function was called from the file: " +
+                 callers_frame.f_code.co_filename)
+    base_path = os.path.dirname(callers_frame.f_code.co_filename)
+
+    if copy_config:
+        if not os.path.isfile(os.path.join(base_path, config_file)):
+            logger.info("Attempting to copy config file.")
+            shutil.copyfile(
+                os.path.join(base_path, example_config_file),
+                os.path.join(base_path, config_file),
+            )
+
+    # Install requirements
+    requirements_file = os.path.join(base_path, beard_requirements_file)
+    if not pyconfig.get('no_auto_pip') and os.path.isfile(requirements_file):
+        pip_args = [
+            'install',
+            '-r',
+            requirements_file
+        ]
+
+        if pyconfig.get('auto_pip_upgrade'):
+            pip_args.append('--upgrade')
+
+        pip.main(pip_args)
+        # Invalidate import path cache, since it's probably changed if new
+        # requirements have been installed
+        importlib.invalidate_caches()
+
+    # Import beard
+    beard_python_path = os.path.join(base_path, beard_python_path)
+    with PythonPathContext(beard_python_path):
+        # Attempt to import the module named specified in the call to
+        # setup_beard.
+        #
+        # Often, a module with the same name has already be imported, so the
+        # module is reloaded to ensure that if a module is found in
+        # beard_python_path called beard_module_name, *that* module is loaded.
+        mod = importlib.import_module(beard_module_name)
+        importlib.reload(mod)
 
 
 def get_literal_path(path_or_autoloader):

@@ -1,5 +1,5 @@
-import telepot
-from skybeard.beards import BeardChatHandler, Filters
+from skybeard.beards import BeardChatHandler
+from skybeard.predicates import Filters
 
 
 class Echo(BeardChatHandler):
