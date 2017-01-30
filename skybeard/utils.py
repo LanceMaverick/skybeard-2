@@ -23,7 +23,8 @@ def is_module(path):
         # Python 3 allows modules not to have an __init__.py
         if any(os.path.splitext(x)[1] == ".py" for x in os.listdir(path)):
             return True
-    except FileNotFoundError:
+    except (FileNotFoundError, NotADirectoryError) as e:
+        logger.debug(e, 'Skipping un-recognised file or directory in plug-in path')
         pass
 
 
