@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html ng-app="APIBeardDemo">
+    <head>
+        <link rel="stylesheet" type="text/css" href="bootstrap.min.css" />
+        <script type="text/javascript" src="angular.min.js"></script>
+        <script type="text/javascript" src="app.js"></script>
+    </head>
+
+    <body>
+        <center>
+            <section ng-controller="PanelController as panel">
+                <ul class="nav nav-pills navbar-center">
+                    <li ng-class="{active:panel.isSelected(1)}">
+                        <a href ng-click="panel.selectTab(1)">Beards</a>
+                    </li>
+                    <li ng-class="{active:panel.isSelected(2)}">
+                        <a href ng-click="panel.selectTab(2)">Bar</a>
+                    </li>
+                    <li ng-class="{active:panel.isSelected(3)}">
+                        <a href ng-click="panel.selectTab(3)">Baz</a>
+                    </li>
+                </ul>
+                <!-- <div> -->
+                <!-- Buttery biscuit <i>beards</i> -->
+                <loaded-beards ng-show="panel.isSelected(1)"></loaded-beards>
+                <!-- </div> -->
+            </section>
+        </center>
+    </body>
+</html>
