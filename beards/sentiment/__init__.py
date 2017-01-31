@@ -14,7 +14,7 @@ class SentBeard(BeardChatHandler):
            ('saltreport', 'report', 'Sends a detailed summary of the scores so far'),
            ('mysalt', 'user_report', 'Sends a distribution of your scores'),
            ('score', 'instant_report', 'Sends you the score of that text. Score not logged'),
-           (Filters.text, 'log_message_score', 'scores incoming text messages'),
+           (Filters.text_no_cmd, 'log_message_score', 'scores incoming text messages'),
             ]
     __userhelp__ = """
     Logging for sentiment analysis.
