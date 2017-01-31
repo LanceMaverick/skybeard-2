@@ -12,6 +12,7 @@ from . import config
 class SentBeard(BeardChatHandler):
     __commands__ = [
            ('saltreport', 'report', 'Sends a detailed summary of the scores so far'),
+           ('mysalt', 'user_report', 'Sends a distribution of your scores'),
            ('score', 'instant_report', 'Sends you the score of that text. Score not logged'),
            (Filters.text, 'log_message_score', 'scores incoming text messages'),
             ]
@@ -25,8 +26,6 @@ class SentBeard(BeardChatHandler):
     async def log_message_score(self, msg):
         #don't bother saving /score messages as they are likely not
         #representitive of chat
-        print(msg['chat']['id'])
-
         if not msg['text'].startswith('/score'):
             score = sent.analyze(msg)
             #responds message if a user sends a really negative message.
@@ -50,7 +49,7 @@ class SentBeard(BeardChatHandler):
             await sent.save(msg, score)
 
     async def report(self, msg):
-        plot1, plot2, plot3, plot4 = sent.get_results(msg)
+        plot1, plot2, plot3, plot4 = sent.get_results(msg, neut= False)
         await self.sender.sendPhoto((
                 'sentiment1.png', plot1)) 
         await self.sender.sendPhoto((
@@ -59,6 +58,11 @@ class SentBeard(BeardChatHandler):
                 'sentiment3.png', plot3)) 
 #        await self.sender.sendPhoto((
 #                'sentiment4.png', plot4)) 
+
+    async def user_report(self, msg):
+        plot = sent.get_user_results(msg, neut= False)
+        await self.sender.sendPhoto((
+            'sentimentuser.png', plot))
     
     async def instant_report(self, msg):
         text = msg['text'].replace('/score', '')

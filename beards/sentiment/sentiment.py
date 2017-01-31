@@ -12,6 +12,11 @@ import seaborn as sns
 import pandas as pd
 from . import config
 
+#Plotting and sending. A bit rough. Would be better to use figures.
+fpath = os.path.join(
+        os.path.dirname(__file__),
+        'sentiment{}.png')
+
 def analyze(msg):
     #can take msg or string
     try:
@@ -40,13 +45,19 @@ async def save(msg, score):
     with dataset.connect(config.db_path) as db:
         db['message_log'].insert(entry)
     
-def get_results(msg):
+def get_results(msg, neut = True):
     
     with dataset.connect(config.db_path) as db:
         table = db['message_log']
     results = table.find(chat_id=msg['chat']['id'])
+    
+    #skip or include neutral messages based on neut value
+    if neut: 
+        results_list = [row for row in results]
+    else:
+        results_list = [
+                row for row in results if row['compound'] != 0.0]
 
-    results_list = [row for row in results]
     u_name = [row['user_name'] for row in results_list]
     users = list(set(u_name))
     user_scores = {}
@@ -86,12 +97,6 @@ def get_results(msg):
                 'date': date,
                 'names': names
                 })
-
-
-    #Plotting and sending. A bit rough. Would be better to use figures.
-    fpath = os.path.join(
-            os.path.dirname(__file__),
-            'sentiment{}.png')
     
     sns.set(style="ticks")
     
@@ -100,21 +105,13 @@ def get_results(msg):
                y = 'compound', 
                data=df, 
                jitter = True,
-               order = user_names,
-#               palette = 'deep',
-               #fit_reg=False, 
-#               hue="names",  
-#               palette = 'Set2',
-               #scatter_kws={"marker": "D", 
-                            #"s": 100}
-                            )
+               order = user_names)
+
     for item in u_plot.get_xticklabels():
         item.set_rotation(45)
     sns.plt.title('Message scores for each user.')
     plt.savefig(fpath.format('2'), bbox_inches='tight')
     
-    #matrix_plot = sns.pairplot(df, hue = "compound");
-    #matrix_plot.savefig(fpath.format('1'))
     plt.clf()
 
     s_plot = sns.lmplot('pos', 'neg', 
@@ -127,18 +124,48 @@ def get_results(msg):
                             "s": 100})
     sns.plt.title('All message scores. Hue = compound score.')
     s_plot.savefig(fpath.format('1'), bbox_inches='tight')
+
     plt.clf()
+
     user_plot = sns.barplot(user_sums, user_names, orient = 'h')
     sns.plt.title('Average scores for each user.')
     user_plot.figure.savefig(fpath.format('3'), bbox_inches='tight')
+
     plt.clf()
+
     time_plot = sns.tsplot(data=df, value = 'compound', time='date')
     time_plot.figure.savefig(fpath.format('4'), bbox_inches='tight')
+
     plt.clf()
 
     plot1 = open(fpath.format('1'), 'rb')
     plot2 = open(fpath.format('2'), 'rb')
     plot3 = open(fpath.format('3'), 'rb')
     plot4 = open(fpath.format('4'), 'rb')
+
     return plot1, plot2, plot3, plot4
 
+def get_user_results(msg, neut = True):
+    user_id = msg['from']['id']
+    user = msg['from']['first_name']
+
+    with dataset.connect(config.db_path) as db:
+        table = db['message_log']
+    results = table.find(user_id = user_id)
+
+    if neut:
+        data = [r['compound'] for r in results]
+    else:
+        data = [r['compound'] for r in results if r['compound'] != 0.0]
+
+    hist = sns.distplot(data, hist=False, rug=True)
+    sns.plt.title('Kernel density estimated distribution for '+user)
+    plt.savefig(fpath.format('user'), bbox_inches='tight')
+    plot = open(fpath.format('user'), 'rb')
+    plt.clf()
+
+    return plot
+
+
+
+    
