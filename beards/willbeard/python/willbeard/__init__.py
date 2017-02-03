@@ -5,7 +5,7 @@ from skybeard.beards import BeardChatHandler
 from skybeard.predicates import regex_predicate
 from skybeard.decorators import onerror
 from skybeard.utils import partition_text
-from .config import server_url, credentials
+from .config import server_url, credentials, filter_words
 
 logger = logging.getLogger(__name__)
 
@@ -25,6 +25,9 @@ class WillBeard(BeardChatHandler):
     @onerror
     async def query_will(self, msg):
         query_text = msg['text'].split(', ', 1)[1]
+        if any(w in query_text.lower() for w in filter_words):
+            await self.sender.sendMessage("I'm not comfortable googling that...")
+            return
         response = requests.post(
                 url="{0}/api/start_session".format(server_url),
                 data=credentials).json()
