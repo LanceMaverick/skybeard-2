@@ -1,8 +1,17 @@
 #how many headlines to display
 item_limit = 10
 #list of feeds. key is used as argument to bot command
+#The key of each element of the feeds dictionary is the access name
+#The value is a tuple of (<feed url>, <feed display name>)
 feeds = {
-        'economist': 'http://www.economist.com/sections/economics/rss.xml',
-        'eurogamer': 'http://www.eurogamer.net/?format=rss',
+        'bbc': (
+            'http://feeds.bbci.co.uk/news/rss.xml?edition=uk', 
+            'BBC News'),
+        'economist': (
+            'http://www.economist.com/sections/economics/rss.xml',
+            'The Economist'),
+        'eurogamer': (
+            'http://www.eurogamer.net/?format=rss',
+            'Eurogamer'),
 }
 

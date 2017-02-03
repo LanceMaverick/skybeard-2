@@ -37,7 +37,8 @@ class RssBeard(BeardChatHandler):
             return
 
         try:
-            feed_url = config.feeds[arg]
+            feed_url = config.feeds[arg][0]
+            feed_name = config.feeds[arg][1]
         except KeyError:
             self.sendMessage('I do not recognise that feed')
             return
@@ -47,7 +48,7 @@ class RssBeard(BeardChatHandler):
         await self.sender.sendMessage(
                 'Top {} front page items for {}:'.format(
                     config.item_limit, 
-                    arg),
+                    feed_name),
                 reply_markup = self.make_keyboard(items))
 
     def make_keyboard(self, items):
