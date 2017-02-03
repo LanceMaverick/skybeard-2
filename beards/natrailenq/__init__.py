@@ -9,6 +9,7 @@ from . import NatRail
 from . import config
 import re
 
+
 def format_msg(msg):
     text = msg['text']
     return ' '.join(get_args(text)).title()
@@ -28,22 +29,22 @@ class NationalRailDepartures(BeardChatHandler):
 
     @onerror
     async def searchStats(self, msg):
-       natRail = NatRail.RailScraper(config.rail_url, config.stat_codes)
-       out = format_msg(msg)
-       out, other  = natRail.searchStations(out)
-       await self.sender.sendMessage(out)
+        natRail = NatRail.RailScraper(config.rail_url, config.stat_codes)
+        out = format_msg(msg)
+        out, other = natRail.searchStations(out)
+        await self.sender.sendMessage(out)
 
     @onerror
     async def getStatus(self, msg):
-       natRail = NatRail.RailScraper(config.rail_url, config.stat_codes)
-       output = natRail.getStatus()
-       await self.sender.sendMessage(output, parse_mode="Markdown")
+        natRail = NatRail.RailScraper(config.rail_url, config.stat_codes)
+        output = natRail.getStatus()
+        await self.sender.sendMessage(output, parse_mode="Markdown")
 
     @onerror
     async def getDisruptions(self, msg):
-       natRail = NatRail.RailScraper(config.rail_url, config.stat_codes)
-       output = natRail.getNews(format_msg(msg))
-       await self.sender.sendMessage(output, parse_mode="Markdown")
+        natRail = NatRail.RailScraper(config.rail_url, config.stat_codes)
+        output = natRail.getNews(format_msg(msg))
+        await self.sender.sendMessage(output, parse_mode="Markdown")
 
     @onerror
     async def checkTimes(self, msg):
@@ -51,11 +52,11 @@ class NationalRailDepartures(BeardChatHandler):
         out = format_msg(msg)
         res1 = re.findall(r'(.+)\s(?:To|TO|to)\s(.+)', out)
         if not res1:
-          res1 = re.findall(r'(.+)', out)
-          From  = res1[0] 
-          To = ''
+            res1 = re.findall(r'(.+)', out)
+            From = res1[0]
+            To = ''
         else:
-          From, To = res1[0]
-        out = natRail.makeDeptString(From,To)
+            From, To = res1[0]
+        out = natRail.makeDeptString(From, To)
         print(out)
         await self.sender.sendMessage(out, parse_mode="Markdown")

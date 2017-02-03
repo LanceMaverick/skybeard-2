@@ -51,6 +51,12 @@ class Filters:
     def text(cls, chat_handler, msg):
         """Filters for text messages"""
         return "text" in msg
+    
+    @classmethod
+    def text_no_cmd(cls, chat_handler, msg):
+        """Filters for text messages that don't
+        start with a bot command"""
+        return "text" in msg and not msg["text"].startswith("/")
 
     @classmethod
     def document(cls, chat_handler, msg):
