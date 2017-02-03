@@ -10,5 +10,4 @@ Project Modules
    help
    autoloaders
    predicates
-   logging
    bearddbtable
