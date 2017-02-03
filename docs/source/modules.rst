@@ -9,3 +9,6 @@ Project Modules
    utils
    help
    autoloaders
+   predicates
+   logging
+   bearddbtable
