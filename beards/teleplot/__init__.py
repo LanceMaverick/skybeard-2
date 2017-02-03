@@ -21,11 +21,16 @@ def format_msg(msg):
 
 class TelePlotSB(BeardChatHandler):
     __userhelp__ = """
-    The following commands are available:
+    Makes plots with the /teleplot command. e.g:
+    From two arrays: /teleplot [x1,x2,..,xN] [y1,y2,..,yN]
+    From an expression: /teleplot (x**2+2*x+3)
+    Additional options: -xaxis "label", -yaxis "label"
+    Currently only index, add, subtract, divide, multiply 
+    available for equation notation."
      """
 
     __commands__ = [
-        ("teleplot", "makePlot", "Make plot from two arrays.\n`\\teleplot [x1,x2,..,xN] [y1,y2,..,yN]`\n`\\teleplot (x**2+2*x+3)`\nAdditional options: `-xaxis \"label\"`, `-yaxis \"label\"`\n Currently only index, add, subtract, divide, multiply available for equation notation."),
+        ("teleplot", "makePlot", "make a plot." ),
     ]
 
     @onerror
