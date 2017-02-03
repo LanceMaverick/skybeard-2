@@ -47,6 +47,8 @@ class WillBeard(BeardChatHandler):
         query_data = dict(
                 session_id=session_id, 
                 command=query_text)
+
+        await self.sender.sendChatAction('typing')
         query_response = requests.post(
                 url="{0}/api/command".format(server_url), 
                 data=query_data).json()
