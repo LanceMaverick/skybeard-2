@@ -2,7 +2,7 @@
 """
 Created on Sat Feb  4 15:56:52 2017
 
-@author: David
+@author: David Amison
 """
 import sympy as sp
 
