@@ -29,7 +29,8 @@ class PostCats(BeardChatHandler):
                 'http://i.imgur.com/Yy0TCXA.jpg',
                 'http://i.imgur.com/2eV7kmq.gif',
                 'http://i.imgur.com/rnA769W.jpg',
-                'http://i.imgur.com/08mxOAK.jpg'
+                'http://i.imgur.com/08mxOAK.jpg',
+		'http://i.imgur.com/Ct5GsQn.jpg',
                 ]
 
         try:
