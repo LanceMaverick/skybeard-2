@@ -4,7 +4,7 @@ import json
 from skybeard.beards import BeardChatHandler
 from skybeard.predicates import regex_predicate
 from skybeard.decorators import onerror
-from skybeard.utils import partition_text
+from skybeard.utils import partition_text, getMe
 from .config import server_url, credentials, filter_words
 
 logger = logging.getLogger(__name__)
@@ -14,10 +14,11 @@ class WillBeard(BeardChatHandler):
     any message that starts with 'skybeard, ' will be sent to the W.I.L.L
     personal assistant as a query"""
 
+    bot_name = await getMe()['first_name']
     __commands__ = [
             (
                 #match any message that starts with "skybeard, "
-                regex_predicate('(?i)^skybeard\,\s'),
+                regex_predicate('(?i)^{}\,\s'.format(bot_name),
                 'query_will',
                 'queries the W.I.L.L assistant')
             ]
