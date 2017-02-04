@@ -1,5 +1,6 @@
 #show spacecats test plugin
 # Adapted from work by LanceMaverick
+
 import random
 import logging
 from urllib.request import urlopen
@@ -10,7 +11,7 @@ from skybeard.beards import BeardChatHandler
 from skybeard.predicates import regex_predicate
 from . import config
 
-class corgibase(BeardChatHandler):
+class CorrgiBase(BeardChatHandler):
     __userhelp__ = """
     Say give me corgis or show me corgis to see some corgis!"""
 
@@ -24,24 +25,23 @@ class corgibase(BeardChatHandler):
                              client_secret = config.client_secret,
                              username = config.username,
                              password = config.password,
+                             user_agent = config.user_agent,
                             )
         subreddit = reddit.subreddit('corgis')
         hot_posts = subreddit.hot(limit=10)
         url_list = [post.url for post in hot_posts]
-
-
-#        corgi_photos= [
- #               'http://i.imgur.com/vE7TLA2.jpg',
-#		'https://i.imgur.com/v0ZzD8O.jpg',
-#		'http://i.imgur.com/XBNueYD.jpg',
-#		'http://i.imgur.com/ATa8cDd.jpg',
- #               ]
-
+        
+        
         try:
             choice = random.choice(url_list)
-            await self.sender.sendPhoto((choice.split("/")[-1], urlopen(choice)))
+            extensions = ['.jpg', '.jpeg', '.png', '.gif']
+            if any (ext in choice for ext in extensions):       
+                await self.sender.sendPhoto((choice.split("/")[-1], urlopen(choice)))
+            else:
+                await self.sender.sendMessage(choice)
         except Exception as e:
             logging.error(e)
             await self.sender.sendPhoto(
-                ("cat_photo.jpg",
-                 urlopen('http://cdn.meme.am/instances/500x/55452028.jpg')))
+             ("cat_photo.jpg",
+              urlopen('http://cdn.meme.am/instances/500x/55452028.jpg')))
+       
