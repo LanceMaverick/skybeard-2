@@ -130,13 +130,7 @@ def main(config):
     loop.create_task(bot.message_loop())
 
     if pyconfig.get('start_server'):
-        from aiohttp import web
-
-        async def hello(request):
-            return web.json_response({"text": "Hello, world"})
-
-        app = web.Application()
-        app.router.add_get('/', hello)
+        from skybeard.server import app
 
         handler = app.make_handler()
         f = loop.create_server(handler, '0.0.0.0', 8080)
