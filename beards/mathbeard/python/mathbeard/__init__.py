@@ -4,10 +4,8 @@ Created on Sat Feb  4 15:56:52 2017
 
 @author: David
 """
-import re
 import sympy as sp
 
-import logging
 import telepot
 import telepot.aio
 from skybeard.decorators import onerror
@@ -24,10 +22,6 @@ class Calculator(BeardChatHandler):
     /calc 'equation'    Calculates the answer to the equation input. The answer
                 is output based on the current format chosen and can be changed
                 using the /settings function
-    
-    /settings           Opens an option menu for altering the calculators sett-
-                ings. Only functionality is for changing the way the answer is
-                displayed
     '''
     
     __commands__ = [
