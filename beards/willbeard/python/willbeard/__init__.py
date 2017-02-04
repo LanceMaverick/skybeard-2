@@ -1,6 +1,7 @@
 import logging
-import requests
 import json
+import re
+import requests
 from skybeard.beards import BeardChatHandler
 from skybeard.predicates import regex_predicate
 from skybeard.decorators import onerror
@@ -9,16 +10,25 @@ from .config import server_url, credentials, filter_words
 
 logger = logging.getLogger(__name__)
 
+async def bot_is_called(bot, msg):
+    me = await getMe()
+    bot_name = me['first_name']
+    if not msg['text']:
+        return False
+    rematch = re.match('(?i)^{}\,\s'.format(bot_name), msg['text'])
+    return rematch
+
+
+
 class WillBeard(BeardChatHandler):
     __userhelp__ = """
     any message that starts with 'skybeard, ' will be sent to the W.I.L.L
     personal assistant as a query"""
 
-    bot_name = await getMe()['first_name']
     __commands__ = [
             (
                 #match any message that starts with "skybeard, "
-                regex_predicate('(?i)^{}\,\s'.format(bot_name),
+                bot_is_called,
                 'query_will',
                 'queries the W.I.L.L assistant')
             ]
