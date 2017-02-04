@@ -5,32 +5,45 @@ Created on Sat Feb  4 15:56:52 2017
 @author: David
 """
 import re
+import sympy as sp
 
 import logging
 import telepot
 import telepot.aio
 from skybeard.decorators import onerror
+from skybeard.utils import get_args
 from skybeard.beards import BeardChatHandler
 from skybeard.predicates import regex_predicate
 
-class BasicAddition(BeardChatHandler):
+class Calculator(BeardChatHandler):
     __userhelp__ = '''
-    type /add (x,y) to add two numbers
+    A calculator for doing numerical mathematics (not algebraic)
+    
+    Functions:
+        
+    /calc 'equation'    Calculates the answer to the equation input. The answer
+                is output based on the current format chosen and can be changed
+                using the /settings function
+    
+    /settings           Opens an option menu for altering the calculators sett-
+                ings. Only functionality is for changing the way the answer is
+                displayed
     '''
+    
     __commands__ = [
-            ('add','addNumbers','Adds two numbers.')]
+            ('calc','calculate','Performs a calculation')]
     
     @onerror
-    async def addNumbers(self, msg):
-        in_string = msg['text'].replace('/add ','')
-        numbers = re.findall(r'([\d\.\-]+)', in_string)        
+    async def calculate(self, msg):
         
-        ans = float(numbers[0])
-        output_str = '{}'.format(numbers[0])
-        for num in numbers[1:]:
-            ans += float(num)
-            output_str += '+ {}'.format(num)
+        #extract the equation input by the user
+        equation = get_args(msg, return_string = True)
         
-        output_str += '= {}'.format(ans)                    
-    
-        await self.sender.sendMessage(output_str)
+        await self.sender.sendMessage(equation)
+        
+        #solve the equation
+        eq = sp.sympify(equation)   
+        result = eq.evalf(10)
+        
+        
+        await self.sender.sendMessage(result)
