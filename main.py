@@ -74,8 +74,8 @@ def delegator_beard_gen(beards):
 
 def main(config):
 
-    if pyconfig.get('start_server'):
-        from skybeard import server
+    # if pyconfig.get('start_server'):
+    #     from skybeard import server
 
     if config.beards == "all":
         beards_to_load = all_possible_beards(config.beard_paths)
@@ -126,14 +126,40 @@ def main(config):
         list(delegator_beard_gen(Beard.beards))
     )
 
-    if pyconfig.get('start_server'):
-        asyncio.ensure_future(server.start())
-
     loop = asyncio.get_event_loop()
     loop.create_task(bot.message_loop())
-    print('Listening ...')
 
-    loop.run_forever()
+    if pyconfig.get('start_server'):
+        from aiohttp import web
+
+        async def hello(request):
+            return web.json_response({"text": "Hello, world"})
+
+        app = web.Application()
+        app.router.add_get('/', hello)
+
+        handler = app.make_handler()
+        f = loop.create_server(handler, '0.0.0.0', 8080)
+        srv = loop.run_until_complete(f)
+        print('serving on', srv.sockets[0].getsockname())
+
+    try:
+        print('Listening ...')
+        loop.run_forever()
+    except KeyboardInterrupt:
+        pass
+    finally:
+        if pyconfig.get('start_server'):
+            srv.close()
+            loop.run_until_complete(srv.wait_closed())
+            loop.run_until_complete(app.shutdown())
+            loop.run_until_complete(handler.shutdown(60.0))
+            loop.run_until_complete(app.cleanup())
+        loop.close()
+
+    # print('Listening ...')
+
+    # loop.run_forever()
 
 
 if __name__ == '__main__':
