@@ -1,6 +1,5 @@
-#show spacecats test plugin
+#corgibase plugin
 # Adapted from work by LanceMaverick
-
 import random
 import logging
 from urllib.request import urlopen
@@ -11,7 +10,7 @@ from skybeard.beards import BeardChatHandler
 from skybeard.predicates import regex_predicate
 from . import config
 
-class CorrgiBase(BeardChatHandler):
+class CorgiBase(BeardChatHandler):
     __userhelp__ = """
     Say give me corgis or show me corgis to see some corgis!"""
 
@@ -28,7 +27,7 @@ class CorrgiBase(BeardChatHandler):
                              user_agent = config.user_agent,
                             )
         subreddit = reddit.subreddit('corgis')
-        hot_posts = subreddit.hot(limit=10)
+        hot_posts = subreddit.top(time_filter = 'all', limit=100)
         url_list = [post.url for post in hot_posts]
         
         
@@ -36,12 +35,14 @@ class CorrgiBase(BeardChatHandler):
             choice = random.choice(url_list)
             extensions = ['.jpg', '.jpeg', '.png', '.gif']
             if any (ext in choice for ext in extensions):       
-                await self.sender.sendPhoto((choice.split("/")[-1], urlopen(choice)))
+                await self.sender.sendPhoto((
+                    choice.split("/")[-1], 
+                    urlopen(choice)))
             else:
                 await self.sender.sendMessage(choice)
         except Exception as e:
             logging.error(e)
-            await self.sender.sendPhoto(
-             ("cat_photo.jpg",
-              urlopen('http://cdn.meme.am/instances/500x/55452028.jpg')))
+            await self.sender.sendPhoto((
+                "cat_photo.jpg",
+                urlopen('http://cdn.meme.am/instances/500x/55452028.jpg')))
        
