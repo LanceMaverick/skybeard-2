@@ -14,6 +14,7 @@ import pyconfig
 from .bearddbtable import BeardDBTable
 from .logging import TelegramHandler
 from .predicates import command_predicate
+from .server import async_post, async_get
 
 logger = logging.getLogger(__name__)
 
@@ -37,7 +38,6 @@ class SlashCommand(object):
         self.coro = coro
         self.hlp = hlp
 
-
 def create_command(cmd_or_pred, coro, hlp=None):
     """Creates a Command or SlashCommand object as appropriate.
 
@@ -48,6 +48,19 @@ def create_command(cmd_or_pred, coro, hlp=None):
         return Command(cmd_or_pred, coro, hlp)
     raise TypeError("cmd_or_pred must be str or callable.")
 
+def create_route(route, coro, method):
+    """creates an endpoint for the web server"""
+    if method.lower() == 'post':
+        @async_post(route)
+        def handler(request):
+            return coro(request)
+    elif method.lower() == 'get':
+        @async_get(route)
+        def handler(request):
+            return coro(request)
+    else:
+        raise ValueError('HTTP method "{}" not supported'.format(method))
+
 
 class Beard(type):
     """Metaclass for creating beards."""
@@ -55,6 +68,7 @@ class Beard(type):
     beards = list()
 
     def __new__(mcs, name, bases, dct):
+        print(mcs, name, bases, dct)
         if "__userhelp__" not in dct:
             dct["__userhelp__"] = ("The author has not defined a "
                                    "<code>__userhelp__</code> for this beard.")
@@ -64,7 +78,14 @@ class Beard(type):
                 tmp = dct["__commands__"].pop(0)
                 dct["__commands__"].append(create_command(*tmp))
 
-        return type.__new__(mcs, name, bases, dct)
+        b = type.__new__(mcs, name, bases, dct)
+        if "__routes__" in dct:
+            for r in dct["__routes__"]:
+                tmp = list(r)
+                tmp[1] = getattr(b, r[1])
+                create_route(*tmp)
+
+        return b
 
     def __init__(cls, name, bases, attrs):
         # If specified as base beard, do not add to list
@@ -259,3 +280,5 @@ class BeardChatHandler(telepot.aio.helper.ChatHandler, metaclass=Beard):
                     cmd.coro(msg)
                 else:
                     await getattr(self, cmd.coro)(msg)
+    
+

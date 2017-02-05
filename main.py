@@ -120,7 +120,7 @@ def main(config):
                             "The command /{} occurs in more than "
                             "one beard.".format(cmd.cmd))
                     all_cmds.add(cmd)
-
+    
     bot = telepot.aio.DelegatorBot(
         pyconfig.get('key'),
         list(delegator_beard_gen(Beard.beards))
