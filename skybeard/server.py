@@ -1,6 +1,5 @@
-from aiohttp import web
 from functools import wraps, partial
-#from skybeard.beards import Beard, SlashCommand
+from aiohttp import web
 
 app = web.Application()
 

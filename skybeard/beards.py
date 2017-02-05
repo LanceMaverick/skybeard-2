@@ -14,7 +14,7 @@ import pyconfig
 from .bearddbtable import BeardDBTable
 from .logging import TelegramHandler
 from .predicates import command_predicate
-from .server import async_post, async_get
+from skybeard.server import async_post, async_get, web
 
 logger = logging.getLogger(__name__)
 
@@ -68,7 +68,6 @@ class Beard(type):
     beards = list()
 
     def __new__(mcs, name, bases, dct):
-        print(mcs, name, bases, dct)
         if "__userhelp__" not in dct:
             dct["__userhelp__"] = ("The author has not defined a "
                                    "<code>__userhelp__</code> for this beard.")
@@ -280,5 +279,21 @@ class BeardChatHandler(telepot.aio.helper.ChatHandler, metaclass=Beard):
                     cmd.coro(msg)
                 else:
                     await getattr(self, cmd.coro)(msg)
-    
 
+@async_get('/loadedBeards')
+async def loaded_beards(request):
+    return web.json_response([str(x) for x in Beard.beards])
+
+@async_get('/availableCommands')
+async def available_commands(request):
+    d = {}
+    for beard in Beard.beards:
+        cmds = []
+        for cmd in beard.__commands__:
+            if isinstance(cmd, SlashCommand):
+                cmds.append(dict(command = cmd.cmd, hint = cmd.hlp))
+        if cmds:
+            d[beard.__name__] = cmds
+
+    return web.json_response(d)
+    
