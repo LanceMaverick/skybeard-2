@@ -12,7 +12,7 @@ from telepot.aio.delegate import (per_chat_id,
                                   create_open,
                                   pave_event_space,
                                   include_callback_query_chat_id)
-
+import skybeard.api
 from skybeard.beards import Beard, BeardChatHandler, SlashCommand
 from skybeard.help import create_help
 from skybeard.utils import (is_module,
