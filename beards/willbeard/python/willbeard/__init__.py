@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 async def bot_is_called(bot, msg):
     me = await getMe()
     bot_name = me['first_name']
-    if not msg['text']:
+    if not 'text' in msg:
         return False
     rematch = re.match('(?i)^{}\,\s'.format(bot_name), msg['text'])
     return rematch
