@@ -5,6 +5,8 @@ import telepot
 import telepot.aio
 from skybeard.beards import BeardChatHandler
 from skybeard.predicates import Filters
+from skybeard.server import web
+from skybeard.api.database import is_key_match
 from . import sentiment as sent
 from . import config
 
@@ -19,6 +21,8 @@ class SentBeard(BeardChatHandler):
     __userhelp__ = """
     Logging for sentiment analysis.
    """ 
+    __routes__ = [('/sentData', 'http_get_sents', 'post'),]
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
@@ -67,5 +71,27 @@ class SentBeard(BeardChatHandler):
                 text,
                 str(score))
         await self.sender.sendMessage(reply, parse_mode = 'markdown')
+
+    
+    async def http_get_sents(request):
+        data = await request.json()
+        if not is_key_match(data['key']):
+            return web.json_response({'status': 'ERROR: Not authenticated'})
+        elif 'chat_id' not in data:
+            return web.json_response({'status': 'No chat id specified'})
+        else:
+
+            data.pop('key')
+            sent_data = sent.get_raw_data(**data)
+            response = dict(chat_id = data['chat_id'], results = [row for row in sent_data])
+            return web.json_response(response)
+
+            
+
+
+            
+
+
+
 
 
