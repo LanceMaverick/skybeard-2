@@ -7,6 +7,7 @@ import telepot
 import telepot.aio
 from skybeard.beards import BeardChatHandler
 from skybeard.predicates import regex_predicate
+from skybeard.decorators import admin
 
 class PostCats(BeardChatHandler):
     __userhelp__ = """
@@ -17,7 +18,7 @@ class PostCats(BeardChatHandler):
         super().__init__(*args, **kwargs)
         self.register_command(
             regex_predicate('(give|show) me spacecats'), self.send_cat)
-
+    
     async def send_cat(self, msg):
         cat_photos= [
                 'http://i.imgur.com/bJ043fy.jpg',
