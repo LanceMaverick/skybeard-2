@@ -176,6 +176,8 @@ if __name__ == '__main__':
     pyconfig.set('start_server', parsed.start_server)
     pyconfig.set('no_auto_pip', parsed.no_auto_pip)
     pyconfig.set('auto_pip_upgrade', parsed.auto_pip_upgrade)
+    pyconfig.set('admins', [a[1] for a in config.admins])
+    print(pyconfig.get('admins'))
 
     logging.basicConfig(
         format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
