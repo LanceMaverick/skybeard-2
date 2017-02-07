@@ -133,7 +133,7 @@ def main(config):
         from skybeard.server import app
 
         handler = app.make_handler()
-        f = loop.create_server(handler, '0.0.0.0', 8080)
+        f = loop.create_server(handler, config.host, config.port)
         srv = loop.run_until_complete(f)
         print('serving on', srv.sockets[0].getsockname())
 

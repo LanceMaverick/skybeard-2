@@ -4,13 +4,18 @@ import re
 logger = logging.getLogger(__name__)
 
 
-def regex_predicate(pattern):
-    """Returns a predicate function which returns True if pattern is matched."""
+def regex_predicate(pattern, lower = False ):
+    """Returns a predicate function which returns True if pattern is matched.
+        if lower == True, the text will be made lower case."""
     def retfunc(chat_handler, msg):
+        if lower:
+            text = msg['text'].lower()
+        else:
+            text = msg['text']
         try:
             logging.debug("Matching regex: '{}' in '{}'".format(
-                pattern, msg['text']))
-            retmatch = re.match(pattern, msg['text'])
+                pattern, text))
+            retmatch = re.match(pattern, text)
             logging.debug("Match: {}".format(retmatch))
             return retmatch
         except KeyError:
