@@ -9,9 +9,9 @@ def admin(f_or_text=None, **kwargs):
     is in the admins list of config.py. Will not call the
     coro if not"""
     if isinstance(f_or_text, str):
-        return partial(onerror, text=f_or_text, **kwargs)
+        return partial(admin, text=f_or_text, **kwargs)
     elif f_or_text is None:
-        return partial(onerror, **kwargs)
+        return partial(admin, **kwargs)
     
     @wraps(f_or_text)
     async def g(beard, *fargs, **fkwargs):
