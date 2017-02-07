@@ -21,7 +21,7 @@ class SentBeard(BeardChatHandler):
     __userhelp__ = """
     Logging for sentiment analysis.
    """ 
-    __routes__ = [('/sentData', 'http_get_sents', 'post'),]
+    __routes__ = [('/sentData', 'http_get_sents', 'get'),]
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -74,7 +74,8 @@ class SentBeard(BeardChatHandler):
 
     
     async def http_get_sents(request):
-        data = await request.json()
+        data = request.rel_url.query
+        data = dict(data)
         if not is_key_match(data['key']):
             return web.json_response({'status': 'ERROR: Not authenticated'})
         elif 'chat_id' not in data:
