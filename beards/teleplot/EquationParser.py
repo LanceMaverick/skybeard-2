@@ -52,6 +52,12 @@ class EquationParser(object):
         self.eqn_string_id = ''
         self.accepted_opts = [')', '+', '-', '/', '*', '**']
 
+    def reset(self):
+        self.user_marked_dict = {}
+        self.eqn_string = ''
+        self.eqn_string_template = ''
+        self.eqn_string_id = ''
+
     def clean_input(self, string):
         remainders = ''
         bad_chars = [';', '\\', '{', '}', '@', '$', '^', '&', 'rm', 'sudo', '~', '!', '#', ':', '|', '`', '\'', '"']
@@ -193,8 +199,10 @@ class EquationParser(object):
     def evaluate_val(self, value):
         max = self.evaluate_first_layer_val(value)
         self.logger.debug(self.user_marked_dict[1])
-        self.evaluate_layer_i(max-1, value)
-        self.evaluate_layer_i(max-2, value)
+        print(max)
+        for i in range(1, max):
+            self.evaluate_layer_i(max-i, value)
+        self.reset()
 
     def parse_equation_string(self, eqn_string):
         self.clean_input(eqn_string)
