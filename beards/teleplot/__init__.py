@@ -13,11 +13,9 @@ import equatic
 class TelePlotSB(BeardChatHandler):
     __userhelp__ = """
     Makes plots with the /teleplot command. e.g:
-    From two arrays: /teleplot [x1,x2,..,xN] [y1,y2,..,yN]
-    From an expression: /teleplot (x**2+2*x+3)
-    Additional options: -xaxis "label", -yaxis "label"
-    Currently only index, add, subtract, divide, multiply 
-    available for equation notation."
+    From an expression: /teleplot x**2+2*x+3
+    Additional options: -xlabel "label", -ylabel "label", -range [10,10,100]
+    where "range" is the upper and lower limit with the added option of including the number of points.
      """
 
     __commands__ = [
