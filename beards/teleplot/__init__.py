@@ -32,7 +32,7 @@ class TelePlotSB(BeardChatHandler):
         options = []
          
         for element in in_args:
-            if element in ['-xlabel', '-ylabel', '-range']:
+            if element in ['-xlabel', '-ylabel', '-range', '-marker', '-linestyle', '-options', '-color', '-title']:
                 logger.debug("Found option '%s'", element)
                 arg_index = in_args.index(element)
                 logger.debug("Adding option (%s, %s)", element, in_args[arg_index+1])
