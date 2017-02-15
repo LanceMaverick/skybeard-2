@@ -30,6 +30,6 @@ class TelePlot:
 
     def save_plot(self):
         filename = './{}.png'.format(str(uuid4())[:6])
-        equatic.plot(self.eqn_string, self.func_range, ylabel=self.ylabel, xlabel=self.xlabel, save=filename, debug=self.loglevel)
+        equatic.plot(self.eqn_string, self.func_range, ylabel=self.ylabel, xlabel=self.xlabel, save=filename, debug=self.loglevel, show=False)
         return filename
 
