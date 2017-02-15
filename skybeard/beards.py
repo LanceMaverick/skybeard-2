@@ -14,6 +14,7 @@ import pyconfig
 from .bearddbtable import BeardDBTable
 from .logging import TelegramHandler
 from .predicates import command_predicate
+from skybeard.server import async_post, async_get, web
 
 logger = logging.getLogger(__name__)
 
@@ -37,7 +38,6 @@ class SlashCommand(object):
         self.coro = coro
         self.hlp = hlp
 
-
 def create_command(cmd_or_pred, coro, hlp=None):
     """Creates a Command or SlashCommand object as appropriate.
 
@@ -47,6 +47,19 @@ def create_command(cmd_or_pred, coro, hlp=None):
     elif callable(cmd_or_pred):
         return Command(cmd_or_pred, coro, hlp)
     raise TypeError("cmd_or_pred must be str or callable.")
+
+def create_route(route, coro, method):
+    """creates an endpoint for the web server"""
+    if method.lower() == 'post':
+        @async_post(route)
+        def handler(request):
+            return coro(request)
+    elif method.lower() == 'get':
+        @async_get(route)
+        def handler(request):
+            return coro(request)
+    else:
+        raise ValueError('HTTP method "{}" not supported'.format(method))
 
 
 class Beard(type):
@@ -64,7 +77,14 @@ class Beard(type):
                 tmp = dct["__commands__"].pop(0)
                 dct["__commands__"].append(create_command(*tmp))
 
-        return type.__new__(mcs, name, bases, dct)
+        b = type.__new__(mcs, name, bases, dct)
+        if "__routes__" in dct:
+            for r in dct["__routes__"]:
+                tmp = list(r)
+                tmp[1] = getattr(b, r[1])
+                create_route(*tmp)
+
+        return b
 
     def __init__(cls, name, bases, attrs):
         # If specified as base beard, do not add to list
@@ -259,3 +279,21 @@ class BeardChatHandler(telepot.aio.helper.ChatHandler, metaclass=Beard):
                     cmd.coro(msg)
                 else:
                     await getattr(self, cmd.coro)(msg)
+
+@async_get('/loadedBeards')
+async def loaded_beards(request):
+    return web.json_response([str(x) for x in Beard.beards])
+
+@async_get('/availableCommands')
+async def available_commands(request):
+    d = {}
+    for beard in Beard.beards:
+        cmds = []
+        for cmd in beard.__commands__:
+            if isinstance(cmd, SlashCommand):
+                cmds.append(dict(command = cmd.cmd, hint = cmd.hlp))
+        if cmds:
+            d[beard.__name__] = cmds
+
+    return web.json_response(d)
+    

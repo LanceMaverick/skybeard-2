@@ -7,6 +7,7 @@ import shlex
 import logging
 import pip
 import yaml
+import aiohttp
 
 import pyconfig
 
@@ -207,3 +208,18 @@ def partition_text(text):
                 j += 1
             except IndexError:
                 yield text_list[i]
+
+
+BOT_JSON = None
+
+
+async def getMe():
+    global BOT_JSON
+    if not BOT_JSON:
+        async with aiohttp.ClientSession() as session:
+            async with session.get(
+                    "https://api.telegram.org/bot{}/getMe".format(
+                        pyconfig.get('key'))) as resp:
+                BOT_JSON = (await resp.json())['result']
+
+    return BOT_JSON

@@ -167,5 +167,10 @@ def get_user_results(msg, neut = True):
     return plot
 
 
+def get_raw_data(**kwargs):
+    with dataset.connect(config.db_path) as db:
+        table = db['message_log']
+        return table.find(**kwargs)
+
 
     

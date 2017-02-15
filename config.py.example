@@ -21,6 +21,16 @@ beards = [
 
 db_url = "sqlite:///skybeard-2.db"
 
+#put yourself, and anyone else you wish to, as an admin
+admins = [
+        #('name', telgram_id),
+        ]
+
+#web server config
+host = '0.0.0.0'
+port = 8000
+
 __doc__ = """This is sample documentation. Please update in your config.py!
 
 Current plugins enabled: {}""".format(beards)
+
