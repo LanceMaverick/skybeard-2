@@ -1,4 +1,5 @@
 # Custom
+beards/*/config.yml
 config.py
 .#*
 *.db
