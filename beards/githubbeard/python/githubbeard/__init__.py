@@ -1,6 +1,7 @@
 from skybeard.beards import BeardChatHandler
 from skybeard.predicates import Filters
-from skybeard.utils import get_beard_config
+from skybeard.utils import get_beard_config, get_args
+from skybeard.decorators import onerror
 
 from github import Github
 
@@ -18,12 +19,41 @@ class GithubBeard(BeardChatHandler):
     # 3. Help: Help text
     __commands__ = [
         # condition,   callback coro,             help text
-        (Filters.text,     'echo',      'Echos everything said by anyone.')
+        ("currentusersrepos",     'echo',      'Echos everything said by anyone.'),
+        ("getrepo", "get_repo", "Gets information about given repo specifed in 1st arg."),
+        ("getpendingpulls", "get_pending_pulls", "Gets pending pulls from specified repo (1st arg)"),
     ]
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.github = Github(CONFIG['username'], CONFIG['password'])
+
+    @onerror("Failed to get repo info. No argument provided?")
+    async def get_repo(self, msg):
+        """Gets information about a github repo."""
+        args = get_args(msg)
+
+        repo = self.github.get_repo(args[0])
+        await self.sender.sendMessage("Repo name: {}".format(repo.name))
+        await self.sender.sendMessage("Repo str: {}".format(repo))
+
+    async def make_pull_msg_text(self, pull):
+        retval = ""
+        retval += "<b>Title</b>: {}\n".format(pull.title)
+        retval += "<b>Created at</b>: {}\n".format(pull.created_at)
+        retval += "<b>Body</b>: {}\n".format(pull.body)
+
+        return retval
+
+    @onerror("Failed to get repo info. No argument provided?")
+    async def get_pending_pulls(self, msg):
+        """Gets information about a github repo."""
+        args = get_args(msg)
+
+        repo = self.github.get_repo(args[0])
+        pull_requests = repo.get_pulls()
+        for pr in pull_requests:
+            await self.sender.sendMessage(await self.make_pull_msg_text(pr), parse_mode='HTML')
 
     async def echo(self, msg):
         await self.sender.sendMessage("Github repos for {}:".format(CONFIG['username']))
