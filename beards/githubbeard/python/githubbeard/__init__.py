@@ -20,14 +20,14 @@ class GithubBeard(BeardChatHandler):
     # 3. Help: Help text
     __commands__ = [
         # condition,   callback coro,             help text
-        ("currentusersrepos",     'echo',      'Echos everything said by anyone.'),
+        ("currentusersrepos",     'get_current_user_repos',      'Echos everything said by anyone.'),
         ("getrepo", "get_repo", "Gets information about given repo specifed in 1st arg."),
         ("getpr", "get_pending_pulls", "Gets pending pull requests from specified repo (1st arg)"),
     ]
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.github = Github(CONFIG['username'], CONFIG['password'])
+        self.github = Github(CONFIG['token'])
 
     @onerror("Failed to get repo info. No argument provided?")
     async def get_repo(self, msg):
@@ -65,9 +65,17 @@ class GithubBeard(BeardChatHandler):
         for pr in pull_requests:
             await self.sender.sendMessage(await self.make_pull_msg_text_informal(pr), parse_mode='HTML')
 
-    async def echo(self, msg):
-        await self.sender.sendMessage("Github repos for {}:".format(CONFIG['username']))
+    @onerror
+    async def get_current_user_repos(self, msg):
+        args = get_args(msg)
+        try:
+            user = self.github.get_user(args[0])
+        except IndexError:
+            user = self.github.get_user()
+        name = user.name or user.login
+        await self.sender.sendMessage("Github repos for {}:".format(name))
+        await self.sender.sendChatAction(action="typing")
         repos = ""
-        for r in self.github.get_user().get_repos():
-            repos += "- "+r.name+"\n"
-        await self.sender.sendMessage(repos)
+        for r in user.get_repos():
+            repos += "- <a href=\"{}\">{}</a>\n".format(r.url, r.name)
+        await self.sender.sendMessage(repos, parse_mode='HTML')
