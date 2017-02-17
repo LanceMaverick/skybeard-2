@@ -4,6 +4,7 @@ from skybeard.utils import get_beard_config, get_args
 from skybeard.decorators import onerror
 
 from github import Github
+import maya
 
 CONFIG = get_beard_config()
 
@@ -21,7 +22,7 @@ class GithubBeard(BeardChatHandler):
         # condition,   callback coro,             help text
         ("currentusersrepos",     'echo',      'Echos everything said by anyone.'),
         ("getrepo", "get_repo", "Gets information about given repo specifed in 1st arg."),
-        ("getpendingpulls", "get_pending_pulls", "Gets pending pulls from specified repo (1st arg)"),
+        ("getpr", "get_pending_pulls", "Gets pending pull requests from specified repo (1st arg)"),
     ]
 
     def __init__(self, *args, **kwargs):
@@ -45,6 +46,15 @@ class GithubBeard(BeardChatHandler):
 
         return retval
 
+    async def make_pull_msg_text_informal(self, pull):
+        retval = "<b>Pull request {} for {}</b>\n\n".format(pull.number, pull.base.repo.name)
+        retval += "{} (created {})\n".format(pull.title, maya.MayaDT.from_datetime(pull.created_at).slang_date())
+        if pull.body:
+            retval += "{}\n".format(pull.body)
+        retval += "\n{}".format(pull.url)
+
+        return retval
+
     @onerror("Failed to get repo info. No argument provided?")
     async def get_pending_pulls(self, msg):
         """Gets information about a github repo."""
@@ -53,7 +63,7 @@ class GithubBeard(BeardChatHandler):
         repo = self.github.get_repo(args[0])
         pull_requests = repo.get_pulls()
         for pr in pull_requests:
-            await self.sender.sendMessage(await self.make_pull_msg_text(pr), parse_mode='HTML')
+            await self.sender.sendMessage(await self.make_pull_msg_text_informal(pr), parse_mode='HTML')
 
     async def echo(self, msg):
         await self.sender.sendMessage("Github repos for {}:".format(CONFIG['username']))
