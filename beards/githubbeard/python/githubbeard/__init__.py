@@ -7,6 +7,8 @@ from github import Github
 from github.GithubException import UnknownObjectException
 import maya
 
+from . import format_
+
 CONFIG = get_beard_config()
 
 
@@ -67,23 +69,6 @@ class GithubBeard(BeardChatHandler):
         await self.sender.sendMessage("Repo name: {}".format(repo.name))
         await self.sender.sendMessage("Repo str: {}".format(repo))
 
-    async def make_pull_msg_text(self, pull):
-        retval = ""
-        retval += "<b>Title</b>: {}\n".format(pull.title)
-        retval += "<b>Created at</b>: {}\n".format(pull.created_at)
-        retval += "<b>Body</b>: {}\n".format(pull.body)
-
-        return retval
-
-    async def make_pull_msg_text_informal(self, pull):
-        retval = "<b>Pull request {} for {}</b>\n\n".format(pull.number, pull.base.repo.name)
-        retval += "{} (created {})\n".format(pull.title, maya.MayaDT.from_datetime(pull.created_at).slang_date())
-        if pull.body:
-            retval += "{}\n".format(pull.body)
-        retval += "\n{}".format(pull.url)
-
-        return retval
-
     @onerror("Failed to get repo info.")
     async def get_pending_pulls(self, msg):
         """Gets information about a github repo."""
@@ -96,12 +81,12 @@ class GithubBeard(BeardChatHandler):
             repo = self.github.get_repo(entry['repo'])
         pull_requests = repo.get_pulls()
 
-        if pull_requests.totalCount:
-            for pr in pull_requests:
-                await self.sender.sendMessage(
-                    await self.make_pull_msg_text_informal(pr),
-                    parse_mode='HTML')
-        else:
+        pr = None
+        for pr in pull_requests:
+            await self.sender.sendMessage(
+                await format_.make_pull_msg_text_informal(pr),
+                parse_mode='HTML')
+        if pr is None:
             await self.sender.sendMessage(
                 "No pull requests found for {}.".format(repo.name))
 
