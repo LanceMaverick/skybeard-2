@@ -26,6 +26,10 @@ class GithubBeard(BeardChatHandler):
         super().__init__(*args, **kwargs)
         self.github = Github(CONFIG['token'])
 
+    async def user_not_found(self):
+        """Send a message explaining the user was not found."""
+        await self.sender.sendMessage("User not found.")
+
     @onerror("Failed to get repo info. No argument provided?")
     async def get_repo(self, msg):
         """Gets information about a github repo."""
@@ -71,7 +75,7 @@ class GithubBeard(BeardChatHandler):
             except IndexError:
                 user = self.github.get_user()
         except UnknownObjectException:
-            await self.sender.sendMessage("User not found.")
+            await self.user_not_found()
             return
 
         name = user.name or user.login
