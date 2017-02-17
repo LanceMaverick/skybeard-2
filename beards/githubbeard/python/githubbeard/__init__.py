@@ -1,8 +1,9 @@
 from skybeard.beards import BeardChatHandler
+from skybeard.bearddbtable import BeardDBTable
 from skybeard.utils import get_beard_config, get_args
 from skybeard.decorators import onerror
 
-from github import Github, GithubException
+from github import Github
 from github.GithubException import UnknownObjectException
 import maya
 
@@ -20,11 +21,38 @@ class GithubBeard(BeardChatHandler):
          "Gets information about given repo specifed in 1st arg."),
         ("getpr", "get_pending_pulls",
          "Gets pending pull requests from specified repo (1st arg)"),
+        ("getdefaultrepo", "get_default_repo", "Gets default repo for this chat."),
+        ("setdefaultrepo", "set_default_repo", "Sets default repo for this chat."),
     ]
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.github = Github(CONFIG['token'])
+        self.default_repo_table = BeardDBTable(self, 'default_repo')
+
+    @onerror
+    async def get_default_repo(self, msg):
+        with self.default_repo_table as table:
+            entry = table.find_one(chat_id=self.chat_id)
+            if entry:
+                await self.sender.sendMessage(
+                    "Default repo for this chat: {}".format(entry['repo']))
+            else:
+                await self.sender.sendMessage("No repo set.")
+
+    @onerror
+    async def set_default_repo(self, msg):
+        args = get_args(msg)
+        with self.default_repo_table as table:
+            try:
+                entry = table.insert(dict(chat_id=self.chat_id, repo=args[0]))
+            except IndexError:
+                await self.sender.sendMessage("No argument given for repo name.")
+
+            if entry:
+                await self.sender.sendMessage("Repo set to: {}".format(args[0]))
+            else:
+                raise Exception("Not sure how, but the entry failed to be got?")
 
     async def user_not_found(self):
         """Send a message explaining the user was not found."""
@@ -56,15 +84,26 @@ class GithubBeard(BeardChatHandler):
 
         return retval
 
-    @onerror("Failed to get repo info. No argument provided?")
+    @onerror("Failed to get repo info.")
     async def get_pending_pulls(self, msg):
         """Gets information about a github repo."""
         args = get_args(msg)
-
-        repo = self.github.get_repo(args[0])
+        if args:
+            repo = self.github.get_repo(args[0])
+        else:
+            with self.default_repo_table as table:
+                entry = table.find_one(chat_id=self.chat_id)
+            repo = self.github.get_repo(entry['repo'])
         pull_requests = repo.get_pulls()
-        for pr in pull_requests:
-            await self.sender.sendMessage(await self.make_pull_msg_text_informal(pr), parse_mode='HTML')
+
+        if pull_requests.totalCount:
+            for pr in pull_requests:
+                await self.sender.sendMessage(
+                    await self.make_pull_msg_text_informal(pr),
+                    parse_mode='HTML')
+        else:
+            await self.sender.sendMessage(
+                "No pull requests found for {}.".format(repo.name))
 
     @onerror
     async def get_current_user_repos(self, msg):
