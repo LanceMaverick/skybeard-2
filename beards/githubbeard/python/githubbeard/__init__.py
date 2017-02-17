@@ -5,7 +5,6 @@ from skybeard.decorators import onerror
 
 from github import Github
 from github.GithubException import UnknownObjectException
-import maya
 
 from . import format_
 
@@ -50,6 +49,7 @@ class GithubBeard(BeardChatHandler):
                 entry = table.insert(dict(chat_id=self.chat_id, repo=args[0]))
             except IndexError:
                 await self.sender.sendMessage("No argument given for repo name.")
+                return
 
             if entry:
                 await self.sender.sendMessage("Repo set to: {}".format(args[0]))
