@@ -21,7 +21,24 @@ logger = logging.getLogger(__name__)
 CONFIG = get_beard_config()
 
 
-class GithubBeard(BeardChatHandler):
+class PaginatorMixin:
+    def __make_prev_next_keyboard(self, prev_iter, next_iter):
+        inline_keyboard = []
+        if len(prev_iter) > 0:
+            inline_keyboard.append(
+                InlineKeyboardButton(
+                    text="« prev",
+                    callback_data=self.serialize('p')))
+        if len(next_iter) > 0:
+            inline_keyboard.append(
+                InlineKeyboardButton(
+                    text="next »",
+                    callback_data=self.serialize('n')))
+
+        return InlineKeyboardMarkup(inline_keyboard=[inline_keyboard])
+
+
+class GithubBeard(BeardChatHandler, PaginatorMixin):
 
     __userhelp__ = "Github. In a beard."
 
@@ -51,57 +68,45 @@ class GithubBeard(BeardChatHandler):
         except ThatsNotMineException:
             pass
 
-        if data == 'n':
+        if data == 'n' or data == 'p':
             with self.search_repos_results as table:
                 entry = table.find_one(
                     message_id=msg['message']['message_id'],
-                    # search_results_prev=pickle.dumps([]),
-                    # search_result_curr=pickle.dumps(search_results[0]),
-                    # search_results_next=pickle.dumps(search_results[1:])
+                    chat_id=self.chat_id,
                 )
             self.logger.debug("Got entry for message id: {}".format(entry['message_id']))
 
             search_results_prev = pickle.loads(entry['search_results_prev'])
             search_result_curr = pickle.loads(entry['search_result_curr'])
             search_results_next = pickle.loads(entry['search_results_next'])
-            search_results_prev.append(search_result_curr)
-            search_result_curr = search_results_next[0]
-            search_results_next = search_results_next[1:]
+
+            if data == 'p':
+                search_results_next.insert(0, search_result_curr)
+                search_result_curr = search_results_prev[-1]
+                search_results_prev = search_results_prev[:-1]
+            if data == 'n':
+                search_results_prev.append(search_result_curr)
+                search_result_curr = search_results_next[0]
+                search_results_next = search_results_next[1:]
+
 
             entry['search_results_prev'] = pickle.dumps(search_results_prev)
             entry['search_result_curr'] = pickle.dumps(search_result_curr)
             entry['search_results_next'] = pickle.dumps(search_results_next)
             with self.search_repos_results as table:
-                table.update(entry, ['message_id'])
+                table.update(entry, ['chat_id', 'message_id'])
 
-        keyboard = InlineKeyboardMarkup(
-            inline_keyboard=[[
-                InlineKeyboardButton(
-                    text="prev",
-                    callback_data=self.serialize('p')),
-                InlineKeyboardButton(
-                    text="next",
-                    callback_data=self.serialize('n')),
-            ]])
+            keyboard = self._PaginatorMixin__make_prev_next_keyboard(search_results_prev, search_results_next)
 
-        await self.bot.editMessageText(
-            message_identifier(msg['message']),
-            await format_.make_repo_msg_text(search_result_curr),
-            parse_mode='HTML',
-            reply_markup=keyboard
-        )
+            await self.bot.editMessageText(
+                message_identifier(msg['message']),
+                await format_.make_repo_msg_text(search_result_curr),
+                parse_mode='HTML',
+                reply_markup=keyboard
+            )
 
     @onerror
     async def search_repos(self, msg):
-        keyboard = InlineKeyboardMarkup(
-            inline_keyboard=[[
-                InlineKeyboardButton(
-                    text="prev",
-                    callback_data=self.serialize('p')),
-                InlineKeyboardButton(
-                    text="next",
-                    callback_data=self.serialize('n')),
-            ]])
 
         args = get_args(msg, return_string=True)
         if not args:
@@ -109,6 +114,7 @@ class GithubBeard(BeardChatHandler):
         search_results = self.github.search_repositories(args)
         search_results = [i for i in search_results[:30]]
         sr = search_results[0]
+        keyboard = self._PaginatorMixin__make_prev_next_keyboard([], search_results)
         sent_msg = await self.sender.sendMessage(
             await format_.make_repo_msg_text(sr),
             parse_mode='HTML',
@@ -118,6 +124,7 @@ class GithubBeard(BeardChatHandler):
         with self.search_repos_results as table:
             entry_to_insert = dict(
                 message_id=sent_msg['message_id'],
+                chat_id=self.chat_id,
                 search_results_prev=pickle.dumps([]),
                 search_result_curr=pickle.dumps(search_results[0]),
                 search_results_next=pickle.dumps(search_results[1:])
