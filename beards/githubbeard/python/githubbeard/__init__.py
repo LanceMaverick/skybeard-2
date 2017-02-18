@@ -1,12 +1,14 @@
-
+import inspect
 import pickle
+import dill
+import marshal
 from telepot import glance, message_identifier
 from telepot.namedtuple import InlineKeyboardMarkup, InlineKeyboardButton
 
 from skybeard.beards import BeardChatHandler, ThatsNotMineException
 from skybeard.bearddbtable import BeardDBTable
 from skybeard.utils import get_beard_config, get_args
-from skybeard.decorators import onerror, debugonly
+from skybeard.decorators import onerror
 
 
 from github import Github
@@ -22,7 +24,11 @@ CONFIG = get_beard_config()
 
 
 class PaginatorMixin:
-    def __make_prev_next_keyboard(self, prev_iter, next_iter):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._paginator_table = BeardDBTable(self, '_paginator')
+
+    async def __make_prev_next_keyboard(self, prev_iter, next_iter):
         inline_keyboard = []
         if len(prev_iter) > 0:
             inline_keyboard.append(
@@ -37,8 +43,84 @@ class PaginatorMixin:
 
         return InlineKeyboardMarkup(inline_keyboard=[inline_keyboard])
 
+    async def send_paginated_message(
+            self,
+            curr_item,
+            prev_iter,
+            next_iter,
+            formatter
+    ):
+        keyboard = await self.__make_prev_next_keyboard(prev_iter, next_iter)
+        sent_msg = await self.sender.sendMessage(
+            await formatter(curr_item),
+            parse_mode='HTML',
+            reply_markup=keyboard
+        )
 
-class GithubBeard(BeardChatHandler, PaginatorMixin):
+        with self._paginator_table as table:
+            entry_to_insert = {
+                'message_id': sent_msg['message_id'],
+                'prev_iter': pickle.dumps(prev_iter),
+                'curr_item': pickle.dumps(curr_item),
+                'next_iter': pickle.dumps(next_iter),
+                'formatter_func': dill.dumps(formatter)
+            }
+            table.insert(entry_to_insert)
+
+    async def on_callback_query(self, msg):
+        query_id, from_id, query_data = glance(msg, flavor='callback_query')
+
+        try:
+            data = self.deserialize(query_data)
+
+            if data == 'n' or data == 'p':
+                with self._paginator_table as table:
+                    entry = table.find_one(
+                        message_id=msg['message']['message_id'],
+                    )
+                self.logger.debug("Got entry for message id: {}".format(
+                    entry['message_id']))
+
+                prev_iter = pickle.loads(entry['prev_iter'])
+                curr_item = pickle.loads(entry['curr_item'])
+                next_iter = pickle.loads(entry['next_iter'])
+
+                if data == 'p':
+                    next_iter.insert(0, curr_item)
+                    curr_item = prev_iter[-1]
+                    prev_iter = prev_iter[:-1]
+                if data == 'n':
+                    prev_iter.append(curr_item)
+                    curr_item = next_iter[0]
+                    next_iter = next_iter[1:]
+
+                entry['prev_iter'] = pickle.dumps(prev_iter)
+                entry['curr_item'] = pickle.dumps(curr_item)
+                entry['next_iter'] = pickle.dumps(next_iter)
+                with self._paginator_table as table:
+                    table.update(entry, ['message_id'])
+
+                keyboard = await self.__make_prev_next_keyboard(
+                    prev_iter, next_iter)
+
+                formatter_func = dill.loads(entry['formatter_func'])
+
+                await self.bot.editMessageText(
+                    message_identifier(msg['message']),
+                    await formatter_func(curr_item),
+                    parse_mode='HTML',
+                    reply_markup=keyboard
+                )
+        except ThatsNotMineException:
+            pass
+
+        try:
+            super().on_callback_query(msg)
+        except AttributeError:
+            pass
+
+
+class GithubBeard(PaginatorMixin, BeardChatHandler):
 
     __userhelp__ = "Github. In a beard."
 
@@ -60,51 +142,6 @@ class GithubBeard(BeardChatHandler, PaginatorMixin):
         self.default_repo_table = BeardDBTable(self, 'default_repo')
         self.search_repos_results = BeardDBTable(self, 'search_repos_results')
 
-    async def on_callback_query(self, msg):
-        query_id, from_id, query_data = glance(msg, flavor='callback_query')
-
-        try:
-            data = self.deserialize(query_data)
-        except ThatsNotMineException:
-            pass
-
-        if data == 'n' or data == 'p':
-            with self.search_repos_results as table:
-                entry = table.find_one(
-                    message_id=msg['message']['message_id'],
-                    chat_id=self.chat_id,
-                )
-            self.logger.debug("Got entry for message id: {}".format(entry['message_id']))
-
-            search_results_prev = pickle.loads(entry['search_results_prev'])
-            search_result_curr = pickle.loads(entry['search_result_curr'])
-            search_results_next = pickle.loads(entry['search_results_next'])
-
-            if data == 'p':
-                search_results_next.insert(0, search_result_curr)
-                search_result_curr = search_results_prev[-1]
-                search_results_prev = search_results_prev[:-1]
-            if data == 'n':
-                search_results_prev.append(search_result_curr)
-                search_result_curr = search_results_next[0]
-                search_results_next = search_results_next[1:]
-
-
-            entry['search_results_prev'] = pickle.dumps(search_results_prev)
-            entry['search_result_curr'] = pickle.dumps(search_result_curr)
-            entry['search_results_next'] = pickle.dumps(search_results_next)
-            with self.search_repos_results as table:
-                table.update(entry, ['chat_id', 'message_id'])
-
-            keyboard = self._PaginatorMixin__make_prev_next_keyboard(search_results_prev, search_results_next)
-
-            await self.bot.editMessageText(
-                message_identifier(msg['message']),
-                await format_.make_repo_msg_text(search_result_curr),
-                parse_mode='HTML',
-                reply_markup=keyboard
-            )
-
     @onerror
     async def search_repos(self, msg):
 
@@ -113,25 +150,10 @@ class GithubBeard(BeardChatHandler, PaginatorMixin):
             await self.sender.sendMessage("No search term given")
         search_results = self.github.search_repositories(args)
         search_results = [i for i in search_results[:30]]
-        sr = search_results[0]
-        keyboard = self._PaginatorMixin__make_prev_next_keyboard([], search_results)
-        sent_msg = await self.sender.sendMessage(
-            await format_.make_repo_msg_text(sr),
-            parse_mode='HTML',
-            reply_markup=keyboard
-        )
 
-        with self.search_repos_results as table:
-            entry_to_insert = dict(
-                message_id=sent_msg['message_id'],
-                chat_id=self.chat_id,
-                search_results_prev=pickle.dumps([]),
-                search_result_curr=pickle.dumps(search_results[0]),
-                search_results_next=pickle.dumps(search_results[1:])
-            )
-            self.logger.debug("Inserting entry for message id: {}".format(msg['message_id']))
-            self.logger.debug("Inserting entry with search_results: {}".format(search_results))
-            table.insert(entry_to_insert)
+        sr = search_results[0]
+        await self.send_paginated_message(
+            sr, [], search_results[1:], format_.make_repo_msg_text)
 
     @onerror
     async def get_default_repo(self, msg):
