@@ -23,3 +23,13 @@ async def make_pull_msg_text_informal(pull):
     retval += "\n{}".format(pull.url)
 
     return retval
+
+
+async def make_repo_msg_text(repo):
+    """Creates message text for repo"""
+    retval = "<b>Repository:</b> {}\n".format(repo.full_name)
+    if repo.description:
+        retval += "<b>Description:</b> {}\n".format(repo.description.split("\n")[0].split(".")[0])
+    retval += "<b>Url:</b> {}".format(repo.html_url)
+
+    return retval

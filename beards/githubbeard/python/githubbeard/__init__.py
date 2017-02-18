@@ -1,12 +1,22 @@
-from skybeard.beards import BeardChatHandler
+
+import pickle
+from telepot import glance, message_identifier
+from telepot.namedtuple import InlineKeyboardMarkup, InlineKeyboardButton
+
+from skybeard.beards import BeardChatHandler, ThatsNotMineException
 from skybeard.bearddbtable import BeardDBTable
 from skybeard.utils import get_beard_config, get_args
-from skybeard.decorators import onerror
+from skybeard.decorators import onerror, debugonly
+
 
 from github import Github
 from github.GithubException import UnknownObjectException
 
 from . import format_
+
+import logging
+
+logger = logging.getLogger(__name__)
 
 CONFIG = get_beard_config()
 
@@ -24,12 +34,97 @@ class GithubBeard(BeardChatHandler):
          "Gets pending pull requests from specified repo (1st arg)"),
         ("getdefaultrepo", "get_default_repo", "Gets default repo for this chat."),
         ("setdefaultrepo", "set_default_repo", "Sets default repo for this chat."),
+        ("searchrepos", "search_repos", "Searches for repositories in github."),
     ]
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.github = Github(CONFIG['token'])
         self.default_repo_table = BeardDBTable(self, 'default_repo')
+        self.search_repos_results = BeardDBTable(self, 'search_repos_results')
+
+    async def on_callback_query(self, msg):
+        query_id, from_id, query_data = glance(msg, flavor='callback_query')
+
+        try:
+            data = self.deserialize(query_data)
+        except ThatsNotMineException:
+            pass
+
+        if data == 'n':
+            with self.search_repos_results as table:
+                entry = table.find_one(
+                    message_id=msg['message']['message_id'],
+                    # search_results_prev=pickle.dumps([]),
+                    # search_result_curr=pickle.dumps(search_results[0]),
+                    # search_results_next=pickle.dumps(search_results[1:])
+                )
+            self.logger.debug("Got entry for message id: {}".format(entry['message_id']))
+
+            search_results_prev = pickle.loads(entry['search_results_prev'])
+            search_result_curr = pickle.loads(entry['search_result_curr'])
+            search_results_next = pickle.loads(entry['search_results_next'])
+            search_results_prev.append(search_result_curr)
+            search_result_curr = search_results_next[0]
+            search_results_next = search_results_next[1:]
+
+            entry['search_results_prev'] = pickle.dumps(search_results_prev)
+            entry['search_result_curr'] = pickle.dumps(search_result_curr)
+            entry['search_results_next'] = pickle.dumps(search_results_next)
+            with self.search_repos_results as table:
+                table.update(entry, ['message_id'])
+
+        keyboard = InlineKeyboardMarkup(
+            inline_keyboard=[[
+                InlineKeyboardButton(
+                    text="prev",
+                    callback_data=self.serialize('p')),
+                InlineKeyboardButton(
+                    text="next",
+                    callback_data=self.serialize('n')),
+            ]])
+
+        await self.bot.editMessageText(
+            message_identifier(msg['message']),
+            await format_.make_repo_msg_text(search_result_curr),
+            parse_mode='HTML',
+            reply_markup=keyboard
+        )
+
+    @onerror
+    async def search_repos(self, msg):
+        keyboard = InlineKeyboardMarkup(
+            inline_keyboard=[[
+                InlineKeyboardButton(
+                    text="prev",
+                    callback_data=self.serialize('p')),
+                InlineKeyboardButton(
+                    text="next",
+                    callback_data=self.serialize('n')),
+            ]])
+
+        args = get_args(msg, return_string=True)
+        if not args:
+            await self.sender.sendMessage("No search term given")
+        search_results = self.github.search_repositories(args)
+        search_results = [i for i in search_results[:30]]
+        sr = search_results[0]
+        sent_msg = await self.sender.sendMessage(
+            await format_.make_repo_msg_text(sr),
+            parse_mode='HTML',
+            reply_markup=keyboard
+        )
+
+        with self.search_repos_results as table:
+            entry_to_insert = dict(
+                message_id=sent_msg['message_id'],
+                search_results_prev=pickle.dumps([]),
+                search_result_curr=pickle.dumps(search_results[0]),
+                search_results_next=pickle.dumps(search_results[1:])
+            )
+            self.logger.debug("Inserting entry for message id: {}".format(msg['message_id']))
+            self.logger.debug("Inserting entry with search_results: {}".format(search_results))
+            table.insert(entry_to_insert)
 
     @onerror
     async def get_default_repo(self, msg):
