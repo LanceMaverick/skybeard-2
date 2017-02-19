@@ -1,4 +1,5 @@
 import os
+import re
 import shutil
 import importlib
 import sys
@@ -6,12 +7,15 @@ import inspect
 import shlex
 import logging
 import pip
+import subprocess
 import yaml
 import aiohttp
 
 import pyconfig
 
 logger = logging.getLogger(__name__)
+logger.setLevel(logging.NOTSET)
+
 
 
 def is_module(path):
@@ -54,11 +58,14 @@ def get_beard_config(config_file="../../config.yml"):
     called.
 
     """
+
+    print("logging level: {}".format(logger.getEffectiveLevel()))
     callers_frame = inspect.currentframe().f_back
     logger.debug("This function was called from the file: " +
                  callers_frame.f_code.co_filename)
     base_path = os.path.dirname(callers_frame.f_code.co_filename)
     config = yaml.safe_load(open(os.path.join(base_path, config_file)))
+    print("logging level: {}".format(logger.getEffectiveLevel()))
     return config
 
 
@@ -92,15 +99,18 @@ def setup_beard(beard_module_name,
     requirements_file = os.path.join(base_path, beard_requirements_file)
     if not pyconfig.get('no_auto_pip') and os.path.isfile(requirements_file):
         pip_args = [
+            'pip',
             'install',
             '-r',
-            requirements_file
+            # A little sanitising
+            re.sub("[^a-z./]", "", requirements_file)
         ]
 
         if pyconfig.get('auto_pip_upgrade'):
             pip_args.append('--upgrade')
 
-        pip.main(pip_args)
+        # Using the library pip.main causes the logger level to change.
+        subprocess.check_call(" ".join(pip_args), shell=True)
         # Invalidate import path cache, since it's probably changed if new
         # requirements have been installed
         importlib.invalidate_caches()
