@@ -22,15 +22,15 @@ class PaginatorMixin:
         super().__init__(*args, **kwargs)
         self._paginator_table = BeardDBTable(self, '_paginator')
 
-    async def __make_prev_next_keyboard(self, prev_iter, next_iter):
+    async def __make_prev_next_keyboard(self, prev_seq, next_seq):
         """Makes next/prev keyboard for paginated message."""
         inline_keyboard = []
-        if len(prev_iter) > 0:
+        if len(prev_seq) > 0:
             inline_keyboard.append(
                 InlineKeyboardButton(
                     text="« prev",
                     callback_data=self.serialize('p')))
-        if len(next_iter) > 0:
+        if len(next_seq) > 0:
             inline_keyboard.append(
                 InlineKeyboardButton(
                     text="next »",
@@ -40,10 +40,10 @@ class PaginatorMixin:
 
     async def send_paginated_message(
             self,
-            curr_item,
-            prev_iter,
-            next_iter,
-            formatter
+            next_seq,
+            formatter,
+            curr_item=None,
+            prev_seq=None,
     ):
         """Sends paginated message.
 
@@ -51,12 +51,20 @@ class PaginatorMixin:
         items and a formatter function that changes items into strings.
 
         Args:
-            curr_item: The item you want initally displayed on the message.
-            prev_iter: The iterator for previous items (must be sliceable).
-            next_iter: The iterator for next items (must be sliceable).
+            next_seq: The iterator for next items (must be sliceable).
             formatter: The function that changes items into strings.
+            curr_item: The item you want initally displayed on the message.
+                Defaults to first element of next_seq.
+            prev_seq: The iterator for previous items (must be sliceable).
+                Defaults to empty list.
         """
-        keyboard = await self.__make_prev_next_keyboard(prev_iter, next_iter)
+        if curr_item is None:
+            curr_item = next_seq[0]
+            next_seq = next_seq[1:]
+        if prev_seq is None:
+            prev_seq = []
+
+        keyboard = await self.__make_prev_next_keyboard(prev_seq, next_seq)
         sent_msg = await self.sender.sendMessage(
             await formatter(curr_item),
             parse_mode='HTML',
@@ -66,9 +74,9 @@ class PaginatorMixin:
         with self._paginator_table as table:
             entry_to_insert = {
                 'message_id': sent_msg['message_id'],
-                'prev_iter': dill.dumps(prev_iter),
+                'prev_seq': dill.dumps(prev_seq),
                 'curr_item': dill.dumps(curr_item),
-                'next_iter': dill.dumps(next_iter),
+                'next_seq': dill.dumps(next_seq),
                 'formatter_func': dill.dumps(formatter)
             }
             table.insert(entry_to_insert)
@@ -88,27 +96,27 @@ class PaginatorMixin:
                 self.logger.debug("Got entry for message id: {}".format(
                     entry['message_id']))
 
-                prev_iter = dill.loads(entry['prev_iter'])
+                prev_seq = dill.loads(entry['prev_seq'])
                 curr_item = dill.loads(entry['curr_item'])
-                next_iter = dill.loads(entry['next_iter'])
+                next_seq = dill.loads(entry['next_seq'])
 
                 if data == 'p':
-                    next_iter.insert(0, curr_item)
-                    curr_item = prev_iter[-1]
-                    prev_iter = prev_iter[:-1]
+                    next_seq.insert(0, curr_item)
+                    curr_item = prev_seq[-1]
+                    prev_seq = prev_seq[:-1]
                 if data == 'n':
-                    prev_iter.append(curr_item)
-                    curr_item = next_iter[0]
-                    next_iter = next_iter[1:]
+                    prev_seq.append(curr_item)
+                    curr_item = next_seq[0]
+                    next_seq = next_seq[1:]
 
-                entry['prev_iter'] = dill.dumps(prev_iter)
+                entry['prev_seq'] = dill.dumps(prev_seq)
                 entry['curr_item'] = dill.dumps(curr_item)
-                entry['next_iter'] = dill.dumps(next_iter)
+                entry['next_seq'] = dill.dumps(next_seq)
                 with self._paginator_table as table:
                     table.update(entry, ['message_id'])
 
                 keyboard = await self.__make_prev_next_keyboard(
-                    prev_iter, next_iter)
+                    prev_seq, next_seq)
 
                 formatter_func = dill.loads(entry['formatter_func'])
 

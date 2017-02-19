@@ -50,12 +50,12 @@ class GithubBeard(PaginatorMixin, BeardChatHandler):
         args = get_args(msg, return_string=True)
         if not args:
             await self.sender.sendMessage("No search term given")
+        await self.sender.sendChatAction('typing')
         search_results = self.github.search_repositories(args)
         search_results = [i for i in search_results[:30]]
 
-        sr = search_results[0]
         await self.send_paginated_message(
-            sr, [], search_results[1:], format_.make_repo_msg_text)
+            search_results, format_.make_repo_msg_text)
 
     @onerror
     async def get_default_repo(self, msg):
