@@ -1,3 +1,6 @@
+import string
+import random
+import os
 import logging
 import dataset
 
@@ -14,8 +17,9 @@ class BeardDBTable(object):
     """
     def __init__(self, beard, table_name, **kwargs):
         self.beard_name = type(beard).__name__
-        self.table_name = "{}_{}".format(
+        self.table_name = "{}_{}_{}".format(
             self.beard_name,
+            beard.chat_id,
             table_name
         )
         self.kwargs = kwargs
@@ -41,3 +45,37 @@ class BeardDBTable(object):
         except AttributeError:
             raise AttributeError(
                 "Open table not found. Are you using BeardDBTable with with?")
+
+
+# async def get_binary_entry(path):
+#     return open(os.path.join(pyconfig.get('db_bin_path'), path), 'rb')
+
+
+async def make_binary_entry_filename(table, key):
+    # Assume the random string has been found, until it's not been found.
+    random_string_found = True
+    while random_string_found:
+        random_string = "".join([random.choice(string.ascii_letters) for x in range(50)])
+        for d in os.listdir(pyconfig.get('db_bin_path')):
+            if random_string in d:
+                break
+        else:
+            random_string_found = False
+
+    primary_key = "_".join(table.table.table.primary_key.columns.keys())
+
+    return os.path.join(
+        pyconfig.get('db_bin_path'), "{}_{}_{}_{}.dbbin".format(
+            table.table_name,
+            primary_key,
+            key,
+            random_string))
+
+
+# async def create_binary_entry(table, key, bytes_object):
+#     object_path = os.path.join(
+#         pyconfig.get('db_bin_path'),
+#         binary_entry_filename(table, key))
+#     with open(object_path, 'wb') as f:
+#         f.write()
+#     return object_path

@@ -5,7 +5,7 @@ from telepot import glance, message_identifier
 from telepot.namedtuple import InlineKeyboardMarkup, InlineKeyboardButton
 
 from .beards import ThatsNotMineException
-from .bearddbtable import BeardDBTable
+from .bearddbtable import BeardDBTable, make_binary_entry_filename
 
 logger = logging.getLogger(__name__)
 
@@ -45,7 +45,7 @@ class PaginatorMixin:
     async def send_paginated_message(
             self,
             next_seq,
-            formatter,
+            formatter_func,
             curr_item=None,
             prev_seq=None,
     ):
@@ -70,7 +70,7 @@ class PaginatorMixin:
 
         keyboard = await self.__make_prev_next_keyboard(prev_seq, next_seq)
         sent_msg = await self.sender.sendMessage(
-            await formatter(curr_item),
+            await formatter_func(curr_item),
             parse_mode='HTML',
             reply_markup=keyboard
         )
@@ -78,11 +78,11 @@ class PaginatorMixin:
         with self._paginator_table as table:
             entry_to_insert = {
                 'message_id': sent_msg['message_id'],
-                'prev_seq': dill.dumps(prev_seq),
-                'curr_item': dill.dumps(curr_item),
-                'next_seq': dill.dumps(next_seq),
-                'formatter_func': dill.dumps(formatter)
             }
+            for binary_name in ['prev_seq', 'curr_item', 'next_seq', 'formatter_func']:
+                entry_to_insert[binary_name] = await make_binary_entry_filename(table, binary_name)
+                dill.dump(locals()[binary_name], open(entry_to_insert[binary_name], 'wb'))
+
             table.insert(entry_to_insert)
 
     async def on_callback_query(self, msg):
@@ -101,13 +101,13 @@ class PaginatorMixin:
                     entry['message_id']))
 
                 logger.debug("Loading prev_seq...")
-                prev_seq = dill.loads(entry['prev_seq'])
+                prev_seq = dill.load(open(entry['prev_seq'], 'rb'))
                 logger.debug("Loading curr_item...")
-                curr_item = dill.loads(entry['curr_item'])
+                curr_item = dill.load(open(entry['curr_item'], 'rb'))
                 logger.debug("Loading next_seq...")
-                next_seq = dill.loads(entry['next_seq'])
+                next_seq = dill.load(open(entry['next_seq'], 'rb'))
                 logger.debug("Loading formatter_func...")
-                formatter_func = dill.loads(entry['formatter_func'])
+                formatter_func = dill.load(open(entry['formatter_func'], 'rb'))
                 logger.debug("Un-dill-ed all objects.")
 
                 if data == 'p':
@@ -131,16 +131,24 @@ class PaginatorMixin:
                     reply_markup=keyboard
                 )
 
-                logger.debug("Updating prev_seq entry.")
-                entry['prev_seq'] = dill.dumps(prev_seq)
-                logger.debug("Updating curr_item entry.")
-                entry['curr_item'] = dill.dumps(curr_item)
-                logger.debug("Updating next_seq entry.")
-                entry['next_seq'] = dill.dumps(next_seq)
-                logger.debug("Updating entry in database.")
-                with self._paginator_table as table:
-                    table.update(entry, ['message_id'])
-                logger.debug("Entry updated.")
+                logger.debug("Dumping prev_seq...")
+                dill.dump(prev_seq, open(entry['prev_seq'], 'wb'))
+                logger.debug("Dumping curr_item...")
+                dill.dump(curr_item, open(entry['curr_item'], 'wb'))
+                logger.debug("Dumping next_seq...")
+                dill.dump(next_seq, open(entry['next_seq'], 'wb'))
+                logger.debug("dill-ed all objects.")
+
+                # logger.debug("Updating prev_seq entry.")
+                # entry['prev_seq'] = dill.dumps(prev_seq)
+                # logger.debug("Updating curr_item entry.")
+                # entry['curr_item'] = dill.dumps(curr_item)
+                # logger.debug("Updating next_seq entry.")
+                # entry['next_seq'] = dill.dumps(next_seq)
+                # logger.debug("Updating entry in database.")
+                # with self._paginator_table as table:
+                #     table.update(entry, ['message_id'])
+                # logger.debug("Entry updated.")
 
         except ThatsNotMineException:
             pass
