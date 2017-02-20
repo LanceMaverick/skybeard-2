@@ -198,6 +198,10 @@ if __name__ == '__main__':
     # TODO consider making this not a parrt of the BeardChatHandler class now
     # that we use pyconfig.
     BeardChatHandler.setup_beards(parsed.key, config.db_url)
+    pyconfig.set('db_url', config.db_url)
+    pyconfig.set('db_bin_path', config.db_bin_path)
+    if not os.path.exists(pyconfig.get('db_bin_path')):
+        os.mkdir(pyconfig.get('db_bin_path'))
 
     # If the user does not specially request --no-help, set up help command.
     if not parsed.no_help:
