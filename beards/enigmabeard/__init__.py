@@ -21,7 +21,7 @@ class EnigmaBeard(BeardChatHandler):
     @onerror
     async def encode(self, msg):
         in_args = get_args(msg['text'])
-        enigma_m3 = enigma.Enigma()
+        enigma_m3 = enigma.Enigma('DEBUG')
         enigma_m3.set_key(in_args[0])
         await self.sender.sendMessage(enigma_m3.type_phrase(in_args[1])) 
 
