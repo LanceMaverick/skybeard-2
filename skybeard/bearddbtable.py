@@ -12,15 +12,25 @@ logger = logging.getLogger(__name__)
 class BeardDBTable(object):
     """Placeholder for database object for beards.
 
-    For use with async with.
+    For use with `with`.
+
+    If per_instance is False, then the database table is per class, rather than
+    per instance.
 
     """
-    def __init__(self, beard, table_name, **kwargs):
+    def __init__(self, beard, table_name, per_instance=True, **kwargs):
         self.beard_name = type(beard).__name__
-        self.table_name = "{}_{}".format(
-            self.beard_name,
-            table_name
-        )
+        if per_instance:
+            self.table_name = "{}_{}_{}".format(
+                self.beard_name,
+                beard.chat_id,
+                table_name
+            )
+        else:
+            self.table_name = "{}_{}".format(
+                self.beard_name,
+                table_name
+            )
         self.kwargs = kwargs
 
     def __enter__(self):
@@ -40,14 +50,12 @@ class BeardDBTable(object):
     def __getattr__(self, name):
         """If the normal getattr fails, try getattr(self.table, name)."""
         try:
-            return getattr(self.table, name)
-        except AttributeError:
+            assert self.table
+        except AttributeError as e:
             raise AttributeError(
                 "Open table not found. Are you using BeardDBTable with with?")
 
-
-# async def get_binary_entry(path):
-#     return open(os.path.join(pyconfig.get('db_bin_path'), path), 'rb')
+        return getattr(self.table, name)
 
 
 async def make_binary_entry_filename(table, key):
