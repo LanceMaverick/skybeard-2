@@ -17,9 +17,8 @@ class BeardDBTable(object):
     """
     def __init__(self, beard, table_name, **kwargs):
         self.beard_name = type(beard).__name__
-        self.table_name = "{}_{}_{}".format(
+        self.table_name = "{}_{}".format(
             self.beard_name,
-            beard.chat_id,
             table_name
         )
         self.kwargs = kwargs
