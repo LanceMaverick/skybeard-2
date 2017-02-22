@@ -1,75 +1,83 @@
-import matplotlib.pyplot as plt
 from uuid import uuid4
-import mpmath as mt
+import equatic
 import re
-import numpy as np
-
-trig_dict = {'sin': mt.sin, 'cos': mt.cos, 'tan': mt.tan,
-             'asin': mt.asin, 'acos': mt.acos, 'atan': mt.tan,
-             'cosec': mt.csc, 'sec': mt.sec, 'cot': mt.cot,
-             'cospi': mt.cospi, 'sinpi': mt.sinpi, 'sinc': mt.sinc}
-hyp_dict = {'sinh': mt.sinh, 'cosh': mt.cosh, 'tanh': mt.tan,
-            'asinh': mt.asinh, 'acosh': mt.acosh, 'atanh': mt.tanh,
-            'cosech': mt.csch, 'sech': mt.sech, 'coth': mt.coth}
-
-logInd_dict = {'log': mt.log, 'exp': mt.exp, 'log10': mt.log10}
-
-others_dict = {'sqrt': mt.sqrt, 'cbrt': mt.cbrt, 'root': mt.root,
-               'power': mt.power, 'expm1': mt.expm1,
-               'fac': mt.factorial, 'fac2': mt.fac2, 'gamma': mt.gamma,
-               'rgamma': mt.gamma, 'loggamma': mt.loggamma,
-               'superfac': mt.superfac, 'hyperfac': mt.hyperfac,
-               'barnesg': mt.barnesg, 'psi': mt.psi,
-               'harmonic': mt.harmonic}
-
-eqn_parser = {}
-eqn_parser.update(trig_dict)
-eqn_parser.update(hyp_dict)
-eqn_parser.update(logInd_dict)
-eqn_parser.update(others_dict)
-
-
-def checkandParse(string):
-    opts2perform = {}
-    for key in eqn_parser:
-        regex_str = '({})\(([xy\+\-\/\*\.\d]+)\)'.format(key)
-        res = re.findall(regex_str, string)
-        if len(res) > 0:
-            opts2perform[key] = res[0]
-    return opts2perform
-
 
 class TelePlot:
-    def __init__(self, plot_type='scatter', style='default'):
-        self.plotType = plot_type
-        self.plotStyle = style
+    def __init__(self, eqn_string, options, debug='INFO'):
+        self.eqn_string = eqn_string
+        self.options = options
         self.xlabel = 'x'
-        self.ylabel = 'y'
-        self.x = []
-        self.y = []
+        self.ylabel = 'f(x)'
+        self.title = None
+        self.loglevel = debug
+        self.plot_opts = '-'
+        self.line_styles = {'—' : '--', 'dashed' : '--', '-.' : '-.',
+                            'dotdash' : '.-', ':' : ':', 'dotted' : ':',
+                            'none' : ''}
+        self.colors = {'blue' : 'b', 'green' : 'g', 'red' : 'r', 'cyan' : 'c',
+                            'magenta' : 'm', 'yellow' : 'y', 'black' : 'k',
+                            'white' : 'w', 'b' : 'b', 'g' : 'g', 'r' : 'r',
+                            'm' : 'm', 'y' : 'y', 'k' : 'k', 'w' : 'w'}
 
-    def parseOpts(self, in_array):
-        n = 100
-        range_ = [-10, 10]
-        for opts_tuple in in_array:
-            if 'xaxis' in opts_tuple[0]:
+        self.marker_styles = {'.' : '.', 'point' : '.', ',' : ',',
+                              'pixel' : ',', 'o' : 'o', 'circle' : 'o',
+                              'v' : 'v', 'dtriangle' : 'v',
+                              '^' : '^', 'triangle' : '^',
+                              '<' : '<', 'ltriangle' : '<',
+                              '>' : '>', 'rtriangle' : '>',
+                              '8' : '8', 'octagon' : '8',
+                              's' : 's', 'square' : 's',
+                              'p' : 'p', 'pentagon' : 'p',
+                              '*' : '*', 'star' : '*',
+                              'h' : 'h', 'hexagon' : 'h',
+                              'x' : 'x', '+' : '+', 'plus' : '+',
+                              'D' : 'D', 'diamond' : 'D', 
+                              'd' : 'd', 'diamond2' : 'd',
+                              '|' : '|', 'vline' : '|',
+                              '_' : '_', 'hline' : '_',
+                              'tickleft' : 'TICKLEFT',
+                              'tickright' : 'TICKRIGHT',
+                              'tickup' : 'TICKUP',
+                              'tickdown' : 'TICKDOWN',
+                              'caretleft' : 'CARETLEFT',
+                              'caretright' : 'CARETRIGHT',
+                              'caretup' : 'CARETUP',
+                              'caretdown' : 'CARETDOWN'}
+        self.func_range = self.parse_opts()
+
+
+    def parse_opts(self):
+        n = 1000
+        range_ = [0.1, 10]
+        for opts_tuple in self.options:
+            if 'title' in opts_tuple[0]:
+                self.title = r'{}'.format(opts_tuple[1])
+            if 'marker' in opts_tuple[0]:
+                self.plot_opts += self.marker_styles[opts_tuple[1]]
+            if 'color' in opts_tuple[0]:
+                self.plot_opts += self.colors[opts_tuple[1]]
+            if 'linestyle' in opts_tuple[0]:
+                self.plot_opts = self.plot_opts.replace('-', self.line_styles[opts_tuple[1]])
+            if 'options' in opts_tuple[0]:
+                self.plot_opts = opts_tuple[1]
+            if 'xlabel' in opts_tuple[0]:
                 print("Got Axis title for x of " + opts_tuple[1])
-                self.xlabel = opts_tuple[1]
-            if 'yaxis' in opts_tuple[0]:
-                self.ylabel = opts_tuple[1]
+                self.xlabel = r'{}'.format(opts_tuple[1])
+            if 'ylabel' in opts_tuple[0]:
+                self.ylabel = r'{}'.format(opts_tuple[1])
             if 'range' in opts_tuple[0]:
-                numbers = opts_tuple[1].split(',')
-                range_ = numbers
-                if len(range_) > 2:
-                    n = (float(range_[1]) - float(range_[0])) / int(range_[2])
-        self.x = np.linspace(float(range_[0]), float(range_[1]), n)
+                numbers = re.findall('([\d\.\-]+)', opts_tuple[1])
+                range_ = [float(i) for i in numbers]
+                if len(range_) < 3:
+                  range_.append(n)
+                range_[2] = int(range_[2])
+        return range_
 
-    def savePlot(self):
-        plt.xlabel(self.xlabel)
-        plt.ylabel(self.ylabel)
-        print(self.y)
-        plt.plot(self.x, self.y)
+    def save_plot(self):
         filename = './{}.png'.format(str(uuid4())[:6])
-        plt.savefig(filename)
-        plt.clf()
+        print(self.plot_opts)
+        equatic.plot(self.eqn_string, self.func_range, ylabel=self.ylabel, 
+                    xlabel=self.xlabel, save=filename, plot_opts=self.plot_opts, 
+                    debug=self.loglevel, show=False, title=self.title)
         return filename
+
