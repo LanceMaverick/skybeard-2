@@ -37,8 +37,9 @@ class BeardDBTable(object):
         self.db = dataset.connect(pyconfig.get('db_url'))
         self.db.__enter__()
         self.table = self.db.get_table(self.table_name, **self.kwargs)
-        logger.debug("BeardDBTable initalised with: self.table: {}, self.db: {}".format(
-            self.table, self.db))
+        logger.debug(
+            "BeardDBTable initalised with: self.table: {}, self.db: {}".format(
+                self.table, self.db))
         return self
 
     def __exit__(self, error_type, error_value, traceback):
@@ -62,7 +63,8 @@ async def make_binary_entry_filename(table, key):
     # Assume the random string has been found, until it's not been found.
     random_string_found = True
     while random_string_found:
-        random_string = "".join([random.choice(string.ascii_letters) for x in range(50)])
+        random_string = "".join(
+            [random.choice(string.ascii_letters) for x in range(50)])
         for d in os.listdir(pyconfig.get('db_bin_path')):
             if random_string in d:
                 break
@@ -77,12 +79,3 @@ async def make_binary_entry_filename(table, key):
             primary_key,
             key,
             random_string))
-
-
-# async def create_binary_entry(table, key, bytes_object):
-#     object_path = os.path.join(
-#         pyconfig.get('db_bin_path'),
-#         binary_entry_filename(table, key))
-#     with open(object_path, 'wb') as f:
-#         f.write()
-#     return object_path
