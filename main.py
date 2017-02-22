@@ -23,8 +23,6 @@ from skybeard.utils import (is_module,
                             PythonPathContext)
 import config
 
-logger = logging.getLogger(__name__)
-
 
 class DuplicateCommand(Exception):
     pass
@@ -95,6 +93,16 @@ def main(config):
                 # If the module named by possible_beard does exist, but
                 # .setup_beard does not exist, the module is imported anyway.
                 pass
+                # if importlib.import_module(possible_beard):
+                #     pass
+                # else:
+                #     raise ex
+
+        assert pyconfig.get('loglevel') == logger.getEffectiveLevel(), \
+            "{} has caused the loglevel to be changed from {} to {}!".format(
+                possible_beard,
+                pyconfig.get('loglevel'),
+                logger.getEffectiveLevel())
 
     # Check if all expected beards were imported.
     #
@@ -173,6 +181,7 @@ if __name__ == '__main__':
 
     parsed = parser.parse_args()
 
+    pyconfig.set('loglevel', parsed.loglevel)
     pyconfig.set('start_server', parsed.start_server)
     pyconfig.set('no_auto_pip', parsed.no_auto_pip)
     pyconfig.set('auto_pip_upgrade', parsed.auto_pip_upgrade)
@@ -181,12 +190,18 @@ if __name__ == '__main__':
 
     logging.basicConfig(
         format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-        level=parsed.loglevel)
+        level=pyconfig.get('loglevel'))
+
+    logger = logging.getLogger(__name__)
 
     # Set up the master beard
     # TODO consider making this not a parrt of the BeardChatHandler class now
     # that we use pyconfig.
     BeardChatHandler.setup_beards(parsed.key, config.db_url)
+    pyconfig.set('db_url', config.db_url)
+    pyconfig.set('db_bin_path', config.db_bin_path)
+    if not os.path.exists(pyconfig.get('db_bin_path')):
+        os.mkdir(pyconfig.get('db_bin_path'))
 
     # If the user does not specially request --no-help, set up help command.
     if not parsed.no_help:

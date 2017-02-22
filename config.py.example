@@ -20,6 +20,7 @@ beards = [
 ]
 
 db_url = "sqlite:///skybeard-2.db"
+db_bin_path = "./db_binary_entries"
 
 #put yourself, and anyone else you wish to, as an admin
 admins = [

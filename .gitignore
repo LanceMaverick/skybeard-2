@@ -1,4 +1,6 @@
 # Custom
+*.dbbin
+beards/*/config.yml
 config.py
 .#*
 *.db

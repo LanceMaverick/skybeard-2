@@ -1,5 +1,6 @@
-bs4==0.0.1
-sympy==0.7.6.1
-numpy==1.11.0
-matplotlib==1.5.1
-mpmath==0.19
+bs4>=0.0.1
+sympy>=0.7.6.1
+numpy>=1.11.0
+matplotlib>=1.5.1
+mpmath>=0.19
+-e git+git://github.com/artemis-beta/equatic@v0.2.0#egg=equatic

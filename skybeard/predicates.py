@@ -13,10 +13,10 @@ def regex_predicate(pattern, lower = False ):
         else:
             text = msg['text']
         try:
-            logging.debug("Matching regex: '{}' in '{}'".format(
+            logger.debug("Matching regex: '{}' in '{}'".format(
                 pattern, text))
             retmatch = re.match(pattern, text)
-            logging.debug("Match: {}".format(retmatch))
+            logger.debug("Match: {}".format(retmatch))
             return retmatch
         except KeyError:
             return False
@@ -34,10 +34,10 @@ def command_predicate(cmd):
             bot_username,
         )
         try:
-            logging.debug("Matching regex: '{}' in '{}'".format(
+            logger.debug("Matching regex: '{}' in '{}'".format(
                 pattern, msg['text']))
             retmatch = re.match(pattern, msg['text'])
-            logging.debug("Match: {}".format(retmatch))
+            logger.debug("Match: {}".format(retmatch))
             return retmatch
         except KeyError:
             return False
