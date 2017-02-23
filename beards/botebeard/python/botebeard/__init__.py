@@ -58,6 +58,7 @@ class BoteBeard(BeardChatHandler):
     async def player_stats(self, msg):
         with self.profile_table as table:
             match = table.find_one(uid = msg['from']['id'])
+        print(match)
         details = get_player_stats(match['captain_id'])
 
         template = '\n'.join([
@@ -86,7 +87,7 @@ class BoteBeard(BeardChatHandler):
         if not ship:
             await self.sender.sendMessage(
                     'I could not find a ship that matches "{}"'.format(
-                        ship_query))
+                        query))
             return
 
         with self.profile_table as table:
@@ -95,11 +96,11 @@ class BoteBeard(BeardChatHandler):
         
         template = '\n'.join([
             'Your all time stats for the *{name}:*',
-            '*No. of battles:* {battles}',
-            '*average damage:* {av_damage}',
-            '*average no. of kills:* {kills}',
-            '*average xp:* {xp}',
-            '*win rate:* {winrate}',])
+            'No. of battles: *{battles}*',
+            'average damage: *{av_damage}*',
+            'average no. of kills: *{kills}*',
+            'average xp: *{xp}*',
+            'win rate: *{winrate}*',])
 
         await self.sender.sendPhoto(
             ("ship_photo.jpg",
