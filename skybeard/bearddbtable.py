@@ -18,7 +18,7 @@ class BeardDBTable(object):
     per instance.
 
     """
-    def __init__(self, beard, table_name, per_instance=True, **kwargs):
+    def __init__(self, beard, table_name, per_instance=False, **kwargs):
         self.beard_name = type(beard).__name__
         if per_instance:
             self.table_name = "{}_{}_{}".format(
