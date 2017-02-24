@@ -29,7 +29,7 @@ def command_predicate(cmd):
     """Returns a predicate coroutine which returns True if command is sent."""
     async def retcoro(beard_chat_handler, msg):
         bot_username = await beard_chat_handler.get_username()
-        pattern = r"^/{}(?:@{}|[^@]|$)".format(
+        pattern = r"^/{}(?:@{}| |$)".format(
             cmd,
             bot_username,
         )
