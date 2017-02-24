@@ -139,6 +139,22 @@ def main(config):
 
     if pyconfig.get('start_server'):
         from skybeard.server import app
+        # From https://github.com/aio-libs/aiohttp-cors
+        #
+        # Must be done after the beards are loaded.
+        import aiohttp_cors
+        # Configure default CORS settings.
+        cors = aiohttp_cors.setup(app, defaults={
+            "*": aiohttp_cors.ResourceOptions(
+                    allow_credentials=True,
+                    expose_headers="*",
+                    allow_headers="*",
+                )
+        })
+
+        # Configure CORS on all routes.
+        for route in list(app.router.routes()):
+            cors.add(route)
 
         handler = app.make_handler()
         f = loop.create_server(handler, config.host, config.port)
