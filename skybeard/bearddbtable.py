@@ -9,7 +9,7 @@ import pyconfig
 logger = logging.getLogger(__name__)
 
 
-class BeardDBTable(object):
+class BeardDBTableBase(object):
     """Placeholder for database object for beards.
 
     For use with `with`.
@@ -18,7 +18,7 @@ class BeardDBTable(object):
     per instance.
 
     """
-    def __init__(self, beard, table_name, per_instance=False, **kwargs):
+    def __init__(self, beard, table_name, per_instance, **kwargs):
         self.beard_name = type(beard).__name__
         if per_instance:
             self.table_name = "{}_{}_{}".format(
@@ -50,13 +50,47 @@ class BeardDBTable(object):
 
     def __getattr__(self, name):
         """If the normal getattr fails, try getattr(self.table, name)."""
-        try:
-            assert self.table
-        except AttributeError as e:
+        if not hasattr(self, 'table'):
             raise AttributeError(
                 "Open table not found. Are you using BeardDBTable with with?")
 
         return getattr(self.table, name)
+
+
+class BeardDBTable(BeardDBTableBase):
+    """Placeholder for database object for beards.
+
+    For use with `with`.
+
+    """
+    def __init__(self, beard, table_name, **kwargs):
+        super().__init__(beard, table_name, per_instance=False, **kwargs)
+
+    def __enter__(self):
+        super().__enter__()
+
+        return self
+
+    def __exit__(self, error_type, error_value, traceback):
+        super().__exit__(error_type, error_value, traceback)
+
+
+class BeardInstanceDBTable(BeardDBTableBase):
+    """Placeholder for database object for beards instances (i.e. per chat).
+
+    For use with `with`.
+
+    """
+    def __init__(self, beard, table_name, **kwargs):
+        super().__init__(beard, table_name, per_instance=True, **kwargs)
+
+    def __enter__(self):
+        super().__enter__()
+
+        return self
+
+    def __exit__(self, error_type, error_value, traceback):
+        super().__exit__(error_type, error_value, traceback)
 
 
 async def make_binary_entry_filename(table, key):
