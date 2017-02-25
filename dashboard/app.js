@@ -3,9 +3,10 @@
   app.service(
     "APIBeardService",
     ['$http', function APIBeardFunction($http) {
-      scope = this;
+      var that = this;
 
       this.beards = [];
+      this.availableCommands = [];
 
       this.setBeards = function(beards) {
         this.beards = beards;
@@ -17,8 +18,15 @@
 
       this.fetchBeards = function(){
         $http.get("http://localhost:8000/loadedBeards").then( function(data) {
-          scope.setBeards(data.data);
+          that.setBeards(data.data);
         });
+      };
+
+      this.fetchAvailableCommands = function() {
+        $http.get("http://localhost:8000/availableCommands").then(
+          function(data) {
+            that.availableCommands = data.data;
+          });
       };
     }
     ]);
@@ -26,8 +34,9 @@
   app.controller(
     'PanelController',
     ["APIBeardService", function(APIBeardService) {
-      this.tab = 2;
+      this.tab = 1;
 
+      APIBeardService.fetchBeards();
       this.selectTab = function(setTab) {
         this.tab = setTab;
         // TODO make it not hard coded
