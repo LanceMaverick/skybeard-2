@@ -5,6 +5,7 @@ import telepot
 import telepot.aio
 from skybeard.beards import BeardChatHandler
 from skybeard.predicates import Filters
+from skybeard.decorators import onerror
 from skybeard.server import web
 from skybeard.api.database import is_key_match
 from . import sentiment as sent
@@ -47,8 +48,10 @@ class SentBeard(BeardChatHandler):
                             msg['from']['first_name']))
         
         await sent.save(msg, score)
-
+    @onerror
     async def report(self, msg):
+        await self.sender.sendMessage('Generating report...')
+        await self.sender.sendChatAction('upload_photo')
         plot1, plot2, plot3, plot4 = sent.get_results(msg, neut= False)
         await self.sender.sendPhoto((
                 'sentiment1.png', plot1)) 
