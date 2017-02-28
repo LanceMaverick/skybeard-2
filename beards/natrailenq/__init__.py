@@ -21,7 +21,7 @@ class NationalRailDepartures(BeardChatHandler):
      """
 
     __commands__ = [
-        ("departures", "checkTimes", "Displays departures from stated station.\n optional argument ' to [destination]' can be added to refine search."),
+        ("departures", "checkTimes", "Displays departures from stated station."),
         ("searchstations", "searchStats", "Search stations for key phrase."),
         ("status", "getStatus", "Check status of Train Operating Companies."),
         ("disruptions", "getDisruptions", "Check Information on disruptions to today's services."),

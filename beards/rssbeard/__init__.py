@@ -33,14 +33,14 @@ class RssBeard(BeardChatHandler):
         try:
             arg = get_args(msg)[0]
         except:
-            self.sender.sendMessage('Please specify a feed')
+            await self.sender.sendMessage('Please specify a feed')
             return
 
         try:
             feed_url = config.feeds[arg][0]
             feed_name = config.feeds[arg][1]
         except KeyError:
-            self.sendMessage('I do not recognise that feed')
+            await self.sendMessage('I do not recognise that feed')
             return
 
         items = rss.parse_feed_info(feed_url)
