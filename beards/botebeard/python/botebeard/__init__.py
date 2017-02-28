@@ -23,8 +23,11 @@ class BoteBeard(BeardChatHandler):
         self.profile_table = BeardDBTable(self, 'wows_profiles')
 
     async def add_profile(self, msg):
-        await self.sender.sendMessage('Please send me the link to your wargaming open ID.\
-                You can find this on your profile page.')
+        await self.sender.sendMessage(
+        (
+            'Please send me the link to your wargaming open ID.'
+            'You can find this on your profile page.'
+            ))
         
         reply = await self.listener.wait()
         
@@ -58,7 +61,12 @@ class BoteBeard(BeardChatHandler):
     async def player_stats(self, msg):
         with self.profile_table as table:
             match = table.find_one(uid = msg['from']['id'])
-        print(match)
+        if not match:
+            await self.sender.sendMessage(
+                    (
+                        'I do not have your wargaming ID on file.'
+                        'Add it with the command /wowsnew.'
+                        ))
         details = get_player_stats(match['captain_id'])
 
         template = '\n'.join([
@@ -80,7 +88,7 @@ class BoteBeard(BeardChatHandler):
     async def ship_stats(self, msg):
         query = ' '.join(get_args(msg))
         if not query:
-            self.sender.sendMessage('Please specify a ship')
+            await self.sender.sendMessage('Please specify a ship')
             return
     
         ship = find_ship(query)
