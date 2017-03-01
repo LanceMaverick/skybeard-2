@@ -1,8 +1,9 @@
 #!/usr/bin/env python
 
 import argparse
-
 from pathlib import Path
+
+import stringcase
 
 
 def make_readme(dir_, name):
@@ -18,7 +19,7 @@ def make_init(dir_, name):
 from skybeard.beards import BeardChatHandler
 
 
-class Echo(BeardChatHandler):
+class {beardclassname}(BeardChatHandler):
 
     __userhelp__ = """A simple echo beard. Echos whatever it is sent."""
 
@@ -32,7 +33,7 @@ class Echo(BeardChatHandler):
     async def echo(self, msg):
         await self.sender.sendMessage(msg['text'])
 
-    '''.strip()
+    '''.strip().format(beardclassname=stringcase.capitalcase(name))
 
     with (python_path / Path("__init__.py")).open("w") as f:
         f.write(init_text)
