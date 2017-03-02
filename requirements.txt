@@ -2,3 +2,4 @@ telepot<=10.4
 pyconfig<=3.1.1
 dataset<=0.7.0
 dill<=0.2.6
+stringcase==1.0.6
