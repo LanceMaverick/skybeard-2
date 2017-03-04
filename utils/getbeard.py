@@ -8,7 +8,7 @@ import git
 def download_beard(beard_name, upgrade):
     beard_details = yaml.load(open("beard_repo/{}.yml".format(beard_name)))
     git_ = git.Git("beard_cache")
-    print("Attempting to clone {}...".format(beard_details['git_url']))
+    print("Attempting to clone from {}...".format(beard_details['git_url']))
     try:
         git_.clone(beard_details['git_url'])
         print("Done!")
@@ -16,11 +16,11 @@ def download_beard(beard_name, upgrade):
         repo = git.Repo("beard_cache/{}".format(beard_name))
         if upgrade:
             print("Updating repo")
-            # TODO make it not rely on being origin
+            # Should be origin, since no-one should add another remote.
             repo.remotes.origin.pull()
             print("Done!")
         else:
-            print("Repo already exists. Nothing done")
+            print("Repo already exists. Nothing to do.")
 
 
 def main():
@@ -29,7 +29,6 @@ def main():
     parser.add_argument('beard_name', help="Name of beard to get")
     parser.add_argument('-U', '--upgrade', action="store_true",
                         default=False)
-    
 
     parsed = parser.parse_args()
 
