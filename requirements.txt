@@ -4,3 +4,4 @@ dataset<=0.7.0
 dill<=0.2.6
 stringcase==1.0.6
 GitPython
+blessings
