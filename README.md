@@ -82,5 +82,3 @@ This plug-in will greet the user when they send "/hello" to Skybeard  and will a
 
 
 See the examples folder for examples of callback functionality, timers, and regex predication. 
-
-

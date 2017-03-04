@@ -42,7 +42,7 @@ def main():
             if i in item['name']:
                 logger.debug("{} found in {}".format(i, item['name']))
                 return True
-            elif i in item['description']:
+            elif item['description'] is not None and i in item['description']:
                 logger.debug("{} found in {}".format(i, item['description']))
                 return True
 
