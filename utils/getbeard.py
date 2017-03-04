@@ -1,12 +1,28 @@
 #!/usr/bin/env python
 import argparse
 import yaml
+from pathlib import Path
 
 import git
 
 
+class NoRecordFound(Exception):
+    pass
+
+
+def find_record(beard_name):
+    p = Path("beard_repo")
+    yamls = p.glob("*.yml")
+    for y in yamls:
+        record = yaml.load(y.open())
+        if record['name'] == beard_name:
+            return record
+    else:
+        raise NoRecordFound("No record found for beard named: "+beard_name)
+
+
 def download_beard(beard_name, upgrade):
-    beard_details = yaml.load(open("beard_repo/{}.yml".format(beard_name)))
+    beard_details = find_record(beard_name)
     git_ = git.Git("beard_cache")
     print("Attempting to clone from {}...".format(beard_details['git_url']))
     try:
