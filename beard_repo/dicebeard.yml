@@ -1,3 +1,2 @@
-name: dicebeard
-description: Rolls dice.
-git_url: https://github.com/nasfarley88/dicebeard.git
+{description: A dice module for skybeard (telepot), git_url: 'https://github.com/nasfarley88/dicebeard.git',
+  name: dicebeard}

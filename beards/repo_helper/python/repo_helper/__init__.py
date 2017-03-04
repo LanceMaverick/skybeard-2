@@ -28,6 +28,8 @@ class RepoHelper(BeardChatHandler):
             resp = await self.listener.wait()
             repo_name = resp['text']
 
+        await self.sender.sendChatAction("upload_document")
+
         gh = Github()
         repo = gh.get_repo(repo_name)
         data = {
