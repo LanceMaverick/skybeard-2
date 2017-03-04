@@ -28,16 +28,19 @@ To run skybeard define your key in the environment variable `$TG_BOT_TOKEN` or a
 
 ## Skybeard's many beards
 Skybeard source documentation: http://skybeard-2.readthedocs.io/en/latest/
+
 Skybeard wears many beards. The bot will automatically load any "beard" (a plug-in) that is placed in the beards folder. Beards are typically structured like so:
 
 ```
 beards
 |
-|___myBeard
-    |    __init__.py
-    |    config.py
+|___my_beard
+    |    config.yml
     |    requirements.txt
-    |    ...
+    |    setup_beard.py
+    |___python
+        |___my_beard
+            |   __init__.py
     |
     |___docs
         |    README
@@ -45,15 +48,31 @@ beards
 ```
 
 In this example the `myBeard` folder containts a `requirements.txt` for any additonal dependencies so they can be pipped, a `config.py` file for configuration of the beard and settings and the `__init__.py` which contains the class that that is the interface between the plug-in and skybeard. 
-This interface class inherits from skybeard.beards.BeardChatHandler` which handles the mounting of the plug-in, registering of commands etc, and also the `telepot.aio.helper.ChatHandler`. 
+This interface class inherits from `skybeard.beards.BeardChatHandler` which handles the mounting of the plug-in, registering of commands etc, and also the `telepot.aio.helper.ChatHandler`. 
 
 The folder can also contain any other python modules and files that are needed for the plugin.
 
 ## Growing a new beard
 Creating a new beard requires knowledge of the **telepot** telegram API, see: http://telepot.readthedocs.io/en/latest/
 
-An example async plug-in that would echo the user's message would look like this:
+The quickest way to make a new beard is to use the utility script `utils/newbeard.py` which creates the folder structure and basic files.
 
+```
+$ utils/newbeard.py foo_beard
+$ tree foo_beard
+foo_beard
+├── python
+│   └── foo_beard
+│       └── __init__.py
+├── README.txt
+└── setup_beard.py
+
+2 directories, 3 files
+```
+
+The main part of the code is in `python/beard_name/__init__.py`.
+
+An example async plug-in that would echo the user's message would look like this:
 
 
 ```Python
