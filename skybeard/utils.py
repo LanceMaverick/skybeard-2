@@ -59,13 +59,22 @@ def get_beard_config(config_file="../../config.yml"):
 
     """
 
-    print("logging level: {}".format(logger.getEffectiveLevel()))
+    # Sometimes external libraries change the logging level. This is not
+    # acceptable, so we assert after importing a beard that it has not changed.
+    logger_level_before = logger.getEffectiveLevel()
+    logging.debug("logging level: {}".format(logger.getEffectiveLevel()))
+
     callers_frame = inspect.currentframe().f_back
     logger.debug("This function was called from the file: " +
                  callers_frame.f_code.co_filename)
     base_path = os.path.dirname(callers_frame.f_code.co_filename)
     config = yaml.safe_load(open(os.path.join(base_path, config_file)))
-    print("logging level: {}".format(logger.getEffectiveLevel()))
+
+    logging.debug("logging level: {}".format(logger.getEffectiveLevel()))
+    logger_level_after = logger.getEffectiveLevel()
+    assert logger_level_before == logger_level_after, \
+        "Something has changed the logger level!"
+
     return config
 
 
