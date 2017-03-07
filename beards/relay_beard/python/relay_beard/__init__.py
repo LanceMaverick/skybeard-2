@@ -1,8 +1,16 @@
+import string
+import random
+
 from skybeard.beards import BeardChatHandler
 from skybeard.bearddbtable import BeardDBTable
 from skybeard.decorators import onerror
-from skybeard.utils import get_args
 from skybeard.server import app, web
+from skybeard.predicates import regex_predicate
+
+
+async def make_key():
+    """Makes key for relay commands."""
+    return "".join([random.choice(string.ascii_letters) for x in range(20)])
 
 
 class RelayBeard(BeardChatHandler):
@@ -11,18 +19,24 @@ class RelayBeard(BeardChatHandler):
 
     __commands__ = [
         # command, callback coro, help text
-        ("echo", 'echo', 'Echos arguments. e.g. <code>/echo [arg1 [arg2 ... ]]</code>')
+        (regex_predicate("_getkey"), 'get_key', 'Gets key for relay commands')
     ]
 
     # __init__ is implicit
 
     @onerror
-    async def echo(self, msg):
-        args = get_args(msg)
-        if args:
-            await self.sender.sendMessage("Args: {}".format(args))
-        else:
-            await self.sender.sendMessage("No arguments given.")
+    async def get_key(self, msg):
+        with type(self).key_table as table:
+            e = table.find_one(user_id=msg['from']['id'])
+            if not e:
+                table.insert(
+                    dict(
+                        user_id=msg['from']['id'],
+                        key=await make_key()
+                    ))
+                e = table.find_one(user_id=msg['from']['id'])
+
+        await self.sender.sendMessage("Key is: {}".format(e['key']))
 
 
 RelayBeard.key_table = BeardDBTable(RelayBeard, "key_table")
