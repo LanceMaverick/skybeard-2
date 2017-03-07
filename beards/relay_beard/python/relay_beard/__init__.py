@@ -1,6 +1,8 @@
 from skybeard.beards import BeardChatHandler
+from skybeard.bearddbtable import BeardDBTable
 from skybeard.decorators import onerror
 from skybeard.utils import get_args
+from skybeard.server import app, web
 
 
 class RelayBeard(BeardChatHandler):
@@ -21,3 +23,13 @@ class RelayBeard(BeardChatHandler):
             await self.sender.sendMessage("Args: {}".format(args))
         else:
             await self.sender.sendMessage("No arguments given.")
+
+
+RelayBeard.key_table = BeardDBTable(RelayBeard, "key_table")
+
+
+@app.add_route('/relay/{command}', methods=['GET', 'POST'])
+async def relay_to_telegram(request):
+    print("Request given: {}".format(request))
+
+    return web.Response(text=str(request.url))
