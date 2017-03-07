@@ -28,8 +28,11 @@ class RelayBeard(BeardChatHandler):
 RelayBeard.key_table = BeardDBTable(RelayBeard, "key_table")
 
 
-@app.add_route('/relay/{command}', methods=['GET', 'POST'])
+@app.add_route('/relay{key:[a-zA-Z]+}/{command}', methods=['GET', 'POST'])
 async def relay_to_telegram(request):
-    print("Request given: {}".format(request))
-
-    return web.Response(text=str(request.url))
+    command_for_telegram = request.match_info['command']
+    key = request.match_info['key']
+    return web.json_response({
+        "command": command_for_telegram,
+        "key": key
+    })
