@@ -7,7 +7,6 @@ from skybeard.beards import BeardChatHandler
 from skybeard.bearddbtable import BeardDBTable
 from skybeard.decorators import onerror, admin
 from skybeard.server import app, web
-from skybeard.predicates import regex_predicate
 
 
 async def make_key():
@@ -20,8 +19,8 @@ class RelayBeard(BeardChatHandler):
     __userhelp__ = """Default help message."""
 
     __commands__ = [
-        # command, callback coro, help text
-        (regex_predicate("_getkey"), 'get_key', 'Gets key for relay commands')
+        ('getrelaykey', 'get_key', 'Gets key for relay commands.'),
+        ('revokerelaykey', 'revoke_key', 'Revokes your personal relay key.')
     ]
 
     # __init__ is implicit
@@ -40,6 +39,17 @@ class RelayBeard(BeardChatHandler):
                 e = table.find_one(user_id=msg['from']['id'])
 
         await self.sender.sendMessage("Key is: {}".format(e['key']))
+
+    @admin
+    @onerror
+    async def revoke_key(self, msg):
+        with type(self).key_table as table:
+            e = table.find_one(user_id=msg['from']['id'])
+            if e:
+                table.delete(**e)
+                await self.sender.sendMessage("Key revoked.")
+            else:
+                await self.sender.sendMessage("No key to revoke.")
 
 
 RelayBeard.key_table = BeardDBTable(RelayBeard, "key_table")
