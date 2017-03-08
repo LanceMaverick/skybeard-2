@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html ng-app="APIBeardDemo">
+    <head>
+        <link rel="stylesheet" type="text/css" href="bootstrap.min.css" />
+        <script type="text/javascript" src="angular.min.js"></script>
+        <script type="text/javascript" src="app.js"></script>
+        <script type="text/javascript" src="https://pugjs.org/js/pug.js"></script>
+        <script>
+         var pug = require('pug')
+         var html = pug.renderFile("index.pug");
+        </script>
+    </head>
+
+    <body>
+            <section ng-controller="PanelController as panel">
+                <ul class="nav nav-pills navbar-center">
+                    <li ng-class="{active:panel.isSelected(1)}">
+                        <a href ng-click="panel.selectTab(1)">Beards</a>
+                    </li>
+                </ul>
+                <loaded-beards ng-show="panel.isSelected(1)"></loaded-beards>
+            </section>
+    </body>
+</html>

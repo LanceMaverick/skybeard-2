@@ -1,0 +1,22 @@
+<section ng-controller="loadedBeardsController as lbCtrl">
+    <button type="button"
+            class="btn btn-default"
+            ng-click="lbCtrl.APIBeardService.loadBeards()">Click me to update beard info!</button>
+    <div ng-show="lbCtrl.APIBeardService.getBeards().length > 0">
+        <ul ng-repeat="beard in lbCtrl.APIBeardService.getBeards()">
+            <li>{{beard}}</li>
+        </ul>
+        <h3>Available commands</h3>
+        <button type="button"
+                class="btn btn-default"
+                ng-click="lbCtrl.APIBeardService.fetchAvailableCommands()">
+            Click me to get available commands.
+        </button>
+        <ul ng-repeat="(beard, commands) in lbCtrl.APIBeardService.availableCommands">
+            <li>{{ beard }}</li>
+            <ul ng-repeat="command in commands">
+                <li> /{{command.command}} - {{command.hint}}</li>
+            </ul>
+        </ul>
+    </div>
+</section>
