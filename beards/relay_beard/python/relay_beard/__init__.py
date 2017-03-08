@@ -16,7 +16,12 @@ async def make_key():
 
 class RelayBeard(BeardChatHandler):
 
-    __userhelp__ = """Default help message."""
+    __userhelp__ = """This beard sets up a relay point for telegram commands.
+
+To use, get a key with /getrelaykey and then you can relay commands to the bot using the following syntax:
+
+<code>&lt;hostname&gt;:&lt;port&gt;/relay&lt;key&gt;/&lt;telegram api endpoint&gt;</code>
+    """
 
     __commands__ = [
         ('getrelaykey', 'get_key', 'Gets key for relay commands.'),
@@ -64,7 +69,10 @@ async def relay_to_telegram(request):
 
     session = pyconfig.get('aiohttp_session')
     if e:
-        data = await request.json()
+        if await request.read():
+            data = await request.json()
+        else:
+            data = None
         async with session.request(
                 request.method,
                 "https://api.telegram.org/bot{botkey}/{cmd}".format(
