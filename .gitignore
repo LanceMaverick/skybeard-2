@@ -1,4 +1,6 @@
 # Custom
+beard_cache/*
+db_binary_entries
 *.dbbin
 beards/*/config.yml
 config.py

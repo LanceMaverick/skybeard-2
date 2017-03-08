@@ -4,6 +4,7 @@ from autoloaders import Git
 
 beard_paths = [
     "beards/",
+    "beard_cache/",
     # Beards can come from anywhere!
     # os.path.expanduser("~/beards/"),
     # Even from git!
