@@ -55,9 +55,9 @@ async def relay_to_telegram(request):
 
     session = pyconfig.get('aiohttp_session')
     if e:
-        # async with aiohttp.ClientSession() as session:
         data = await request.json()
-        async with session.post(
+        async with session.request(
+                request.method,
                 "https://api.telegram.org/bot{botkey}/{cmd}".format(
                     botkey=pyconfig.get('key'),
                     cmd=command_for_telegram),
