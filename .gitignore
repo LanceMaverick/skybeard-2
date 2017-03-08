@@ -1,4 +1,5 @@
 # Custom
+beard_cache/*
 *.dbbin
 beards/*/config.yml
 config.py
