@@ -1,4 +1,3 @@
-import aiohttp
 import string
 import random
 
@@ -6,7 +5,7 @@ import pyconfig
 
 from skybeard.beards import BeardChatHandler
 from skybeard.bearddbtable import BeardDBTable
-from skybeard.decorators import onerror
+from skybeard.decorators import onerror, admin
 from skybeard.server import app, web
 from skybeard.predicates import regex_predicate
 
@@ -27,7 +26,7 @@ class RelayBeard(BeardChatHandler):
 
     # __init__ is implicit
 
-    # TODO use the admin decorator for this command!
+    @admin
     @onerror
     async def get_key(self, msg):
         with type(self).key_table as table:
