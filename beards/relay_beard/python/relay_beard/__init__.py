@@ -46,21 +46,22 @@ class RelayBeard(BeardChatHandler):
 RelayBeard.key_table = BeardDBTable(RelayBeard, "key_table")
 
 
-@app.add_route('/relay{key:[a-zA-Z]+}/{command}', methods=['POST'])
+@app.add_route('/relay{key:[a-zA-Z]+}/{command}', methods=['GET', 'POST'])
 async def relay_to_telegram(request):
     command_for_telegram = request.match_info['command']
     key = request.match_info['key']
     with RelayBeard.key_table as table:
             e = table.find_one(key=key)
 
+    session = pyconfig.get('aiohttp_session')
     if e:
-        async with aiohttp.ClientSession() as session:
-            data = await request.json()
-            async with session.post(
-                    "https://api.telegram.org/bot{botkey}/{cmd}".format(
-                        botkey=pyconfig.get('key'),
-                        cmd=command_for_telegram),
-                    data=data) as resp:
-                ret_json = await resp.json()
+        # async with aiohttp.ClientSession() as session:
+        data = await request.json()
+        async with session.post(
+                "https://api.telegram.org/bot{botkey}/{cmd}".format(
+                    botkey=pyconfig.get('key'),
+                    cmd=command_for_telegram),
+                data=data) as resp:
+            ret_json = await resp.json()
 
     return web.json_response(ret_json)

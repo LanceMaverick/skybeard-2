@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 import os
+import aiohttp
 import asyncio
 import logging
 import itertools
@@ -128,14 +129,21 @@ def main(config):
                             "The command /{} occurs in more than "
                             "one beard.".format(cmd.cmd))
                     all_cmds.add(cmd)
-    
+
     bot = telepot.aio.DelegatorBot(
         pyconfig.get('key'),
         list(delegator_beard_gen(Beard.beards))
     )
 
     loop = asyncio.get_event_loop()
-    loop.create_task(bot.message_loop())
+
+    async def bot_message_loop_and_aiothttp_session():
+        async with aiohttp.ClientSession() as session:
+            pyconfig.set('aiohttp_session', session)
+            await bot.message_loop()
+
+    # loop.create_task(bot.message_loop())
+    loop.create_task(bot_message_loop_and_aiothttp_session())
 
     if pyconfig.get('start_server'):
         from skybeard.server import app
