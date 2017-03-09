@@ -13,52 +13,17 @@ from telepot.aio.delegate import (per_chat_id,
                                   create_open,
                                   pave_event_space,
                                   include_callback_query_chat_id)
-import skybeard.api
 from skybeard.beards import Beard, BeardChatHandler, SlashCommand
 from skybeard.help import create_help
-from skybeard.utils import (is_module,
-                            contains_setup_beard_py,
-                            get_literal_path,
-                            get_literal_beard_paths,
+from skybeard.utils import (get_literal_path,
                             all_possible_beards,
                             PythonPathContext)
+
 import config
 
 
 class DuplicateCommand(Exception):
     pass
-
-
-# def is_module(filename):
-#     fname, ext = os.path.splitext(filename)
-#     if ext == ".py":
-#         return True
-#     elif os.path.exists(os.path.join(filename, "__init__.py")):
-#         return True
-#     else:
-#         return False
-
-
-# def get_literal_path(path_or_autoloader):
-#     try:
-#         return path_or_autoloader.path
-#     except AttributeError:
-#         assert type(path_or_autoloader) is str,\
-#             "beard_path is not a str or an AutoLoader!"
-#         return path_or_autoloader
-
-
-# def get_literal_beard_paths(beard_paths):
-#     return [get_literal_path(x) for x in beard_paths]
-
-
-# def all_possible_beards(paths):
-#     literal_paths = get_literal_beard_paths(paths)
-
-#     for path in literal_paths:
-#         for f in os.listdir(path):
-#             if is_module(os.path.join(path, f)):
-#                 yield os.path.basename(f)
 
 
 def delegator_beard_gen(beards):
@@ -72,10 +37,6 @@ def delegator_beard_gen(beards):
 
 
 def main(config):
-
-    # if pyconfig.get('start_server'):
-    #     from skybeard import server
-
     if config.beards == "all":
         beards_to_load = all_possible_beards(config.beard_paths)
     else:
