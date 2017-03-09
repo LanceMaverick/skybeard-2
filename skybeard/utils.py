@@ -107,7 +107,6 @@ def setup_beard(beard_module_name,
     # Install requirements
     requirements_file = os.path.join(base_path, beard_requirements_file)
     if not pyconfig.get('no_auto_pip') and os.path.isfile(requirements_file):
-        subprocess.check_call("ls "+requirements_file, shell=True)
         pip_args = [
             'pip',
             'install',
