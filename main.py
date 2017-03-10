@@ -3,62 +3,29 @@ import os
 import aiohttp
 import asyncio
 import logging
-import itertools
+# import itertools
 import importlib
+# from importlib.util import find_spec
 import argparse
 import pyconfig
+from pathlib import Path
 
 import telepot
 from telepot.aio.delegate import (per_chat_id,
                                   create_open,
                                   pave_event_space,
                                   include_callback_query_chat_id)
-import skybeard.api
 from skybeard.beards import Beard, BeardChatHandler, SlashCommand
 from skybeard.help import create_help
-from skybeard.utils import (is_module,
-                            contains_setup_beard_py,
-                            get_literal_path,
-                            get_literal_beard_paths,
+from skybeard.utils import (get_literal_path,
                             all_possible_beards,
                             PythonPathContext)
+
 import config
 
 
 class DuplicateCommand(Exception):
     pass
-
-
-# def is_module(filename):
-#     fname, ext = os.path.splitext(filename)
-#     if ext == ".py":
-#         return True
-#     elif os.path.exists(os.path.join(filename, "__init__.py")):
-#         return True
-#     else:
-#         return False
-
-
-# def get_literal_path(path_or_autoloader):
-#     try:
-#         return path_or_autoloader.path
-#     except AttributeError:
-#         assert type(path_or_autoloader) is str,\
-#             "beard_path is not a str or an AutoLoader!"
-#         return path_or_autoloader
-
-
-# def get_literal_beard_paths(beard_paths):
-#     return [get_literal_path(x) for x in beard_paths]
-
-
-# def all_possible_beards(paths):
-#     literal_paths = get_literal_beard_paths(paths)
-
-#     for path in literal_paths:
-#         for f in os.listdir(path):
-#             if is_module(os.path.join(path, f)):
-#                 yield os.path.basename(f)
 
 
 def delegator_beard_gen(beards):
@@ -71,33 +38,48 @@ def delegator_beard_gen(beards):
                 per_chat_id(), create_open, beard, timeout=beard._timeout)
 
 
+def load_beard(beard_name, possible_dirs):
+    for beard_path in possible_dirs:
+        full_python_path = Path(get_literal_path(beard_path)).resolve()
+        full_setup_beard_path = str(
+            full_python_path / beard_name / "setup_beard.py")
+        module_name = beard_name+".setup_beard"
+
+        logger.debug("Attempting to import {} in file {}".format(
+            module_name, full_python_path))
+
+        with PythonPathContext(str(full_python_path)):
+            module_spec = importlib.util.find_spec(
+                module_name,
+                full_setup_beard_path)
+
+        logger.debug("Got spec: {}".format(module_spec))
+
+        if module_spec:
+            # if find_spec finds a module, subsequent calls with the same
+            # module name finds the already found module.
+            logger.debug("Breaking loop")
+            break
+    else:
+        # TODO make this a much better exception
+        raise Exception("No beard found!")
+
+    foo = importlib.util.module_from_spec(module_spec)
+    with PythonPathContext(str(Path(module_spec.origin).parent.parent)):
+        module_spec.loader.exec_module(foo)
+
+
 def main(config):
-
-    # if pyconfig.get('start_server'):
-    #     from skybeard import server
-
     if config.beards == "all":
         beards_to_load = all_possible_beards(config.beard_paths)
     else:
         beards_to_load = config.beards
 
-    # Not sure importing is for the best
-    for beard_path, possible_beard in itertools.product(
-            config.beard_paths, beards_to_load):
+    for possible_beard in beards_to_load:
+        # If possible, import the beard through setup_beard.py
+        load_beard(possible_beard, config.beard_paths)
 
-        with PythonPathContext(get_literal_path(beard_path)):
-            try:
-                importlib.import_module(possible_beard+".setup_beard")
-            except ImportError as ex:
-                # If the module named by possible_beard does not exist, pass.
-                #
-                # If the module named by possible_beard does exist, but
-                # .setup_beard does not exist, the module is imported anyway.
-                pass
-                # if importlib.import_module(possible_beard):
-                #     pass
-                # else:
-                #     raise ex
+        # TODO support old style beards?
 
         assert pyconfig.get('loglevel') == logger.getEffectiveLevel(), \
             "{} has caused the loglevel to be changed from {} to {}!".format(

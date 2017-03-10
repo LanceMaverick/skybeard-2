@@ -112,7 +112,7 @@ def setup_beard(beard_module_name,
             'install',
             '-r',
             # A little sanitising
-            re.sub("[^a-z0-9./_]", "", requirements_file)
+            re.sub("[^a-z0-9./_-]", "", requirements_file)
         ]
 
         if pyconfig.get('auto_pip_upgrade'):
