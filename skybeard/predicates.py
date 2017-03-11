@@ -9,14 +9,13 @@ def regex_predicate(pattern, lower=False):
     """Returns a predicate function which returns True if pattern is matched.
         if lower == True, the text will be made lower case."""
 
-    compiled_pattern = re.compile(pattern, re.IGNORECASE if lower else 0)
+    if lower:
+        compiled_pattern = re.compile(pattern, re.IGNORECASE)
+    else:
+        compiled_pattern = re.compile(pattern)
 
     def retfunc(chat_handler, msg):
         try:
-            # if lower:
-            #     text = msg['text'].lower()
-            # else:
-            #     text = msg['text']
             text = msg['text']
             logger.debug("Matching regex: '{}' in '{}'".format(
                 pattern, text))

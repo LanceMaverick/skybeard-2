@@ -20,8 +20,6 @@ class PostCats(BeardChatHandler):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.register_command(
-            regex_predicate('(give|show) me spacecats'), self.send_cat)
 
     async def send_cat(self, msg):
         cat_photos = [
@@ -40,6 +38,7 @@ class PostCats(BeardChatHandler):
 
         try:
             choice = random.choice(cat_photos)
+            await self.sender.sendChatAction('upload_photo')
             await self.sender.sendPhoto(
                 (basename(choice), urlopen(choice)))
         except Exception as e:
@@ -47,3 +46,4 @@ class PostCats(BeardChatHandler):
             await self.sender.sendPhoto(
                 ("cat_photo.jpg",
                  urlopen('http://cdn.meme.am/instances/500x/55452028.jpg')))
+            raise e
