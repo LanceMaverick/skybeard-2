@@ -1,3 +1,4 @@
+import types
 import logging
 import re
 
@@ -7,19 +8,28 @@ logger = logging.getLogger(__name__)
 def regex_predicate(pattern, lower=False):
     """Returns a predicate function which returns True if pattern is matched.
         if lower == True, the text will be made lower case."""
+
+    compiled_pattern = re.compile(pattern, re.IGNORECASE if lower else 0)
+
     def retfunc(chat_handler, msg):
         try:
-            if lower:
-                text = msg['text'].lower()
-            else:
-                text = msg['text']
+            # if lower:
+            #     text = msg['text'].lower()
+            # else:
+            #     text = msg['text']
+            text = msg['text']
             logger.debug("Matching regex: '{}' in '{}'".format(
                 pattern, text))
-            retmatch = re.match(pattern, text)
+            retmatch = compiled_pattern.match(text)
             logger.debug("Match: {}".format(retmatch))
             return retmatch
         except KeyError:
             return False
+
+    def _toJSON(self):
+        return str(compiled_pattern)
+
+    retfunc.toJSON = types.MethodType(_toJSON, retfunc)
 
     return retfunc
 

@@ -32,10 +32,16 @@ class Command(object):
         self.hlp = hlp
 
     def toJSON(self):
-        return {
-            "predicate": self.pred,
-            "help": self.hlp
-        }
+        try:
+            return {
+                "predicate": self.pred.toJSON(),
+                "help": self.hlp,
+            }
+        except AttributeError:
+            return {
+                "predicate": "(unserializable)",
+                "help": self.hlp,
+            }
 
 
 class SlashCommand(object):
