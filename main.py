@@ -49,9 +49,16 @@ def load_beard(beard_name, possible_dirs):
             module_name, full_python_path))
 
         with PythonPathContext(str(full_python_path)):
-            module_spec = importlib.util.find_spec(
-                module_name,
-                full_setup_beard_path)
+            try:
+                module_spec = importlib.util.find_spec(
+                    module_name,
+                    full_setup_beard_path)
+            except ImportError:
+                # module_name is some_beard.setup_beard which means find_spec
+                # automatically imports some_beard when it tries to find the
+                # spec. If this fails, then just set module_spec to None (so it
+                # is as if find_spec has found nothing).
+                module_spec = None
 
         logger.debug("Got spec: {}".format(module_spec))
 
@@ -64,8 +71,11 @@ def load_beard(beard_name, possible_dirs):
         # Try the old way
         logger.warning("Attempting to import {} as an old style beard. Old beards will eventually be deprecated.".format(beard_name))
         for beard_path in possible_dirs:
-            with PythonPathContext(str(beard_path)):
-                module = importlib.import_module(beard_name)
+            try:
+                with PythonPathContext(str(beard_path)):
+                    module = importlib.import_module(beard_name)
+            except ImportError:
+                pass
 
         # TODO make this a much better exception
         if module:
