@@ -61,8 +61,17 @@ def load_beard(beard_name, possible_dirs):
             logger.debug("Breaking loop")
             break
     else:
+        # Try the old way
+        logger.warning("Attempting to import {} as an old style beard. Old beards will eventually be deprecated.".format(beard_name))
+        for beard_path in possible_dirs:
+            with PythonPathContext(str(beard_path)):
+                module = importlib.import_module(beard_name)
+
         # TODO make this a much better exception
-        raise Exception("No beard found!")
+        if module:
+            return
+        else:
+            raise Exception("No beard found! Looked in: {}. Trying to find: {}".format(possible_dirs, beard_name))
 
     foo = importlib.util.module_from_spec(module_spec)
     with PythonPathContext(str(Path(module_spec.origin).parent.parent)):
