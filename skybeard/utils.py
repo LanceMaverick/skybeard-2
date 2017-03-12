@@ -5,14 +5,16 @@ import sys
 import inspect
 import shlex
 import logging
+import pip
 import subprocess
 import yaml
-from functools import lru_cache
+import aiohttp
 
 import pyconfig
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.NOTSET)
+
 
 
 def is_module(path):
@@ -26,8 +28,7 @@ def is_module(path):
         if any(os.path.splitext(x)[1] == ".py" for x in os.listdir(path)):
             return True
     except (FileNotFoundError, NotADirectoryError) as e:
-        logger.debug(
-            e, 'Skipping un-recognised file or directory in plug-in path')
+        logger.debug(e, 'Skipping un-recognised file or directory in plug-in path')
         pass
 
 
@@ -142,8 +143,7 @@ def get_literal_path(path_or_autoloader):
     try:
         return path_or_autoloader.path
     except AttributeError:
-        assert type(path_or_autoloader) is str,\
-            "beard_path is not a str or an AutoLoader!"
+        assert type(path_or_autoloader) is str, "beard_path is not a str or an AutoLoader!"
         return path_or_autoloader
 
 
@@ -229,9 +229,16 @@ def partition_text(text):
                 yield text_list[i]
 
 
-@lru_cache()
+BOT_JSON = None
+
+
 async def getMe():
-    async with pyconfig.get('aiohttp_session').session.get(
-            "https://api.telegram.org/bot{}/getMe".format(
-                pyconfig.get('key'))) as resp:
-        return (await resp.json())['result']
+    global BOT_JSON
+    if not BOT_JSON:
+        async with aiohttp.ClientSession() as session:
+            async with session.get(
+                    "https://api.telegram.org/bot{}/getMe".format(
+                        pyconfig.get('key'))) as resp:
+                BOT_JSON = (await resp.json())['result']
+
+    return BOT_JSON
