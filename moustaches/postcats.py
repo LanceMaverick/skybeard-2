@@ -1,5 +1,9 @@
-# show spacecats test plugin
-# Adapted from work by LanceMaverick
+"""
+A Skybeard moustache that shows spacecats on request
+
+Adapted from work by LanceMaverick
+
+"""
 from os.path import basename
 import random
 import logging
