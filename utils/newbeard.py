@@ -4,9 +4,7 @@ import argparse
 from pathlib import Path
 from shutil import copytree
 
-from .utils import make_init_text
-
-import stringcase
+from utils import make_init_text
 
 
 def make_readme(dir_, name):
