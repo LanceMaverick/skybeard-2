@@ -73,15 +73,18 @@ class BoteBeard(BeardChatHandler):
             '*Your all  time stats:*',
             'name: *{name}*',
             'last played: *{last_played}*',
-            'No. of battles: *{battles}*',
+            'number of battles: *{battles}*',
             'win rate: *{winrate}*',
-            'average xp: *{xp}*',])
+            'average xp: *{xp}*',
+            'max damage record: *{dmg} ({dmg_ship})*',
+            'max kills record: *{kill} ({kill_ship})*',
+            ])
         try:
             await self.sender.sendMessage(
                     template.format(**details),
                     parse_mode = 'markdown')
         except Exception as e:
-            logger.ERROR(e)
+            logger.error(e)
             await self.sender.sendMessage(template.format(**details))
 
 
