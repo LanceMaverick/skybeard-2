@@ -37,7 +37,7 @@ class WillBeard(BeardChatHandler):
     async def query_will(self, msg):
         query_text = msg['text'].split(', ', 1)[1]
         if any(w in query_text.lower() for w in filter_words):
-            await self.sender.sendMessage("I'm not comfortable googling that...")
+            await self.sender.sendMessage("Let's move on shall we...")
             return
         response = requests.post(
                 url="{0}/api/start_session".format(server_url),

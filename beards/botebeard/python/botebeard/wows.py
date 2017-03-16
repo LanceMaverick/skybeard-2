@@ -8,6 +8,11 @@ ships_path = os.path.join(
         os.path.dirname(__file__),
         'ships.yml')
 
+def get_ship(wows, ship_id):
+    data = wows.encyclopedia.ships(ship_id = ship_id).data
+    keys = data.keys()
+    return data[list(keys)[0]]
+
 def get_player_stats(captain_id):
     wows = wargaming.WoWS(
             application_id = app_id, 
@@ -21,15 +26,30 @@ def get_player_stats(captain_id):
             ).strftime('%d.%m.%Y')
     pvp = data['statistics']['pvp']
     battles = pvp['battles']
+    
     winrate = round(float(pvp['wins'])/float(battles)*100, 2)
     av_xp = round(float(pvp['xp'])/float(battles), 2)
+    
+    max_dmg = pvp['max_damage_dealt']
+    dmg_ship_id = pvp['max_damage_dealt_ship_id']
+    max_dmg_ship = get_ship(wows, dmg_ship_id)['name']
+#.data[dmg_ship_id]['name']
+
+    max_kills = pvp['max_frags_battle']
+    kill_ship_id = pvp['max_frags_ship_id']
+    kill_ship = get_ship(wows, kill_ship_id)['name']
+
 
     return dict(
             name = name,
             last_played = last_played,
             battles = battles,
             winrate = winrate,
-            xp = av_xp
+            xp = av_xp,
+            dmg = max_dmg,
+            dmg_ship =  max_dmg_ship,
+            kill = max_kills,
+            kill_ship = kill_ship,
             )
 
 def find_ship(search):

@@ -31,6 +31,18 @@ class Command(object):
         self.coro = coro
         self.hlp = hlp
 
+    def toJSON(self):
+        try:
+            return {
+                "predicate": self.pred.toJSON(),
+                "help": self.hlp,
+            }
+        except AttributeError:
+            return {
+                "predicate": "(unserializable)",
+                "help": self.hlp,
+            }
+
 
 class SlashCommand(object):
     """Holds information to determine whether a telegram command was sent."""
@@ -39,6 +51,12 @@ class SlashCommand(object):
         self.pred = command_predicate(cmd)
         self.coro = coro
         self.hlp = hlp
+
+    def toJSON(self):
+        return {
+            "command": "/"+self.cmd,
+            "help": self.hlp
+        }
 
 def create_command(cmd_or_pred, coro, hlp=None):
     """Creates a Command or SlashCommand object as appropriate.
@@ -168,6 +186,16 @@ class BeardChatHandler(telepot.aio.helper.ChatHandler, metaclass=Beard):
 
         return type(self)._username
 
+    @classmethod
+    def toJSON(cls):
+        # Not a coroutine because it's useful to use this in list
+        # comprehensions
+        return {
+            "name": cls.__name__,
+            "commands": [c.toJSON() for c in cls.__commands__],
+            "userhelp": cls.__userhelp__
+        }
+
     def __init__(self, *args, **kwargs):
         self._instance_commands = []
         super().__init__(*args, **kwargs)
@@ -289,7 +317,7 @@ class BeardChatHandler(telepot.aio.helper.ChatHandler, metaclass=Beard):
 
 @app.add_route('/loadedBeards', methods=['GET'])
 async def loaded_beards(request):
-    return web.json_response([str(x) for x in Beard.beards])
+    return web.json_response([b.toJSON() for b in Beard.beards])
 
 
 @app.add_route('/availableCommands', methods=['GET'])

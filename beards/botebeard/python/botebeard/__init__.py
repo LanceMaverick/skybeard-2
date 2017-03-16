@@ -11,6 +11,7 @@ from .wows import get_player_stats, get_player_ship_stats, find_ship
 logger = logging.getLogger(__name__)
 
 class BoteBeard(BeardChatHandler):
+    __userhelp__ = "Get player and ship statistics for World of Warships"
     __commands__ = [
            ('wowsnew',  'add_profile', 'add your profile to the db'),
            ('wowsstats', 'player_stats', 'see your total stats'),
@@ -73,15 +74,18 @@ class BoteBeard(BeardChatHandler):
             '*Your all  time stats:*',
             'name: *{name}*',
             'last played: *{last_played}*',
-            'No. of battles: *{battles}*',
+            'number of battles: *{battles}*',
             'win rate: *{winrate}*',
-            'average xp: *{xp}*',])
+            'average xp: *{xp}*',
+            'max damage record: *{dmg} ({dmg_ship})*',
+            'max kills record: *{kill} ({kill_ship})*',
+            ])
         try:
             await self.sender.sendMessage(
                     template.format(**details),
                     parse_mode = 'markdown')
         except Exception as e:
-            logger.ERROR(e)
+            logger.error(e)
             await self.sender.sendMessage(template.format(**details))
 
 

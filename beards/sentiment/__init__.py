@@ -22,7 +22,7 @@ class SentBeard(BeardChatHandler):
     __userhelp__ = """
     Logging for sentiment analysis.
    """ 
-    __routes__ = [('/sentData', 'http_get_sents', 'get'),]
+#    __routes__ = [('/sentData', 'http_get_sents', 'get'),]
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
