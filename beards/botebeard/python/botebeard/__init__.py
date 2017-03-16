@@ -11,6 +11,7 @@ from .wows import get_player_stats, get_player_ship_stats, find_ship
 logger = logging.getLogger(__name__)
 
 class BoteBeard(BeardChatHandler):
+    __userhelp__ = "Get player and ship statistics for World of Warships"
     __commands__ = [
            ('wowsnew',  'add_profile', 'add your profile to the db'),
            ('wowsstats', 'player_stats', 'see your total stats'),
