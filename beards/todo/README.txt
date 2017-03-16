@@ -1,1 +1,1 @@
-A beard named todo for skybeard-2.
+Make lists of things to do!
