@@ -38,6 +38,27 @@ def delegator_beard_gen(beards):
                 per_chat_id(), create_open, beard, timeout=beard._timeout)
 
 
+def find_last_child(path):
+    return Path(str(path).replace(str(path.parent)+"/", ""))
+
+
+def load_stache(stache_name, possible_dirs):
+    for dir_ in possible_dirs:
+        path = Path(dir_).resolve()
+        python_path = path.parent
+        with PythonPathContext(str(python_path)):
+            module_spec = importlib.util.find_spec(
+                "{}.{}".format(str(find_last_child(path)), stache_name))
+
+            if module_spec:
+                foo = importlib.util.module_from_spec(module_spec)
+                module_spec.loader.exec_module(foo)
+
+                return
+
+    raise Exception("No stache with name {} found".format(stache_name))
+
+
 def load_beard(beard_name, possible_dirs):
     for beard_path in possible_dirs:
         full_python_path = Path(get_literal_path(beard_path)).resolve()
@@ -93,6 +114,9 @@ def main(config):
         beards_to_load = all_possible_beards(config.beard_paths)
     else:
         beards_to_load = config.beards
+
+    for stache in config.staches:
+        load_stache(stache, config.stache_paths)
 
     for possible_beard in beards_to_load:
         # If possible, import the beard through setup_beard.py

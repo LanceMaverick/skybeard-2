@@ -16,9 +16,18 @@ beard_paths = [
 # load
 # beards = "all"
 beards = [
-    "postcats",
+    "debugbeard",
 #    "pdfpreviewbeard", # From git (above)
 ]
+
+stache_paths = [
+    "moustaches",
+]
+
+staches = [
+    "postcats",
+]
+
 
 db_url = "sqlite:///skybeard-2.db"
 db_bin_path = "./db_binary_entries"
