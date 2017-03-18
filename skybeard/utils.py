@@ -159,7 +159,7 @@ def all_possible_beards(paths):
     literal_paths = get_literal_beard_paths(paths)
 
     for path in literal_paths:
-        for f in os.listdir(path):
+        for f in (x for x in os.listdir(path) if not x.startswith(".")):
             if is_module(os.path.join(path, f)):
                 yield os.path.basename(f)
 
