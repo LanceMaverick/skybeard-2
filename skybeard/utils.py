@@ -134,8 +134,15 @@ def setup_beard(beard_module_name,
         # module is reloaded to ensure that if a module is found in
         # beard_python_path called beard_module_name, *that* module is loaded.
         mod = importlib.import_module(beard_module_name)
-        importlib.reload(mod)
+        # If it's a namespace module, then it hasn't yet imported the new
+        # module. Reload to get the new one.
+        if is_namespace_module(mod):
+            importlib.reload(mod)
 
+
+def is_namespace_module(mod):
+    """Check is the given module is a namespace module."""
+    return not hasattr(mod, '__file__')
 
 def get_literal_path(path_or_autoloader):
     """Gets literal path from AutoLoader or returns input."""
