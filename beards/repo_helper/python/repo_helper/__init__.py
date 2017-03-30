@@ -34,15 +34,16 @@ class RepoHelper(BeardChatHandler):
         gh = Github()
         try:
             repo = gh.get_repo(repo_name)
+
+            data = {
+                "name": repo.name,
+                "description": repo.description,
+                "git_url": repo.clone_url
+            }
         except github.GithubException.UnknownObjectException:
             await self.sender.sendMessage("Repo not found.")
             return
 
-        data = {
-            "name": repo.name,
-            "description": repo.description,
-            "git_url": repo.clone_url
-        }
 
         name = "{}.yml".format(data["name"])
         encoded_data = yaml.dump(data,
