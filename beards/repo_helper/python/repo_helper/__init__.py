@@ -1,4 +1,5 @@
 from pygithub3 import Github
+import github
 import yaml
 
 from skybeard.beards import BeardChatHandler
@@ -31,7 +32,11 @@ class RepoHelper(BeardChatHandler):
         await self.sender.sendChatAction("upload_document")
 
         gh = Github()
-        repo = gh.get_repo(repo_name)
+        try:
+            repo = gh.get_repo(repo_name)
+        except github.GithubException.UnknownObjectException:
+            await self.sender.sendMessage("Repo not found.")
+
         data = {
             "name": repo.name,
             "description": repo.description,
