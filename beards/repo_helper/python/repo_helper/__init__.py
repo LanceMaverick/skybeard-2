@@ -36,6 +36,7 @@ class RepoHelper(BeardChatHandler):
             repo = gh.get_repo(repo_name)
         except github.GithubException.UnknownObjectException:
             await self.sender.sendMessage("Repo not found.")
+            return
 
         data = {
             "name": repo.name,
