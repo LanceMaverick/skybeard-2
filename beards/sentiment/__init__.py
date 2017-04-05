@@ -50,7 +50,7 @@ class SentBeard(BeardChatHandler):
         await sent.save(msg, score)
     @onerror
     async def report(self, msg):
-        await self.sender.sendMessage('Generating report...')
+        await self.sender.sendMessage('Generating report for the last 1000 messages...')
         await self.sender.sendChatAction('upload_photo')
         plot1, plot2, plot3, plot4 = sent.get_results(msg, neut= False)
         await self.sender.sendPhoto((

@@ -50,6 +50,7 @@ def get_results(msg, neut = True):
     with dataset.connect(config.db_path) as db:
         table = db['message_log']
     results = table.find(chat_id=msg['chat']['id'])
+
     
     #skip or include neutral messages based on neut value
     if neut: 
@@ -57,6 +58,7 @@ def get_results(msg, neut = True):
     else:
         results_list = [
                 row for row in results if row['compound'] != 0.0]
+    results_list = results_list[-1000:]
 
     u_name = [row['user_name'] for row in results_list]
     users = list(set(u_name))
