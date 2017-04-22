@@ -1,8 +1,62 @@
+from collections import OrderedDict
 from functools import wraps, partial
 import logging
 import pyconfig
 
+from ..utils import get_args
+
 logger = logging.getLogger(__name__)
+
+
+# TODO move this stuff to a file per decorator
+
+
+def getargs(text, return_string=None):
+    """Gets the arguments from a given command.
+
+    Expects a function with the arguments like so:
+        async def f(self, msg, args):
+            # Do things
+
+    """
+    return partial(_getargs,
+                   text=text,
+                   return_string=return_string)
+
+
+def _getargs(f, text="No args provided.", return_string=None):
+    """See getargs for docs."""
+    @wraps(f)
+    async def g(beard, msg):
+        args = get_args(msg, return_string=return_string)
+        if not args:
+            await beard.sender.sendMessage(text)
+            return
+
+        await f(beard, msg, args)
+
+    return g
+
+
+def askfor(vars_n_qs):
+    """TODO docs."""
+    return partial(_askfor,
+                   vars_n_qs=vars_n_qs)
+
+
+def _askfor(f, vars_n_qs):
+    @wraps(f)
+    async def g(beard, msg):
+        kwargs = dict()
+        for var, question in OrderedDict(vars_n_qs).items():
+            await beard.sender.sendMessage(question)
+            # TODO something fancy if there's a timeout here
+            resp = await beard.listener.wait()
+            kwargs[var] = resp['text']
+
+        await f(beard, msg, **kwargs)
+
+    return g
 
 
 # def admin(f_or_text=None, **kwargs):
