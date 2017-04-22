@@ -4,7 +4,6 @@ import pyconfig
 
 logger = logging.getLogger(__name__)
 
-# TODO move this stuff to a file per decorator
 
 # def admin(f_or_text=None, **kwargs):
 def admin(f):
