@@ -1,9 +1,16 @@
 from collections import OrderedDict
 from functools import wraps, partial
 
+from ..utils import get_args
+
 
 def getargsorask(vars_n_qs):
-    """TODO docs."""
+    """A combination of getargs and askfor decorator.
+
+    If the args are not provided during the function call, they will be asked
+    for the same way askfor asks for things.
+
+    """
     return partial(_getargsorask,
                    vars_n_qs=vars_n_qs)
 
