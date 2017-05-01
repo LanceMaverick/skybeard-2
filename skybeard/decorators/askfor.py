@@ -1,5 +1,5 @@
 from collections import OrderedDict
-from functools import wraps, partial
+from functools import wraps
 
 
 def askfor(vars_n_qs):
@@ -22,21 +22,18 @@ def askfor(vars_n_qs):
       2) 456
 
     """
-    return partial(_askfor,
-                   vars_n_qs=vars_n_qs)
 
+    def wrapper(f):
+        @wraps(f)
+        async def g(beard, msg):
+            kwargs = dict()
+            for var, question in OrderedDict(vars_n_qs).items():
+                await beard.sender.sendMessage(question)
+                # TODO something fancy if there's a timeout here
+                resp = await beard.listener.wait()
+                kwargs[var] = resp['text']
 
-def _askfor(f, vars_n_qs):
-    @wraps(f)
-    async def g(beard, msg):
-        kwargs = dict()
-        for var, question in OrderedDict(vars_n_qs).items():
-            await beard.sender.sendMessage(question)
-            # TODO something fancy if there's a timeout here
-            resp = await beard.listener.wait()
-            kwargs[var] = resp['text']
+            await f(beard, msg, **kwargs)
 
-        await f(beard, msg, **kwargs)
-
-    return g
-
+        return g
+    return wrapper
