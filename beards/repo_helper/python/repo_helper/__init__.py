@@ -18,7 +18,7 @@ class RepoHelper(BeardChatHandler):
 
     # __init__ is implicit
 
-    @onerror
+    @onerror()
     async def make_repo_yaml(self, msg):
         args = get_args(msg)
         try:

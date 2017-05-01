@@ -15,7 +15,7 @@ class DebugBeard(BeardChatHandler):
         ('getme', 'who_am_i', "Returns JSON for bot.getMe().")
     ]
 
-    @onerror
+    @onerror()
     async def who_am_i(self, msg):
         await self.sender.sendMessage(str(await self.bot.getMe()))
 

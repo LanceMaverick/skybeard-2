@@ -13,7 +13,7 @@ class OnError(BeardChatHandler):
         ("veryfancyonerror", 'very_fancy_on_error', 'Displays very non-default <code>@onerror</code> behaviour')
     ]
 
-    @onerror
+    @onerror()
     async def on_error(self, msg):
         raise Exception
 

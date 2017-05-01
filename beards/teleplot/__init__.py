@@ -22,7 +22,7 @@ class TelePlotSB(BeardChatHandler):
         ("teleplot", "makePlot", "make a plot." ),
     ]
 
-    @onerror
+    @onerror()
     async def makePlot(self, msg):
         logger = logging.getLogger("TelePlot")
         logger.setLevel(logging.DEBUG)

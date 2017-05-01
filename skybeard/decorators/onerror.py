@@ -1,7 +1,7 @@
-from functools import wraps, partial
+from functools import wraps
 
 
-def onerror(f_or_text=None, **kwargs):
+def onerror(text=None, **kwargs):
     """A decorator for sending a message to the user on an exception.
 
     If no arguments are used (i.e. the function is passed directly to the
@@ -17,23 +17,21 @@ def onerror(f_or_text=None, **kwargs):
     beard.sender.sendMessage(**kwargs) and then calls
     beard.__onerror__(exception).
     """
-    if isinstance(f_or_text, str):
-        return partial(onerror, text=f_or_text, **kwargs)
-    elif f_or_text is None:
-        return partial(onerror, **kwargs)
 
-    @wraps(f_or_text)
-    async def g(beard, *fargs, **fkwargs):
-        try:
-            return await f_or_text(beard, *fargs, **fkwargs)
-        except Exception as e:
-            if kwargs:
-                await beard.sender.sendMessage(**kwargs)
-            else:
-                await beard.sender.sendMessage(
-                    "Sorry, something went wrong")
+    def wrapper(f):
+        @wraps(f)
+        async def g(beard, *fargs, **fkwargs):
+            try:
+                return await f(beard, *fargs, **fkwargs)
+            except Exception as e:
+                if text or kwargs:
+                    await beard.sender.sendMessage(text, **kwargs)
+                else:
+                    await beard.sender.sendMessage(
+                        "Sorry, something went wrong")
 
-            await beard.__onerror__(e)
-            raise e
+                await beard.__onerror__(e)
+                raise e
 
-    return g
+        return g
+    return wrapper

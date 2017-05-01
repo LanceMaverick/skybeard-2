@@ -48,7 +48,7 @@ class SentBeard(BeardChatHandler):
                             msg['from']['first_name']))
         
         await sent.save(msg, score)
-    @onerror
+    @onerror()
     async def report(self, msg):
         await self.sender.sendMessage('Generating report...')
         await self.sender.sendChatAction('upload_photo')

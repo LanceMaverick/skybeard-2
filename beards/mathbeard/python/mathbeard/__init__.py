@@ -27,7 +27,7 @@ class Calculator(BeardChatHandler):
     __commands__ = [
             ('calc','calculate','Performs a calculation')]
     
-    @onerror
+    @onerror()
     async def calculate(self, msg):
         
         #extract the equation input by the user

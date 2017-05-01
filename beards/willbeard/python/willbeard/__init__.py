@@ -33,7 +33,7 @@ class WillBeard(BeardChatHandler):
                 'queries the W.I.L.L assistant')
             ]
 
-    @onerror
+    @onerror()
     async def query_will(self, msg):
         query_text = msg['text'].split(', ', 1)[1]
         if any(w in query_text.lower() for w in filter_words):
