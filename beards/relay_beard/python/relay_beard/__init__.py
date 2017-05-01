@@ -30,7 +30,7 @@ To use, get a key with /getrelaykey and then you can relay commands to the bot u
 
     # __init__ is implicit
 
-    @admin
+    @admin()
     @onerror()
     async def get_key(self, msg):
         with type(self).key_table as table:
@@ -45,7 +45,7 @@ To use, get a key with /getrelaykey and then you can relay commands to the bot u
 
         await self.sender.sendMessage("Key is: {}".format(e['key']))
 
-    @admin
+    @admin()
     @onerror()
     async def revoke_key(self, msg):
         with type(self).key_table as table:
