@@ -10,6 +10,7 @@ import argparse
 import pyconfig
 from pathlib import Path
 
+import yaml
 import telepot
 from telepot.aio.delegate import (per_chat_id,
                                   create_open,
@@ -21,7 +22,7 @@ from skybeard.utils import (get_literal_path,
                             all_possible_beards,
                             PythonPathContext)
 
-import config
+# import config
 
 
 class DuplicateCommand(Exception):
@@ -109,18 +110,18 @@ def load_beard(beard_name, possible_dirs):
         module_spec.loader.exec_module(foo)
 
 
-def main(config):
-    if config.beards == "all":
-        beards_to_load = all_possible_beards(config.beard_paths)
+def main():
+    if pyconfig.get('beards') == "all":
+        beards_to_load = all_possible_beards(pyconfig.get('beard_paths'))
     else:
-        beards_to_load = config.beards
+        beards_to_load = pyconfig.get('beards')
 
-    for stache in config.staches:
-        load_stache(stache, config.stache_paths)
+    for stache in pyconfig.get('staches'):
+        load_stache(stache, pyconfig.get('stache_paths'))
 
     for possible_beard in beards_to_load:
         # If possible, import the beard through setup_beard.py
-        load_beard(possible_beard, config.beard_paths)
+        load_beard(possible_beard, pyconfig.get('beard_paths'))
 
         # TODO support old style beards?
 
@@ -190,7 +191,7 @@ def main(config):
             cors.add(route)
 
         handler = app.make_handler()
-        f = loop.create_server(handler, config.host, config.port)
+        f = loop.create_server(handler, pyconfig.get('host'), pyconfig.get('port'))
         srv = loop.run_until_complete(f)
         print('serving on', srv.sockets[0].getsockname())
 
@@ -228,13 +229,23 @@ if __name__ == '__main__':
     parser.add_argument('--auto-pip-upgrade', action='store_const', const=True,
                         default=False)
 
+    # Load the config file and put it into pyconfig
+    with open("config.yml") as config_file:
+        for k, v in yaml.load(config_file).items():
+            pyconfig.set(k, v)
+
+    beard_paths = pyconfig.get('beard_paths')
+    pyconfig.set('beard_paths', [os.path.expanduser(x) for x in beard_paths])
+    stache_paths = pyconfig.get('stache_paths')
+    pyconfig.set('stache_paths', [os.path.expanduser(x) for x in stache_paths])
+
     parsed = parser.parse_args()
 
     pyconfig.set('loglevel', parsed.loglevel)
     pyconfig.set('start_server', parsed.start_server)
     pyconfig.set('no_auto_pip', parsed.no_auto_pip)
     pyconfig.set('auto_pip_upgrade', parsed.auto_pip_upgrade)
-    pyconfig.set('admins', [a[1] for a in config.admins])
+    pyconfig.set('admins', [a[1] for a in pyconfig.get('admins')])
     print(pyconfig.get('admins'))
 
     logging.basicConfig(
@@ -246,21 +257,21 @@ if __name__ == '__main__':
     # Set up the master beard
     # TODO consider making this not a parrt of the BeardChatHandler class now
     # that we use pyconfig.
-    BeardChatHandler.setup_beards(parsed.key, config.db_url)
-    pyconfig.set('db_url', config.db_url)
-    pyconfig.set('db_bin_path', config.db_bin_path)
+    BeardChatHandler.setup_beards(parsed.key, pyconfig.get('db_url'))
+    # pyconfig.set('db_url', config.db_url)
+    # pyconfig.set('db_bin_path', config.db_bin_path)
     if not os.path.exists(pyconfig.get('db_bin_path')):
         os.mkdir(pyconfig.get('db_bin_path'))
 
     # If the user does not specially request --no-help, set up help command.
     if not parsed.no_help:
-        create_help(config)
+        create_help()
 
-    logger.debug("Config found to be: {}".format(dir(config)))
+    # logger.debug("Config found to be: {}".format(dir(config)))
 
     # TODO make an argparse here to override the config file (and also specify
     # the config file)
-    main(config)
+    main()
 
 # bot = telepot.aio.DelegatorBot(TOKEN, [
 #     include_callback_query_chat_id(
