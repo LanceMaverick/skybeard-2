@@ -27,26 +27,26 @@ class NationalRailDepartures(BeardChatHandler):
         ("disruptions", "getDisruptions", "Check Information on disruptions to today's services."),
     ]
 
-    @onerror
+    @onerror()
     async def searchStats(self, msg):
         natRail = NatRail.RailScraper(config.rail_url, config.stat_codes)
         out = format_msg(msg)
         out, other = natRail.searchStations(out)
         await self.sender.sendMessage(out)
 
-    @onerror
+    @onerror()
     async def getStatus(self, msg):
         natRail = NatRail.RailScraper(config.rail_url, config.stat_codes)
         output = natRail.getStatus()
         await self.sender.sendMessage(output, parse_mode="Markdown")
 
-    @onerror
+    @onerror()
     async def getDisruptions(self, msg):
         natRail = NatRail.RailScraper(config.rail_url, config.stat_codes)
         output = natRail.getNews(format_msg(msg))
         await self.sender.sendMessage(output, parse_mode="Markdown")
 
-    @onerror
+    @onerror()
     async def checkTimes(self, msg):
         natRail = NatRail.RailScraper(config.rail_url, config.stat_codes)
         out = format_msg(msg)

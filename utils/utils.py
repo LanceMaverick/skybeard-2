@@ -21,7 +21,7 @@ class {beardclassname}(BeardChatHandler):
 
     # __init__ is implicit
 
-    @onerror
+    @onerror()
     async def echo(self, msg):
         args = get_args(msg)
         if args:

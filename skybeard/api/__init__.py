@@ -26,14 +26,14 @@ class APIBeard(BeardChatHandler):
     async def who_am_i(self, msg):
         await self.sender.sendMessage("Current chat_id: "+str(self.chat_id))
 
-    @admin
+    @admin()
     async def all_keys(self, msg):
         return await self.sender.sendMessage("All keys are:\n{}".format(
             "\n".join((
                 "{}:{}".format(
                     x["chat_id"], x["key"]) for x in database.get_all_keys()))))
 
-    @admin
+    @admin()
     async def get_key(self, msg):
         entry = database.get_key(self.chat_id)
         return await self.sender.sendMessage("Your key: {}".format(entry["key"]))
