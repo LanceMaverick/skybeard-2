@@ -1,0 +1,23 @@
+beard_paths:
+  - beards/
+  - beard_cache/
+
+beards:
+  - debugbeard
+
+stache_paths: 
+  - moustaches
+
+staches:
+  - postcats
+
+db_url: sqlite:///skybeard-2.db
+db_bin_path: ./db_binary_entries
+
+admins:
+  [
+  [My name, 99999999],
+  ]
+
+host: 0.0.0.0
+port: 8000
