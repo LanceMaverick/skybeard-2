@@ -6,9 +6,11 @@ from skybeard.mixins import PaginatorMixin
 from skybeard.utils import embolden, italisize
 
 # import config
+import pyconfig
 import yaml
 
-config = yaml.load(open("config.yml"))
+config = yaml.load(open(pyconfig.get('config_file')))
+
 
 # TODO neaten the logic so fetching and formatting are truly separate again
 async def fetch_user_help():
