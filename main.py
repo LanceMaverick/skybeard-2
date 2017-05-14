@@ -219,6 +219,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Skybeard hails you!')
 
     parser.add_argument('-k', '--key', default=os.environ.get('TG_BOT_TOKEN'))
+    parser.add_argument('-c', '--config-file', default=os.path.abspath("config.yml"))
     parser.add_argument('--no-help', action='store_true')
     parser.add_argument('-d', '--debug', action='store_const', dest="loglevel",
                         const=logging.DEBUG, default=logging.INFO)
@@ -229,8 +230,12 @@ if __name__ == '__main__':
     parser.add_argument('--auto-pip-upgrade', action='store_const', const=True,
                         default=False)
 
+    parsed = parser.parse_args()
+
+    pyconfig.set('config_file', os.path.abspath(parsed.config_file))
+
     # Load the config file and put it into pyconfig
-    with open("config.yml") as config_file:
+    with open(pyconfig.get('config_file')) as config_file:
         for k, v in yaml.load(config_file).items():
             pyconfig.set(k, v)
 
@@ -239,7 +244,6 @@ if __name__ == '__main__':
     stache_paths = pyconfig.get('stache_paths')
     pyconfig.set('stache_paths', [os.path.expanduser(x) for x in stache_paths])
 
-    parsed = parser.parse_args()
 
     pyconfig.set('loglevel', parsed.loglevel)
     pyconfig.set('start_server', parsed.start_server)
