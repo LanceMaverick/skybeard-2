@@ -15,7 +15,7 @@ class ConfigHelper(BeardChatHandler):
 
     # __init__ is implicit
 
-    @onerror
-    @admin
+    @onerror()
+    @admin()
     async def getconfig(self, msg):
         await self.sender.sendDocument(open(pyconfig.get('config_file')))
