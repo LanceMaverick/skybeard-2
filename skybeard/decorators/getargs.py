@@ -27,10 +27,10 @@ def getargs(return_string=None):
             except TypeError as exception:
                 # TODO have configurable messages when args are not enough
                 err_msg = exception.args[0]
-                if "missing" in err_msg:
+                if err_msg.startswith(f.__name__+"() missing"):
                     text = err_msg.replace("get_args() ", "")
                     text = text[0].upper() + text[1:]
-                elif "takes" in err_msg:
+                elif err_msg.startswith(f.__name__+"() takes"):
                     args_expected, args_given = re.findall(r"\d", err_msg)
                     args_given = int(args_given) - 2
                     args_expected = int(args_expected) - 2
@@ -40,6 +40,7 @@ def getargs(return_string=None):
                     # Else, it's not a problem with the function arguments
                     raise exception
 
+                beard.logger.debug("Exception message was: {}".format(err_msg))
                 await beard.sender.sendMessage(text)
                 return
 
