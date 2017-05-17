@@ -30,12 +30,15 @@ def getargs(return_string=None):
                 if "missing" in err_msg:
                     text = err_msg.replace("get_args() ", "")
                     text = text[0].upper() + text[1:]
-                else:
+                elif "takes" in err_msg:
                     args_expected, args_given = re.findall(r"\d", err_msg)
                     args_given = int(args_given) - 2
                     args_expected = int(args_expected) - 2
                     text = "Too many arguments given. (got {}, expected {})".format(
                         args_given, args_expected)
+                else:
+                    # Else, it's not a problem with the function arguments
+                    raise exception
 
                 await beard.sender.sendMessage(text)
                 return
