@@ -5,7 +5,12 @@ from skybeard.beards import BeardChatHandler, Beard, SlashCommand
 from skybeard.mixins import PaginatorMixin
 from skybeard.utils import embolden, italisize
 
-import config
+# import config
+import pyconfig
+import yaml
+
+config = yaml.load(open(pyconfig.get('config_file')))
+
 
 # TODO neaten the logic so fetching and formatting are truly separate again
 async def fetch_user_help():
@@ -122,7 +127,7 @@ class Help(telepot.aio.helper.ChatHandler):
         await self.sender.sendMessage(get_all_cmd_helps(), parse_mode="HTML")
 
 
-def create_help(config):
+def create_help():
 
     class BeardedHelp(Help, PaginatorMixin, BeardChatHandler):
         """Beard for interfacing help functionality with telegram"""
