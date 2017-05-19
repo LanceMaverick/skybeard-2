@@ -21,7 +21,7 @@ class Database(BeardChatHandler):
         logger.debug("Creating BeardDBTable.")
         self.test_table = BeardDBTable(self, 'test')
 
-    @onerror
+    @onerror()
     async def write_to_db(self, msg):
         random_number = random.random()
         await self.sender.sendMessage(
@@ -29,7 +29,7 @@ class Database(BeardChatHandler):
         with self.test_table as table:
             table.insert(dict(random_number=random_number))
 
-    @onerror
+    @onerror()
     async def last_written_to_db(self, msg):
         with self.test_table as table:
             for x in table.all():

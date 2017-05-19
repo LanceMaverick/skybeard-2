@@ -11,13 +11,14 @@ def admin(f):
     # elif f_or_text is None:
     #     return partial(admin, **kwargs)
 
-    @wraps(f)
-    # async def g(beard, *fargs, **fkwargs):
-    async def g(beard, msg, *fargs, **fkwargs):
-        if msg['from']['id'] in pyconfig.get('admins'):
-            return await f(beard, msg, *fargs, **fkwargs)
-        else:
-            return await beard.sender.sendMessage(
-                "This command can only be run by an admin")
-
-    return g
+    def wrapper(f):
+        @wraps(f)
+        # async def g(beard, *fargs, **fkwargs):
+        async def g(beard, msg, *fargs, **fkwargs):
+            if msg['from']['id'] in pyconfig.get('admins'):
+                return await f(beard, msg, *fargs, **fkwargs)
+            else:
+                return await beard.sender.sendMessage(
+                    "This command can only be run by an admin")
+        return g
+    return wrapper
