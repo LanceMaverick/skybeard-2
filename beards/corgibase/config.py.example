@@ -1,7 +1,0 @@
-#Please fill in the information below to access the reddit API
-
-client_id = ''
-client_secret = '',
-password = ''
-user_agent = ''
-username = ''
