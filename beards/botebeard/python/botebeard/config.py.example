@@ -1,8 +1,0 @@
-#Get the app_id from the wargaming developer room
-#https://developers.wargaming.net/
-
-app_id = ''
-region = 'eu'
-language = 'en'
-
-
