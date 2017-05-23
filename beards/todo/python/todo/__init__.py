@@ -24,7 +24,7 @@ class Todo(BeardChatHandler):
         logger.debug("Creating BeardDBTable.")
         self.todo_table = BeardDBTable(self, 'todos')
 
-    @onerror
+    @onerror()
     async def add_todo(self, msg):
         u_id = msg['from']['id']
         args = get_args(msg)
@@ -65,7 +65,7 @@ class Todo(BeardChatHandler):
         items = [match for match in matches]
         return items
 
-    @onerror
+    @onerror()
     async def get_todo(self, msg):
         u_id = msg['from']['id']
         items = await self._get_user_items(u_id)
@@ -77,7 +77,7 @@ class Todo(BeardChatHandler):
             text = 'TODO list. Click an entry to delete it',
             reply_markup = keyboard)
 
-    @onerror
+    @onerror()
     async def clear_todo(self, msg):
         await self.sender.sendMessage('Are you sure you want to clear your to-do list? (yes/no)')
         reply = await self.listener.wait()
@@ -91,7 +91,7 @@ class Todo(BeardChatHandler):
         else:
             await self.sender.sendMessage('List was not cleared.')
 
-    @onerror
+    @onerror()
     async def on_callback_query(self, msg):
         query_id, from_id, query_data = glance(msg, flavor='callback_query')
         match = None

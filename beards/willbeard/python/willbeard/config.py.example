@@ -1,6 +1,0 @@
-server_url = "https://willbeddow.com"
-credentials = dict(username='', password = '')
-
-#if the queries contain any words in here,
-#the request will be blocked
-filter_words = []

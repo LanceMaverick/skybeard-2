@@ -219,7 +219,7 @@ class BeardChatHandler(telepot.aio.helper.ChatHandler, metaclass=Beard):
         super().on_close(e)
 
     async def __onerror__(self, e):
-        """Runs when functions decorated with @onerror except.
+        """Runs when functions decorated with @onerror() except.
 
         Useful for emitting debug crash logs. Can be overridden to use custom
         error tracking (e.g. telegramming the author of the beard when a crash
