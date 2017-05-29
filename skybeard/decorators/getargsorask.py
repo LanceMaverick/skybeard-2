@@ -11,7 +11,7 @@ def getargsorask(vars_n_qs):
     for the same way askfor asks for things.
 
     """
-    def wrapper(f):
+    def _getargsorask_wrapper(f):
         @wraps(f)
         async def g(beard, msg):
             args = get_args(msg)
@@ -27,4 +27,4 @@ def getargsorask(vars_n_qs):
 
             await f(beard, msg, **kwargs)
         return g
-    return wrapper
+    return _getargsorask_wrapper

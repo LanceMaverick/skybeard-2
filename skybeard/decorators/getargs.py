@@ -15,7 +15,7 @@ def getargs(return_string=None):
     If arguments are not provided, gives standard error messages.
 
     """
-    def wrapper(f):
+    def _getargs_wrapper(f):
         @wraps(f)
         async def g(beard, msg):
             args = get_args(msg, return_string=return_string)
@@ -46,4 +46,4 @@ def getargs(return_string=None):
 
         return g
 
-    return wrapper
+    return _getargs_wrapper

@@ -18,7 +18,7 @@ def onerror(text=None, **kwargs):
     beard.__onerror__(exception).
     """
 
-    def wrapper(f):
+    def _onerror_wrapper(f):
         @wraps(f)
         async def g(beard, *fargs, **fkwargs):
             try:
@@ -34,4 +34,4 @@ def onerror(text=None, **kwargs):
                 raise e
 
         return g
-    return wrapper
+    return _onerror_wrapper
