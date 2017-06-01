@@ -1,0 +1,5 @@
+skybeard:
+    build: .
+    # From https://docs.docker.com/compose/compose-file/#volumes
+    command: python main.py -k !!!YOUR KEY GOES HERE!!!
+
