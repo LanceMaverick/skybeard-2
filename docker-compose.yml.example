@@ -1,5 +1,7 @@
 skybeard:
     build: .
-    # From https://docs.docker.com/compose/compose-file/#volumes
-    command: python main.py -k !!!YOUR KEY GOES HERE!!!
-
+    environment:
+      - TG_BOT_TOKEN=YOURKEYGOESHERE
+    command: /run_on_docker.sh
+    volumes:
+      - .:/code
