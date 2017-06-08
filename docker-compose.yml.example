@@ -1,7 +1,15 @@
 skybeard:
     build: .
     environment:
-      - TG_BOT_TOKEN=YOURKEYGOESHERE
-    command: /run_on_docker.sh
+      - TG_BOT_TOKEN=YOUR_TOKEN_GOES_HERE
+      - SKYBEARD_CONFIG=config.docker.yml.example
+    command: ./code/run_on_docker.sh
+    user: skybeard
     volumes:
-      - .:/code
+      # This is where the code is hosted
+      - .:/home/skybeard/code
+      # These should be unique per bot. If they are not, database information
+      # and python packages will be shared between bots.
+      - skybeard_virtualenv:/home/skybeard/skybeard_virtualenv:z
+      - skybeard_db:/home/skybeard/db:z
+      - skybeard_db_binary_entries:/home/skybeard/db_binary_entries:z

@@ -223,7 +223,9 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Skybeard hails you!')
 
     parser.add_argument('-k', '--key', default=os.environ.get('TG_BOT_TOKEN'))
-    parser.add_argument('-c', '--config-file', default=os.path.abspath("config.yml"))
+    parser.add_argument('-c', '--config-file',
+                        default=(os.environ['SKYBEARD_CONFIG'] or
+                                 os.path.abspath("config.yml")))
     parser.add_argument('--no-help', action='store_true')
     parser.add_argument('-d', '--debug', action='store_const', dest="loglevel",
                         const=logging.DEBUG, default=logging.INFO)
