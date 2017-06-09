@@ -103,9 +103,9 @@ def load_beard(beard_name, possible_dirs):
                 pass
 
         # TODO make this a much better exception
-        if module:
-            return
-        else:
+        try:
+            logger.debug("Got module: {}".format(module))
+        except UnboundLocalError:
             raise Exception("No beard found! Looked in: {}. Trying to find: {}".format(possible_dirs, beard_name))
 
     foo = importlib.util.module_from_spec(module_spec)
