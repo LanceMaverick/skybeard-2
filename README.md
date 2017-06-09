@@ -24,7 +24,14 @@ cp config.py.example config.py
 
 To run skybeard define your key in the environment variable `$TG_BOT_TOKEN` or as an argument with `-k` and run `main.py`. this can be done easily e.g.:
 
-    ./main.py -k 99121185:RUE-UAa7dsEaagAKkysPDjqa2X7KxX48e 
+    ./main.py -k 99121185:RUE-ObViouSlyFakeKeyTHaThaSbEEnmad 
+
+## Testing skybeard
+To test that your skybeard is running out of the box, use the test config like so:
+
+    ./main.py -k 99121185:RUE-ObViouSlyFakeKeyTHaThaSbEEnmadEuP -c config.tests.yml
+    
+and type `/help` to see the commands available.
 
 ## Skybeard's many beards
 Skybeard source documentation: http://skybeard-2.readthedocs.io/en/latest/
