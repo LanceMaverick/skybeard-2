@@ -21,9 +21,9 @@ def getargs(return_string=None):
             args = get_args(msg, return_string=return_string)
             try:
                 if isinstance(args, str):
-                    await f(beard, msg, args)
+                    return await f(beard, msg, args)
                 else:
-                    await f(beard, msg, *args)
+                    return await f(beard, msg, *args)
             except TypeError as exception:
                 # TODO have configurable messages when args are not enough
                 err_msg = exception.args[0]

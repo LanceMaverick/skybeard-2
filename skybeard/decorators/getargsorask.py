@@ -25,6 +25,6 @@ def getargsorask(vars_n_qs):
                     resp = await beard.listener.wait()
                     kwargs[var] = resp['text']
 
-            await f(beard, msg, **kwargs)
+            return await f(beard, msg, **kwargs)
         return g
     return _getargsorask_wrapper
