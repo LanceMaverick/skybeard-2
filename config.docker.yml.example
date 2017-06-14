@@ -1,0 +1,31 @@
+beard_paths:
+  - beards/
+  - beard_cache/
+  - examples/
+  - integration_test_beards/
+
+beards:
+  - askfor
+  - database
+  - debugonlyexample
+  - config_helper
+  # Integration test beards
+  - different_name_inside
+  - oldstyle_beard
+
+stache_paths: 
+  - moustaches
+
+staches:
+  - postcats
+
+db_url: sqlite:///../db/skybeard-2.db
+db_bin_path: ../db_binary_entries/
+
+admins:
+  [
+  [Nathanael Farley, 89593615],
+  ]
+
+host: 0.0.0.0
+port: 8000

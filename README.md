@@ -20,6 +20,20 @@ You will then need to make a `config.py`. An example `config.py` is provided so 
 cp config.py.example config.py
 ```
 
+## Installation with docker
+This method is currently in beta. It requires docker-compose.
+
+```
+cp docker-compose.yml.example docker-compose.yml
+```
+then replace `YOUR_TOKEN_GOES_HERE` in `docker-compose.yml` with your token. Then run
+
+```
+docker-compose up --build
+```
+
+And skybeard will be (hopefully) running!
+
 ## Running Skybeard
 
 To run skybeard define your key in the environment variable `$TG_BOT_TOKEN` or as an argument with `-k` and run `main.py`. this can be done easily e.g.:

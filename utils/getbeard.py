@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 import argparse
 import yaml
+import os
+from os.path import join
 from pathlib import Path
 
 import git
@@ -26,9 +28,12 @@ def download_beard(beard_name, upgrade):
     git_ = git.Git("beard_cache")
     print("Attempting to clone from {}...".format(beard_details['git_url']))
     try:
-        git_.clone(beard_details['git_url'])
+        repo_dir = join("beard_cache", beard_name)
+        os.makedirs(repo_dir)
+        repo = git.Repo()
+        repo.clone_from(beard_details['git_url'], repo_dir)
         print("Done!")
-    except git.GitCommandError:
+    except FileExistsError:
         repo = git.Repo("beard_cache/{}".format(beard_name))
         if upgrade:
             print("Updating repo")

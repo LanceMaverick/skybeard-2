@@ -103,9 +103,9 @@ def load_beard(beard_name, possible_dirs):
                 pass
 
         # TODO make this a much better exception
-        if module:
-            return
-        else:
+        try:
+            logger.debug("Got module: {}".format(module))
+        except UnboundLocalError:
             raise Exception("No beard found! Looked in: {}. Trying to find: {}".format(possible_dirs, beard_name))
 
     foo = importlib.util.module_from_spec(module_spec)
@@ -223,7 +223,9 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Skybeard hails you!')
 
     parser.add_argument('-k', '--key', default=os.environ.get('TG_BOT_TOKEN'))
-    parser.add_argument('-c', '--config-file', default=os.path.abspath("config.yml"))
+    parser.add_argument('-c', '--config-file',
+                        default=(os.environ.get('SKYBEARD_CONFIG') or
+                                 os.path.abspath("config.yml")))
     parser.add_argument('--no-help', action='store_true')
     parser.add_argument('-d', '--debug', action='store_const', dest="loglevel",
                         const=logging.DEBUG, default=logging.INFO)
