@@ -1,3 +1,4 @@
-machine:
-  python:
-    version: pypy-5.0.1
+dependencies:
+  override:
+    - pip install tox tox-pyenv
+    - pyenv local 3.5.2 3.6.0
