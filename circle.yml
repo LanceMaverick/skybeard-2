@@ -1,3 +1,3 @@
 machine:
   python:
-    version: pypy-3.5.2
+    version: pypy-5.0.1
