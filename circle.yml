@@ -1,5 +1,5 @@
 machine:
   post:
-    - pyenv global 3.5.2
+    - pyenv global 3.6.0
     
     
