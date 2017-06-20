@@ -2,15 +2,15 @@
 properly before the bot is run."""
 import unittest
 import importlib
+import pyconfig
 from skybeard.utils import PythonPathContext
 
-import config
 
 class TestConfig(unittest.TestCase):
     def test_import_all_beards_return_None(self):
-        for path in config.beard_paths:
+        for path in pyconfig.get('beard_paths'):
             with PythonPathContext(path):
-                for beard in config.beards:
+                for beard in pyconfig.get('beards'):
                     try:
                         importlib.import_module(beard)
                     except ImportError:
@@ -22,7 +22,7 @@ class TestConfig(unittest.TestCase):
 
         successfully_imported_modules = []
         import_exceptions = []
-        for beard in config.beards:
+        for beard in pyconfig.get('beards'):
             try:
                 mod = importlib.import_module(beard)
                 successfully_imported_modules.append(mod)
