@@ -5,7 +5,7 @@ dependencies:
     - pyenv local 3.5.2 3.6.0
     - pip3 install tox tox-pyenv nose
     - pip3 install -r requirements.txt
-
+    
 test:
   override:
     - tox
