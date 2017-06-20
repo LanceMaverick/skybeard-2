@@ -11,7 +11,7 @@ from skybeard.utils import PythonPathContext
 class TestConfig(unittest.TestCase):
     def test_import_all_beards_return_None(self):
 
-        pyconfig.set('config_file', os.path.abspath('config.yml'))
+        pyconfig.set('config_file', os.path.abspath('config.yml.example'))
         with open(pyconfig.get('config_file')) as config_file:
             for k, v in yaml.load(config_file).items():
                 pyconfig.set(k, v)
