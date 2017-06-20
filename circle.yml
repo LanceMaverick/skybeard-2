@@ -1,4 +1,11 @@
 dependencies:
   override:
-    - pip install tox tox-pyenv
+    - pyenv install 3.5.2 -s
+    - pyenv install 3.6.0 -s
     - pyenv local 3.5.2 3.6.0
+    - pip3 install tox tox-pyenv nose
+    - pip3 install -r requirements.txt
+    
+test:
+  override:
+    - tox

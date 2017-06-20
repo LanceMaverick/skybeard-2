@@ -9,7 +9,6 @@ from skybeard.utils import embolden, italisize
 import pyconfig
 import yaml
 
-config = yaml.load(open(pyconfig.get('config_file')))
 
 
 # TODO neaten the logic so fetching and formatting are truly separate again
@@ -83,51 +82,52 @@ def get_all_cmd_helps():
     return "\n".join(str_list)
 
 
-class Help(telepot.aio.helper.ChatHandler):
-
-    async def send_help(self, msg):
-        """sends the user a combined help message for all plug-ins"""
-        retstr = ""
-        try:
-            retstr += config.__userhelp__
-        except AttributeError:
-            retstr += ("My help message is unconfigured. To display "
-                       "something here, add a docstring to my config.py.")
-
-        userhelps = await fetch_user_help()
-        userhelps = await format_user_helps(userhelps)
-        retstr += "\n\n{}".format(userhelps)
-        await self.sender.sendMessage(retstr, parse_mode='html')
-
-    async def send_paginated_help(self, msg):
-        """sends the user a combined help message for all plug-ins"""
-        retstr = ""
-        try:
-            retstr += config.__userhelp__
-        except AttributeError:
-            retstr += ("My help message is unconfigured. To display "
-                       "something here, add a docstring to my config.py.")
-
-        userhelps = await fetch_user_help()
-        userhelps = await format_user_helps_paginated(userhelps)
-
-        async def identity(x):
-            return x
-
-        await self.send_paginated_message(userhelps, identity)
-        # retstr += "\n\n{}".format(userhelps)
-        # await self.sender.sendMessage(retstr, parse_mode='html')
-
-    async def cmd_helps(self, msg):
-        """sends the user a formatted list of commands for easy registering with
-        botfather"""
-        await self.sender.sendMessage(
-            "Forward the following to the BotFather when he asks for your "
-            "list of commands.")
-        await self.sender.sendMessage(get_all_cmd_helps(), parse_mode="HTML")
-
-
+# TODO clean up this function!
 def create_help():
+    config = yaml.load(open(pyconfig.get('config_file')))
+
+    class Help(telepot.aio.helper.ChatHandler):
+
+        async def send_help(self, msg):
+            """sends the user a combined help message for all plug-ins"""
+            retstr = ""
+            try:
+                retstr += config.__userhelp__
+            except AttributeError:
+                retstr += ("My help message is unconfigured. To display "
+                        "something here, add a docstring to my config.py.")
+
+            userhelps = await fetch_user_help()
+            userhelps = await format_user_helps(userhelps)
+            retstr += "\n\n{}".format(userhelps)
+            await self.sender.sendMessage(retstr, parse_mode='html')
+
+        async def send_paginated_help(self, msg):
+            """sends the user a combined help message for all plug-ins"""
+            retstr = ""
+            try:
+                retstr += config.__userhelp__
+            except AttributeError:
+                retstr += ("My help message is unconfigured. To display "
+                        "something here, add a docstring to my config.py.")
+
+            userhelps = await fetch_user_help()
+            userhelps = await format_user_helps_paginated(userhelps)
+
+            async def identity(x):
+                return x
+
+            await self.send_paginated_message(userhelps, identity)
+            # retstr += "\n\n{}".format(userhelps)
+            # await self.sender.sendMessage(retstr, parse_mode='html')
+
+        async def cmd_helps(self, msg):
+            """sends the user a formatted list of commands for easy registering with
+            botfather"""
+            await self.sender.sendMessage(
+                "Forward the following to the BotFather when he asks for your "
+                "list of commands.")
+            await self.sender.sendMessage(get_all_cmd_helps(), parse_mode="HTML")
 
     class BeardedHelp(Help, PaginatorMixin, BeardChatHandler):
         """Beard for interfacing help functionality with telegram"""

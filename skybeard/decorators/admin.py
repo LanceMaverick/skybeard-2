@@ -2,7 +2,7 @@ from functools import wraps
 import pyconfig
 
 
-def admin(f):
+def admin():
     """A decorator for checking if the sender of a message
     is in the admins list of config.py. Will not call the
     coro if not"""

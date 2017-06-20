@@ -48,8 +48,11 @@ def load_stache(stache_name, possible_dirs):
         path = Path(dir_).resolve()
         python_path = path.parent
         with PythonPathContext(str(python_path)):
-            module_spec = importlib.util.find_spec(
-                "{}.{}".format(str(find_last_child(path)), stache_name))
+            stache_path = find_last_child(path) / stache_name
+            stache_module = "{}.{}".format(str(find_last_child(path)), stache_name)
+            module_spec = importlib.util.spec_from_file_location(
+                    stache_module,
+                    "{}.py".format(stache_path))
 
             if module_spec:
                 foo = importlib.util.module_from_spec(module_spec)
@@ -100,9 +103,9 @@ def load_beard(beard_name, possible_dirs):
                 pass
 
         # TODO make this a much better exception
-        if module:
-            return
-        else:
+        try:
+            logger.debug("Got module: {}".format(module))
+        except UnboundLocalError:
             raise Exception("No beard found! Looked in: {}. Trying to find: {}".format(possible_dirs, beard_name))
 
     foo = importlib.util.module_from_spec(module_spec)
@@ -116,6 +119,7 @@ def main():
     else:
         beards_to_load = pyconfig.get('beards')
 
+    
     for stache in pyconfig.get('staches'):
         load_stache(stache, pyconfig.get('stache_paths'))
 
@@ -219,7 +223,9 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Skybeard hails you!')
 
     parser.add_argument('-k', '--key', default=os.environ.get('TG_BOT_TOKEN'))
-    parser.add_argument('-c', '--config-file', default=os.path.abspath("config.yml"))
+    parser.add_argument('-c', '--config-file',
+                        default=(os.environ.get('SKYBEARD_CONFIG') or
+                                 os.path.abspath("config.yml")))
     parser.add_argument('--no-help', action='store_true')
     parser.add_argument('-d', '--debug', action='store_const', dest="loglevel",
                         const=logging.DEBUG, default=logging.INFO)
