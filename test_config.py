@@ -1,5 +1,7 @@
 """The purpose of this test is too test that the config and beards imports
 properly before the bot is run."""
+import os
+import yaml
 import unittest
 import importlib
 import pyconfig
@@ -8,6 +10,16 @@ from skybeard.utils import PythonPathContext
 
 class TestConfig(unittest.TestCase):
     def test_import_all_beards_return_None(self):
+
+        pyconfig.set('config_file', os.path.abspath('config.yml'))
+        with open(pyconfig.get('config_file')) as config_file:
+            for k, v in yaml.load(config_file).items():
+                pyconfig.set(k, v)
+        beard_paths = pyconfig.get('beard_paths')
+        pyconfig.set('beard_paths', [os.path.expanduser(x) for x in beard_paths])
+        stache_paths = pyconfig.get('stache_paths')
+        pyconfig.set('stache_paths', [os.path.expanduser(x) for x in stache_paths])
+
         for path in pyconfig.get('beard_paths'):
             with PythonPathContext(path):
                 for beard in pyconfig.get('beards'):
@@ -34,20 +46,5 @@ class TestConfig(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    pyconfig.set('config_file', os.path.abspath('config.yml'))
-    with open(pyconfig.get('config_file')) as config_file:
-        for k, v in yaml.load(config_file).items():
-            pyconfig.set(k, v)
-    beard_paths = pyconfig.get('beard_paths')
-    pyconfig.set('beard_paths', [os.path.expanduser(x) for x in beard_paths])
-    stache_paths = pyconfig.get('stache_paths')
-    pyconfig.set('stache_paths', [os.path.expanduser(x) for x in stache_paths])
-
-
-    pyconfig.set('loglevel', parsed.loglevel)
-    pyconfig.set('start_server', parsed.start_server)
-    pyconfig.set('no_auto_pip', parsed.no_auto_pip)
-    pyconfig.set('auto_pip_upgrade', parsed.auto_pip_upgrade)
-    pyconfig.set('admins', [a[1] for a in pyconfig.get('admins')])
 
     unittest.main()
