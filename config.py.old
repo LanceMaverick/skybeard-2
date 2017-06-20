@@ -1,0 +1,62 @@
+import os
+
+from autoloaders import Git
+
+beard_paths = [
+    "beards/",
+    "beard_cache/",
+    "examples/",
+    # Beards can come from anywhere!
+    os.path.expanduser("~/git/"),
+    # Even from git!
+    #Git("https://github.com/nasfarley88/pdfpreviewbeard.git"),
+]
+
+# Beards can be specified as "all" which will attempt to load everything found
+# in beard_paths or can be specified as a list of strings of which beards to
+# load
+# beards = "all"
+beards = [
+    "askfor",
+    "debugonlyexample",
+    # "postcats",
+    # "xkcdbeard",
+    #"listbeard",
+    #"relay_beard",
+    # "repo_helper",
+    #"except_on_purpose",
+    # "teleplot",
+    #"githubbeard",
+    #"debugbeard",
+    #"dicebeard",
+    #"BabyFeederBeard",
+    # "namedvotebeard",
+    # "nth_home_beard",
+#    "pdfpreviewbeard", # From git (above)
+]
+
+stache_paths = [
+    "moustaches",
+]
+
+# staches = "all"
+staches = [
+    "postcats",
+]
+
+db_url = "sqlite:///skybeard-2.db"
+db_bin_path = "./db_binary_entries"
+
+#put yourself, and anyone else you wish to, as an admin
+admins = [
+    ("Nathanael Farley", 89593615)
+        ]
+
+#web server config
+host = '0.0.0.0'
+port = 8000
+
+__doc__ = """This is sample documentation. Please update in your config.py!
+
+Current plugins enabled: {}""".format(beards)
+

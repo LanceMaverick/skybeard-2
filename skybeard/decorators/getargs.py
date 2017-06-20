@@ -15,15 +15,15 @@ def getargs(return_string=None):
     If arguments are not provided, gives standard error messages.
 
     """
-    def wrapper(f):
+    def _getargs_wrapper(f):
         @wraps(f)
         async def g(beard, msg):
             args = get_args(msg, return_string=return_string)
             try:
                 if isinstance(args, str):
-                    await f(beard, msg, args)
+                    return await f(beard, msg, args)
                 else:
-                    await f(beard, msg, *args)
+                    return await f(beard, msg, *args)
             except TypeError as exception:
                 # TODO have configurable messages when args are not enough
                 err_msg = exception.args[0]
@@ -46,4 +46,4 @@ def getargs(return_string=None):
 
         return g
 
-    return wrapper
+    return _getargs_wrapper
