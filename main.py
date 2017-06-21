@@ -108,9 +108,16 @@ def load_beard(beard_name, possible_dirs):
         except UnboundLocalError:
             raise Exception("No beard found! Looked in: {}. Trying to find: {}".format(possible_dirs, beard_name))
 
-    foo = importlib.util.module_from_spec(module_spec)
-    with PythonPathContext(str(Path(module_spec.origin).parent.parent)):
-        module_spec.loader.exec_module(foo)
+        # This is a little hacky (TODO fix this!) but here goes:
+        #
+        # Basically, if there is an old style beard, then module is defined. If
+        # not, then it's new style beard time, so import is needed.
+    try:
+        assert module
+    except NameError:
+        foo = importlib.util.module_from_spec(module_spec)
+        with PythonPathContext(str(Path(module_spec.origin).parent.parent)):
+            module_spec.loader.exec_module(foo)
 
 
 def main():
