@@ -76,6 +76,11 @@ class Filters:
     def document(cls, chat_handler, msg):
         """Filters for sent documents"""
         return "document" in msg
+    
+    @classmethod
+    def photo(cls, chat_handler, msg):
+        """Filters for sent locations"""
+        return "photo" in msg
 
     @classmethod
     def location(cls, chat_handler, msg):

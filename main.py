@@ -119,12 +119,11 @@ def main():
     else:
         beards_to_load = pyconfig.get('beards')
 
-    
     for stache in pyconfig.get('staches'):
         load_stache(stache, pyconfig.get('stache_paths'))
 
     for possible_beard in beards_to_load:
-        # If possible, import the beard through setup_beard.py
+    # If possible, import the beard through setup_beard.py
         load_beard(possible_beard, pyconfig.get('beard_paths'))
 
         # TODO support old style beards?

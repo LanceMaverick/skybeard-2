@@ -4,6 +4,13 @@ import types
 import functools
 from skybeard import decorators
 
+class TestSender:
+    async def sendMessage(self, *args, **kwargs):
+        return True
+
+class TestBeard:
+    def __init__(self):
+        self.sender = TestSender()
 
 class TestSkybeardDecorators(unittest.TestCase):
     def setUp(self):
@@ -27,7 +34,7 @@ class TestSkybeardDecorators(unittest.TestCase):
         async def foo(beard, *args, **kwargs):
             return beard, args, kwargs
 
-        foo_coro = foo(None)
+        foo_coro = foo(TestBeard())
 
         self.assertIsInstance(foo, types.FunctionType)
         self.assertIsInstance(foo_coro, types.CoroutineType)

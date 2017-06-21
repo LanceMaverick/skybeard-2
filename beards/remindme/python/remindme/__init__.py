@@ -28,7 +28,7 @@ class RemindMe(BeardChatHandler):
     async def set_remind_time(self, event):
         await self.sender.sendMessage('When would you like reminding?')
         reply = await self.listener.wait()
-        text = reply['text']
+        text = reply['text'].lower()
         if text.startswith('in'):
             try:
                 txt_split = text.split(' ')
