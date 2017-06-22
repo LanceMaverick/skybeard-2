@@ -10,4 +10,4 @@ test:
   override:
     - tox
     - nose2
-    - ./main.py -k FAKEKEY --dry-run
+    - python3.5 main.py -k FAKEKEY --dry-run
