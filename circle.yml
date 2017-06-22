@@ -4,6 +4,8 @@ dependencies:
     - pyenv install 3.6.0 -s
     - pyenv local 3.5.2 3.6.0
     - pip-3.5 install tox tox-pyenv nose2
+    - pip-3.6 install tox tox-pyenv nose2
+    - pip-3.5 install -r requirements.txt
     - pip-3.6 install -r requirements.txt
     
 test:
