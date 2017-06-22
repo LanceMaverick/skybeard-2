@@ -171,6 +171,16 @@ def main():
         list(delegator_beard_gen(Beard.beards))
     )
 
+    if pyconfig.get('dry_run'):
+        logger.info(
+            "Dry run successful! Exciting normally before getting the loop...")
+
+        # This needs to be done manually as telepot expects you to run the bot
+        telepot.aio.api._pools['default'].close()
+
+        logger.info("So long, and thanks for all the fish!")
+        return
+
     loop = asyncio.get_event_loop()
 
     async def bot_message_loop_and_aiothttp_session():
@@ -241,6 +251,8 @@ if __name__ == '__main__':
                         default=False)
     parser.add_argument('--auto-pip-upgrade', action='store_const', const=True,
                         default=False)
+    parser.add_argument('--dry-run', action='store_const', const=True,
+                        default=False)
 
     parsed = parser.parse_args()
 
@@ -263,6 +275,7 @@ if __name__ == '__main__':
     pyconfig.set('auto_pip_upgrade', parsed.auto_pip_upgrade)
     pyconfig.set('admins', [a[1] for a in pyconfig.get('admins')])
     print(pyconfig.get('admins'))
+    pyconfig.set('dry_run', parsed.dry_run)
 
     logging.basicConfig(
         format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
