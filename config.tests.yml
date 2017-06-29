@@ -6,6 +6,7 @@ beards:
   - debugbeard
   - different_name_inside
   - oldstyle_beard
+  - inline_beard
 
 stache_paths: 
   - moustaches
