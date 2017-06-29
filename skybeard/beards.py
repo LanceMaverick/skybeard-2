@@ -134,7 +134,16 @@ class ThatsNotMineException(Exception):
     pass
 
 
-class BeardChatHandler(telepot.aio.helper.ChatHandler, metaclass=Beard):
+class BeardMethodsMixin:
+    @classmethod
+    def get_name(cls):
+        """Get the name of the beard (e.g. cls.__name__)."""
+        return cls.__name__
+
+
+class BeardChatHandler(telepot.aio.helper.ChatHandler,
+                       BeardMethodsMixin,
+                       metaclass=Beard):
     """Chat handler for beards.
 
     This is the primary interface between skybeard and any plug-in. The plug-in

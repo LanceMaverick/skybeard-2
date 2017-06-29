@@ -15,6 +15,7 @@ import telepot
 from telepot.aio.delegate import (per_chat_id,
                                   create_open,
                                   pave_event_space,
+                                  per_inline_from_id,
                                   include_callback_query_chat_id)
 from skybeard.beards import Beard, BeardChatHandler, SlashCommand
 from skybeard.help import create_help
@@ -31,7 +32,11 @@ class DuplicateCommand(Exception):
 
 def delegator_beard_gen(beards):
     for beard in beards:
-        if hasattr(beard, "on_callback_query"):
+        # TODO make based on class rather than methods
+        if hasattr(beard, "on_inline_query"):
+            yield pave_event_space()(
+                per_inline_from_id(), create_open, beard, timeout=10)
+        elif hasattr(beard, "on_callback_query"):
             yield include_callback_query_chat_id(pave_event_space())(
                     per_chat_id(), create_open, beard, timeout=beard._timeout)
         else:

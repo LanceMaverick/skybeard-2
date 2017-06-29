@@ -1,0 +1,1 @@
+A beard named inline_beard for skybeard-2.
