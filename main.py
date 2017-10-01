@@ -126,6 +126,13 @@ def main():
     else:
         beards_to_load = pyconfig.get('beards')
 
+    # NOTE: loading beards as modules is currently in alpha
+    #
+    # It would be nice to one day only import beards this way. So much less
+    # code to maintain.
+    for beard_module in pyconfig.get('beards_as_modules'):
+        importlib.import_module(beard_module)
+
     for stache in pyconfig.get('staches'):
         load_stache(stache, pyconfig.get('stache_paths'))
 
@@ -267,7 +274,6 @@ if __name__ == '__main__':
     pyconfig.set('beard_paths', [os.path.expanduser(x) for x in beard_paths])
     stache_paths = pyconfig.get('stache_paths')
     pyconfig.set('stache_paths', [os.path.expanduser(x) for x in stache_paths])
-
 
     pyconfig.set('loglevel', parsed.loglevel)
     pyconfig.set('start_server', parsed.start_server)
