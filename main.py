@@ -130,7 +130,7 @@ def main():
     #
     # It would be nice to one day only import beards this way. So much less
     # code to maintain.
-    for beard_module in pyconfig.get('beards_as_modules'):
+    for beard_module in pyconfig.get('beards_as_modules', []):
         importlib.import_module(beard_module)
 
     for stache in pyconfig.get('staches'):
