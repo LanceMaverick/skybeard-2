@@ -8,6 +8,12 @@ config = {
     'version': '2.1',
     'packages': ['skybeard'],
     'name': 'skybeard',
+    'install_requires': [x.strip() for x in open("requirements.txt").readlines()],
+    'entry_points': {
+        'console_scripts': [
+            'skybeard = skybeard.main:if__name____main__',
+        ],
+    }
 }
 
 setup(**config)

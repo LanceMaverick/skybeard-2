@@ -241,8 +241,8 @@ def main():
     # loop.run_forever()
 
 
-if __name__ == '__main__':
-
+# if __name__ == '__main__':
+def if__name____main__():
     parser = argparse.ArgumentParser(description='Skybeard hails you!')
 
     parser.add_argument('-k', '--key', default=os.environ.get('TG_BOT_TOKEN'))
