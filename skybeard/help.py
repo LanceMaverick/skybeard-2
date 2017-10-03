@@ -84,7 +84,10 @@ def get_all_cmd_helps():
 
 # TODO clean up this function!
 def create_help():
-    config = yaml.load(open(pyconfig.get('config_file')))
+    try:
+        config = yaml.load(open(pyconfig.get('config_file')))
+    except TypeError:
+        config = {}
 
     class Help(telepot.aio.helper.ChatHandler):
 

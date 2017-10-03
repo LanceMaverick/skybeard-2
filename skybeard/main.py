@@ -128,7 +128,7 @@ def main():
     if pyconfig.get('beards') == "all":
         beards_to_load = all_possible_beards(pyconfig.get('beard_paths'))
     else:
-        beards_to_load = pyconfig.get('beards')
+        beards_to_load = pyconfig.get('beards', [])
 
     #########################
     # Alpha beard 3.0 stuff #
@@ -281,8 +281,7 @@ def if__name____main__():
 
     parser.add_argument('-k', '--key', default=os.environ.get('TG_BOT_TOKEN'))
     parser.add_argument('-c', '--config-file',
-                        default=(os.environ.get('SKYBEARD_CONFIG') or
-                                 os.path.abspath("config.yml")))
+                        default=(os.environ.get('SKYBEARD_CONFIG')))
     parser.add_argument('--no-help', action='store_true')
     parser.add_argument('-d', '--debug', action='store_const', dest="loglevel",
                         const=logging.DEBUG, default=logging.INFO)
@@ -290,6 +289,8 @@ def if__name____main__():
                         default=False)
     parser.add_argument('--no-auto-pip', action='store_const', const=True,
                         default=False)
+    parser.add_argument('--beards', nargs='+', default=None)
+    parser.add_argument('--beards-as-modules', nargs='+', default=None)
     parser.add_argument('--pip-installs', nargs='+', default=None)
     parser.add_argument('--auto-pip-upgrade', action='store_const', const=True,
                         default=False)
@@ -298,13 +299,21 @@ def if__name____main__():
 
     parsed = parser.parse_args()
 
-    pyconfig.set('config_file', os.path.abspath(parsed.config_file))
+    if parsed.config_file:
+        pyconfig.set('config_file', os.path.abspath(parsed.config_file))
 
-    # Load the config file and put it into pyconfig
-    with open(pyconfig.get('config_file')) as config_file:
-        for k, v in yaml.load(config_file).items():
-            pyconfig.set(k, v)
+    # If there is a config file, load it and put it into pyconfig
+    if pyconfig.get('config_file'):
+        with open(pyconfig.get('config_file')) as config_file:
+            for k, v in yaml.load(config_file).items():
+                pyconfig.set(k, v)
 
+    if parsed.beards:
+        pyconfig.set('beards', parsed.beards)
+    elif not pyconfig.get('beards'):
+        pyconfig.set('beards', [])
+    if parsed.beards_as_modules:
+        pyconfig.set('beards_as_modules', parsed.beards_as_modules)
     beard_paths = pyconfig.get('beard_paths', [])
     pyconfig.set('beard_paths', [os.path.expanduser(x) for x in beard_paths])
     stache_paths = pyconfig.get('stache_paths', [])
@@ -317,7 +326,7 @@ def if__name____main__():
     # If there's something on the command line, replace the config value
     if parsed.pip_installs:
         pyconfig.set('pip_installs', parsed.pip_installs)
-    pyconfig.set('admins', [a[1] for a in pyconfig.get('admins')])
+    pyconfig.set('admins', [a[1] for a in pyconfig.get('admins', [])])
     print(pyconfig.get('admins'))
     pyconfig.set('dry_run', parsed.dry_run)
 
@@ -333,7 +342,7 @@ def if__name____main__():
     BeardChatHandler.setup_beards(parsed.key, pyconfig.get('db_url'))
     # pyconfig.set('db_url', config.db_url)
     # pyconfig.set('db_bin_path', config.db_bin_path)
-    if not os.path.exists(pyconfig.get('db_bin_path')):
+    if not os.path.exists(pyconfig.get('db_bin_path', 'skybeard.db')):
         os.mkdir(pyconfig.get('db_bin_path'))
 
     # If the user does not specially request --no-help, set up help command.
