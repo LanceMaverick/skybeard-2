@@ -9,6 +9,7 @@ import importlib
 import argparse
 import pyconfig
 from pathlib import Path
+import subprocess as sp
 
 import yaml
 import telepot
@@ -129,15 +130,45 @@ def main():
     else:
         beards_to_load = pyconfig.get('beards')
 
+    #########################
+    # Alpha beard 3.0 stuff #
+    #########################
+
+    # First, pip install everyyyything that needs it
+    for package in pyconfig.get('pip_installs', []):
+        sp.check_call([
+            'pip',
+            'install',
+            '-e',
+            package
+        ])
+
+    # Now that a load of beards have potentially been installed, we need to
+    # invalidate the caches so that they can be found by importlib.
+    #
+    # TODO: Except this doesn't work right now...
+    importlib.invalidate_caches()
+
     # NOTE: loading beards as modules is currently in alpha
     #
     # It would be nice to one day only import beards this way. So much less
     # code to maintain.
+    failed_imports = []
     for beard_module in pyconfig.get('beards_as_modules', []):
-        importlib.import_module(beard_module)
+        try:
+            importlib.import_module(beard_module)
+        except ImportError:
+            failed_imports.append(beard_module)
 
-    for stache in pyconfig.get('staches'):
-        load_stache(stache, pyconfig.get('stache_paths'))
+    if failed_imports:
+        raise ImportError("Failed to import {}. Try rerunning skybeard.".format(failed_imports))
+
+    #############################
+    # End alpha beard 3.0 stuff #
+    #############################
+
+    for stache in pyconfig.get('staches', []):
+        load_stache(stache, pyconfig.get('stache_paths', []))
 
     for possible_beard in beards_to_load:
     # If possible, import the beard through setup_beard.py
@@ -259,6 +290,7 @@ def if__name____main__():
                         default=False)
     parser.add_argument('--no-auto-pip', action='store_const', const=True,
                         default=False)
+    parser.add_argument('--pip-installs', nargs='+', default=None)
     parser.add_argument('--auto-pip-upgrade', action='store_const', const=True,
                         default=False)
     parser.add_argument('--dry-run', action='store_const', const=True,
@@ -273,15 +305,18 @@ def if__name____main__():
         for k, v in yaml.load(config_file).items():
             pyconfig.set(k, v)
 
-    beard_paths = pyconfig.get('beard_paths')
+    beard_paths = pyconfig.get('beard_paths', [])
     pyconfig.set('beard_paths', [os.path.expanduser(x) for x in beard_paths])
-    stache_paths = pyconfig.get('stache_paths')
+    stache_paths = pyconfig.get('stache_paths', [])
     pyconfig.set('stache_paths', [os.path.expanduser(x) for x in stache_paths])
 
     pyconfig.set('loglevel', parsed.loglevel)
     pyconfig.set('start_server', parsed.start_server)
     pyconfig.set('no_auto_pip', parsed.no_auto_pip)
     pyconfig.set('auto_pip_upgrade', parsed.auto_pip_upgrade)
+    # If there's something on the command line, replace the config value
+    if parsed.pip_installs:
+        pyconfig.set('pip_installs', parsed.pip_installs)
     pyconfig.set('admins', [a[1] for a in pyconfig.get('admins')])
     print(pyconfig.get('admins'))
     pyconfig.set('dry_run', parsed.dry_run)
