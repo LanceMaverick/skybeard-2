@@ -25,6 +25,9 @@ from skybeard.utils import (get_literal_path,
 # import config
 
 
+logger = logging.getLogger(__name__)
+
+
 class DuplicateCommand(Exception):
     pass
 
