@@ -302,6 +302,15 @@ def if__name____main__():
     if parsed.config_file:
         pyconfig.set('config_file', os.path.abspath(parsed.config_file))
 
+    # Load predefined defaults
+    default_config_path = os.path.join(
+        os.path.dirname(__file__),
+        'default_config.yml'
+    )
+    with open(default_config_path) as default_config_file:
+        for k, v in yaml.load(default_config_file).items():
+            pyconfig.set(k, v)
+
     # If there is a config file, load it and put it into pyconfig
     if pyconfig.get('config_file'):
         with open(pyconfig.get('config_file')) as config_file:
@@ -342,7 +351,7 @@ def if__name____main__():
     BeardChatHandler.setup_beards(parsed.key, pyconfig.get('db_url'))
     # pyconfig.set('db_url', config.db_url)
     # pyconfig.set('db_bin_path', config.db_bin_path)
-    if not os.path.exists(pyconfig.get('db_bin_path', 'skybeard.db')):
+    if not os.path.exists(pyconfig.get('db_bin_path')):
         os.mkdir(pyconfig.get('db_bin_path'))
 
     # If the user does not specially request --no-help, set up help command.

@@ -34,6 +34,8 @@ class BeardDBTableBase(object):
         self.kwargs = kwargs
 
     def __enter__(self):
+        assert isinstance(pyconfig.get('db_url'), str),\
+            "Database URL is {}!".format(pyconfig.get('db_url'))
         self.db = dataset.connect(pyconfig.get('db_url'))
         self.db.__enter__()
         self.table = self.db.get_table(self.table_name, **self.kwargs)
