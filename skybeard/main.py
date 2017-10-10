@@ -270,13 +270,9 @@ def main():
             loop.run_until_complete(app.cleanup())
         loop.close()
 
-    # print('Listening ...')
 
-    # loop.run_forever()
-
-
-# if __name__ == '__main__':
 def if__name____main__():
+    """Main script for skybeard."""
     parser = argparse.ArgumentParser(description='Skybeard hails you!')
 
     parser.add_argument('-k', '--key', default=os.environ.get('TG_BOT_TOKEN'))
@@ -289,9 +285,8 @@ def if__name____main__():
                         default=False)
     parser.add_argument('--no-auto-pip', action='store_const', const=True,
                         default=False)
-    parser.add_argument('--beards', nargs='+', default=None)
-    parser.add_argument('--beards-as-modules', nargs='+', default=None)
     parser.add_argument('--pip-installs', nargs='+', default=None)
+    parser.add_argument('--beards-as-modules', nargs='+', default=None)
     parser.add_argument('--auto-pip-upgrade', action='store_const', const=True,
                         default=False)
     parser.add_argument('--dry-run', action='store_const', const=True,
@@ -317,12 +312,9 @@ def if__name____main__():
             for k, v in yaml.load(config_file).items():
                 pyconfig.set(k, v)
 
-    if parsed.beards:
-        pyconfig.set('beards', parsed.beards)
-    elif not pyconfig.get('beards'):
-        pyconfig.set('beards', [])
     if parsed.beards_as_modules:
         pyconfig.set('beards_as_modules', parsed.beards_as_modules)
+
     beard_paths = pyconfig.get('beard_paths', [])
     pyconfig.set('beard_paths', [os.path.expanduser(x) for x in beard_paths])
     stache_paths = pyconfig.get('stache_paths', [])
@@ -342,8 +334,6 @@ def if__name____main__():
     logging.basicConfig(
         format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
         level=pyconfig.get('loglevel'))
-
-    logger = logging.getLogger(__name__)
 
     # Set up the master beard
     # TODO consider making this not a parrt of the BeardChatHandler class now
