@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 import os
+import sys
 import aiohttp
 import asyncio
 import logging
@@ -125,10 +126,12 @@ def load_beard(beard_name, possible_dirs):
 
 
 def main():
-    if pyconfig.get('beards') == "all":
-        beards_to_load = all_possible_beards(pyconfig.get('beard_paths'))
-    else:
-        beards_to_load = pyconfig.get('beards', [])
+    # if pyconfig.get('beards') == "all":
+    #     beards_to_load = all_possible_beards(pyconfig.get('beard_paths'))
+    # else:
+    #     beards_to_load = pyconfig.get('beards', [])
+    beards_to_load = pyconfig.get('beards')
+    sys.path.extend(pyconfig.get('beard_paths'))
 
     #########################
     # Alpha beard 3.0 stuff #
