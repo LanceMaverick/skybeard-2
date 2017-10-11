@@ -13,3 +13,7 @@ So, what's changed? Well, a lot.
   imported every time skybeard is started.
 * Config precidence is as follows: CLI beats config, config beats default
   config.
+* `$TG_BOT_TOKEN` is now `$SKYBEARD_KEY`
+
+### Known issues
+* Environment variables with single values are _always_ parsed as a string so specifying only one beard does not work with `$SKYBEARD_BEARDS_AS_MODULES`

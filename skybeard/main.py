@@ -2,6 +2,7 @@
 import os
 import sys
 import aiohttp
+import shlex
 import asyncio
 import logging
 # import itertools
@@ -278,7 +279,7 @@ def if__name____main__():
     """Main script for skybeard."""
     parser = argparse.ArgumentParser(description='Skybeard hails you!')
 
-    parser.add_argument('-k', '--key', default=os.environ.get('TG_BOT_TOKEN'))
+    parser.add_argument('-k', '--key', default=os.environ.get('SKYBEARD_KEY'))
     parser.add_argument('-c', '--config-file',
                         default=(os.environ.get('SKYBEARD_CONFIG')))
     parser.add_argument('--no-help', action='store_true')
@@ -314,6 +315,16 @@ def if__name____main__():
         with open(pyconfig.get('config_file')) as config_file:
             for k, v in yaml.load(config_file).items():
                 pyconfig.set(k, v)
+
+    # Load things from environment variables
+    logger.info('Parsing environment variables')
+    env_variables = (i for i in os.environ.keys() if i.startswith("SKYBEARD"))
+    for i in env_variables:
+        var = i.replace('SKYBEARD_', '').lower()
+        var_value = shlex.split(os.environ[i])
+        if len(var_value) == 1:
+            var_value = var_value[0]
+        pyconfig.set(var, var_value)
 
     if parsed.beards_as_modules:
         pyconfig.set('beards_as_modules', parsed.beards_as_modules)
