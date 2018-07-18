@@ -7,3 +7,4 @@ stringcase==1.0.6
 GitPython>=2.1.1
 blessings>=1.6
 stringcase==1.0.6
+xar
