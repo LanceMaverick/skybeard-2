@@ -9,4 +9,7 @@ else
 fi
 source ~/skybeard_virtualenv/bin/activate
 cd code
-python main.py
+pip install pip --upgrade
+pip install .
+skybeard
+#python main.py

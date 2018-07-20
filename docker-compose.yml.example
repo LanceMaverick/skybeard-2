@@ -1,7 +1,7 @@
 skybeard:
     build: .
     environment:
-      - TG_BOT_TOKEN=YOUR_TOKEN_GOES_HERE
+      - SKYBEARD_KEY=YOUR_TOKEN_GOES_HERE
       - SKYBEARD_CONFIG=config.docker.yml.example
     command: ./code/run_on_docker.sh
     user: skybeard
