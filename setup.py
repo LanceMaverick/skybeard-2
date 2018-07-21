@@ -1,6 +1,5 @@
 from distutils.core import setup
 from setuptools import find_packages
-from pathlib import Path
 
 config = {
     'description': 'A plugin based telegram bot',
@@ -13,8 +12,8 @@ config = {
         'skybeard.api',
         'skybeard.decorators',
     ],
-    'package_dir': {'skybeard': Path('./skybeard')},
-    'package_data': {'skybeard': [Path('./default_config.yml')]},
+    'package_dir': {'skybeard': './skybeard'},
+    'package_data': {'skybeard': ['default_config.yml']},
     'name': 'skybeard',
     'install_requires': [x.strip() for x in open("requirements.txt").readlines()],
     'entry_points': {
