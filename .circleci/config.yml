@@ -1,0 +1,24 @@
+version: 2
+jobs:
+  build:
+    docker:
+      - image: python:3
+    steps:
+      - checkout
+      - run:
+          name: installing
+          command: |
+              python3 -m venv venv
+              . venv/bin/activate
+              pip install .
+      - run:
+          name: Executing dry run
+          command: |
+              . venv/bin/activate
+              skybeard -k FAKEKEY -c config.yml.example --dry-run
+      - run:
+          name: Running nose2 tests
+          command: |
+            . venv/bin/activate
+            pip install nose2
+            nose2
