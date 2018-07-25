@@ -2,14 +2,16 @@ dependencies:
   override:
     - pyenv install 3.5.2 -s
     - pyenv install 3.6.0 -s
-    - pyenv local 3.5.2 3.6.0
+    - pyenv install 3.7.0a2 -s
+    - pyenv local 3.5.2 3.6.0 3.7.0a2
     - pip3 install tox tox-pyenv nose2
     - pip3 install -r requirements.txt
+    - pip3 install .
     
     
 test:
   override:
     - tox
     - nose2
-    - python3.5 main.py -k FAKEKEY -c config.yml.example --dry-run
+    - skybeard -k FAKEKEY -c config.yml.example --dry-run
     #- python3.6 main.py -k FAKEKEY -c config.yml.example --dry-run

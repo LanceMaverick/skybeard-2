@@ -1,0 +1,18 @@
+# TODO make this proper default config.
+
+beards: []
+beard_paths: []
+
+pip_installs: []
+beards_as_modules: []
+
+stache_paths: []
+staches: []
+
+db_url: sqlite:///skybeard-2.db
+db_bin_path: ./db_binary_entries/
+
+admins: []
+
+host: 127.0.0.1
+port: 83476

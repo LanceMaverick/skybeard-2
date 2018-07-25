@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 import os
+import sys
 import aiohttp
+import shlex
 import asyncio
 import logging
 # import itertools
@@ -9,6 +11,7 @@ import importlib
 import argparse
 import pyconfig
 from pathlib import Path
+import subprocess as sp
 
 import yaml
 import telepot
@@ -23,6 +26,9 @@ from skybeard.utils import (get_literal_path,
                             PythonPathContext)
 
 # import config
+
+
+logger = logging.getLogger(__name__)
 
 
 class DuplicateCommand(Exception):
@@ -121,13 +127,52 @@ def load_beard(beard_name, possible_dirs):
 
 
 def main():
-    if pyconfig.get('beards') == "all":
-        beards_to_load = all_possible_beards(pyconfig.get('beard_paths'))
-    else:
-        beards_to_load = pyconfig.get('beards')
+    # if pyconfig.get('beards') == "all":
+    #     beards_to_load = all_possible_beards(pyconfig.get('beard_paths'))
+    # else:
+    #     beards_to_load = pyconfig.get('beards', [])
+    beards_to_load = pyconfig.get('beards')
+    sys.path.extend(pyconfig.get('beard_paths'))
 
-    for stache in pyconfig.get('staches'):
-        load_stache(stache, pyconfig.get('stache_paths'))
+    #########################
+    # Alpha beard 3.0 stuff #
+    #########################
+
+    # First, pip install everyyyything that needs it
+    for package in pyconfig.get('pip_installs', []):
+        sp.check_call([
+            'pip',
+            'install',
+            '-e',
+            package
+        ])
+
+    # Now that a load of beards have potentially been installed, we need to
+    # invalidate the caches so that they can be found by importlib.
+    #
+    # TODO: Except this doesn't work right now...
+    importlib.invalidate_caches()
+
+    # NOTE: loading beards as modules is currently in alpha
+    #
+    # It would be nice to one day only import beards this way. So much less
+    # code to maintain.
+    failed_imports = []
+    for beard_module in pyconfig.get('beards_as_modules', []):
+        try:
+            importlib.import_module(beard_module)
+        except ImportError:
+            failed_imports.append(beard_module)
+
+    if failed_imports:
+        raise ImportError("Failed to import {}. Try rerunning skybeard.".format(failed_imports))
+
+    #############################
+    # End alpha beard 3.0 stuff #
+    #############################
+
+    for stache in pyconfig.get('staches', []):
+        load_stache(stache, pyconfig.get('stache_paths', []))
 
     for possible_beard in beards_to_load:
     # If possible, import the beard through setup_beard.py
@@ -229,19 +274,14 @@ def main():
             loop.run_until_complete(app.cleanup())
         loop.close()
 
-    # print('Listening ...')
 
-    # loop.run_forever()
-
-
-if __name__ == '__main__':
-
+def if__name____main__():
+    """Main script for skybeard."""
     parser = argparse.ArgumentParser(description='Skybeard hails you!')
 
-    parser.add_argument('-k', '--key', default=os.environ.get('TG_BOT_TOKEN'))
+    parser.add_argument('-k', '--key', default=os.environ.get('SKYBEARD_KEY'))
     parser.add_argument('-c', '--config-file',
-                        default=(os.environ.get('SKYBEARD_CONFIG') or
-                                 os.path.abspath("config.yml")))
+                        default=(os.environ.get('SKYBEARD_CONFIG')))
     parser.add_argument('--no-help', action='store_true')
     parser.add_argument('-d', '--debug', action='store_const', dest="loglevel",
                         const=logging.DEBUG, default=logging.INFO)
@@ -249,6 +289,8 @@ if __name__ == '__main__':
                         default=False)
     parser.add_argument('--no-auto-pip', action='store_const', const=True,
                         default=False)
+    parser.add_argument('--pip-installs', nargs='+', default=None)
+    parser.add_argument('--beards-as-modules', nargs='+', default=None)
     parser.add_argument('--auto-pip-upgrade', action='store_const', const=True,
                         default=False)
     parser.add_argument('--dry-run', action='store_const', const=True,
@@ -256,32 +298,56 @@ if __name__ == '__main__':
 
     parsed = parser.parse_args()
 
-    pyconfig.set('config_file', os.path.abspath(parsed.config_file))
+    if parsed.config_file:
+        pyconfig.set('config_file', os.path.abspath(parsed.config_file))
 
-    # Load the config file and put it into pyconfig
-    with open(pyconfig.get('config_file')) as config_file:
-        for k, v in yaml.load(config_file).items():
+    # Load predefined defaults
+    default_config_path = os.path.join(
+        os.path.dirname(__file__),
+        'default_config.yml'
+    )
+    with open(default_config_path) as default_config_file:
+        for k, v in yaml.load(default_config_file).items():
             pyconfig.set(k, v)
 
-    beard_paths = pyconfig.get('beard_paths')
-    pyconfig.set('beard_paths', [os.path.expanduser(x) for x in beard_paths])
-    stache_paths = pyconfig.get('stache_paths')
-    pyconfig.set('stache_paths', [os.path.expanduser(x) for x in stache_paths])
+    # If there is a config file, load it and put it into pyconfig
+    if pyconfig.get('config_file'):
+        with open(pyconfig.get('config_file')) as config_file:
+            for k, v in yaml.load(config_file).items():
+                pyconfig.set(k, v)
 
+    # Load things from environment variables
+    logger.info('Parsing environment variables')
+    env_variables = (i for i in os.environ.keys() if i.startswith("SKYBEARD"))
+    for i in env_variables:
+        var = i.replace('SKYBEARD_', '').lower()
+        var_value = shlex.split(os.environ[i])
+        if len(var_value) == 1:
+            var_value = var_value[0]
+        pyconfig.set(var, var_value)
+
+    if parsed.beards_as_modules:
+        pyconfig.set('beards_as_modules', parsed.beards_as_modules)
+
+    beard_paths = pyconfig.get('beard_paths', [])
+    pyconfig.set('beard_paths', [os.path.expanduser(x) for x in beard_paths])
+    stache_paths = pyconfig.get('stache_paths', [])
+    pyconfig.set('stache_paths', [os.path.expanduser(x) for x in stache_paths])
 
     pyconfig.set('loglevel', parsed.loglevel)
     pyconfig.set('start_server', parsed.start_server)
     pyconfig.set('no_auto_pip', parsed.no_auto_pip)
     pyconfig.set('auto_pip_upgrade', parsed.auto_pip_upgrade)
-    pyconfig.set('admins', [a[1] for a in pyconfig.get('admins')])
+    # If there's something on the command line, replace the config value
+    if parsed.pip_installs:
+        pyconfig.set('pip_installs', parsed.pip_installs)
+    pyconfig.set('admins', [a[1] for a in pyconfig.get('admins', [])])
     print(pyconfig.get('admins'))
     pyconfig.set('dry_run', parsed.dry_run)
 
     logging.basicConfig(
         format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
         level=pyconfig.get('loglevel'))
-
-    logger = logging.getLogger(__name__)
 
     # Set up the master beard
     # TODO consider making this not a parrt of the BeardChatHandler class now
