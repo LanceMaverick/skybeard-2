@@ -9,5 +9,5 @@ jobs:
           . venv/bin/activate
           pip install .
       - run: |
-        . venv/bin/activate
-        skybeard -k FAKEKEY -c config.yml.example --dry-run
+          . venv/bin/activate
+          skybeard -k FAKEKEY -c config.yml.example --dry-run
