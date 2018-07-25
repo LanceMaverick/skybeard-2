@@ -16,3 +16,9 @@ jobs:
           command: |
               . venv/bin/activate
               skybeard -k FAKEKEY -c config.yml.example --dry-run
+      - run:
+          name: Running nose2 tests
+          command: |
+            . venv/bin/activate
+            pip install nose2
+            nose2
