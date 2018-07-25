@@ -1,14 +1,13 @@
 version: 2
+image: python/3.5
 jobs:
   build:
     steps:
       - checkout
       - command: |
           python3 -m venv venv
-            . venv/bin/activate
-            pip install -r requirements.txt
+          . venv/bin/activate
+          pip install .
       - run:
         . venv/bin/activate
-        python main.py -k FAKEKEY -c config.yml.example --dry-run
-          
-      
+        skybeard -k FAKEKEY -c config.yml.example --dry-run
