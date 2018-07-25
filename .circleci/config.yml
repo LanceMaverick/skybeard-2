@@ -8,6 +8,6 @@ jobs:
           python3 -m venv venv
           . venv/bin/activate
           pip install .
-      - run:
+      - run: |
         . venv/bin/activate
         skybeard -k FAKEKEY -c config.yml.example --dry-run
